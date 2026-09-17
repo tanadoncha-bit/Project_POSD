@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการอุปกรณ์ | AssetTrack IT</title>
+    <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
+</head>
+<body>
+    <button type="button"
+            id="sidebar-toggle"
+            class="sidebar-toggle"
+            aria-label="เปิดเมนู"
+            aria-controls="main-sidebar"
+            aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <aside id="main-sidebar" class="sidebar">
+        <div class="sidebar-brand">
+            <span>AssetTrack IT</span>
+        </div>
+
+        <nav aria-label="เมนูหลัก">
+            <a href="#" class="nav-link">Dashboard</a>
+            <a href="#" class="nav-link active" aria-current="page">Equipment</a>
+            <a href="#" class="nav-link">My Borrowing</a>
+            <a href="#" class="nav-link">Setting</a>
+        </nav>
+    </aside>
+
+    <!-- ใช้แตะเพื่อปิดเมนูบนหน้าจอเล็ก -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <main>
+        <div class="page-heading">
+            <h1>รายการอุปกรณ์</h1>
+            <p class="page-description">ค้นหาและตรวจสอบสถานะอุปกรณ์ IT ที่ต้องการยืม</p>
+        </div>
+
+        <section aria-labelledby="equipment-heading">
+            <div class="section-heading">
+                <div>
+                    <h2 id="equipment-heading">อุปกรณ์ทั้งหมด</h2>
+                    <p>เลือกดูอุปกรณ์ที่ต้องการ</p>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div>
+                    <label for="keyword">ค้นหาอุปกรณ์</label>
+                    <input
+                        type="search"
+                        id="keyword"
+                        name="keyword"
+                        placeholder="ชื่อหรือรหัสอุปกรณ์"
+                    >
+                </div>
+
+                <div>
+                    <label for="status">สถานะ</label>
+                    <select id="status" name="status">
+                        <option value="">ทุกสถานะ</option>
+                        <option value="AVAILABLE">พร้อมยืม</option>
+                        <option value="IN_USE">กำลังใช้งาน</option>
+                        <option value="MAINTENANCE">ซ่อมบำรุง</option>
+                        <option value="DISPOSED">เลิกใช้งาน</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">รหัสอุปกรณ์</th>
+                            <th scope="col">ชื่ออุปกรณ์</th>
+                            <th scope="col">สถานะ</th>
+                            <th scope="col">รายละเอียด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="equipment : ${equipments}">
+                            <td th:text="${equipment.assetCode}"></td>
+                            <td th:text="${equipment.name}"></td>
+                            <td th:text="${equipment.status}"></td>
+                            <td>
+                                <a href="#" th:href="@{/equipment/{id}(id=${equipment.id})}" class="detail-link">ดูรายละเอียด</a>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${equipments == null or #lists.isEmpty(equipments)}">
+                            <td colspan="4" class="empty-state">
+                                <span class="empty-state-icon" aria-hidden="true">▣</span>
+                                <strong>ยังไม่มีรายการอุปกรณ์</strong>
+                                <p>เมื่อมีข้อมูลอุปกรณ์ รายการจะแสดงที่นี่</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../static/js/sidebar.js" th:src="@{/js/sidebar.js}"></script>
+</body>
+</html>
