@@ -1,3 +1,11 @@
+DROP TABLE IF EXISTS return_records;
+DROP TABLE IF EXISTS borrow_items;
+DROP TABLE IF EXISTS borrow_requests;
+DROP TABLE IF EXISTS equipment;
+DROP TABLE IF EXISTS equipment_categories;
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS users;
+
 -- ========== USERS ==========
 CREATE TABLE users (
     id          BIGSERIAL PRIMARY KEY,
