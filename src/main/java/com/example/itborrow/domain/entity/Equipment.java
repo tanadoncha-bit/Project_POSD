@@ -1,3 +1,5 @@
+package com.example.itborrow.domain.entity;
+
 import jakarta.persistence.*;
 
 @Entity

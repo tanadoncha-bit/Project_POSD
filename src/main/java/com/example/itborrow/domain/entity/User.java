@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 // import jakarta.persistence.*;
+=======
+package com.example.itborrow.domain.entity;
+
+import jakarta.persistence.*;
+>>>>>>> alicha_673380431_7_Sec3
 
 // @Entity
 // @Table(name = "users")
