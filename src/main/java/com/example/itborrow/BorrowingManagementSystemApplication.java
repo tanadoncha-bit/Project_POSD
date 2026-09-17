@@ -1,4 +1,4 @@
-package com.example.borrowing_management_system;
+package com.example.itborrow;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
