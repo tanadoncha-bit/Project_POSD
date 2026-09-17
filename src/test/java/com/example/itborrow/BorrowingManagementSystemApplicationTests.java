@@ -1,4 +1,4 @@
-package com.example.borrowing_management_system;
+package com.example.itborrow;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
