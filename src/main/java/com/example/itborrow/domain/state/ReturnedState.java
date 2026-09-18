@@ -4,13 +4,6 @@ import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.exception.InvalidBorrowStateException;
 import org.springframework.stereotype.Component;
 
-/**
- * สถานะ RETURNED: ปิดงานแล้ว เป็น final state
- * ทุก action ที่เปลี่ยนสถานะต่อจากนี้ต้อง throw exception หมด
- * เพราะ BorrowRequest ที่คืนแล้วห้ามแก้ไข (Liskov Substitution:
- * สถานะนี้ยังคง "ใช้แทน BorrowState ได้" โดยไม่ throw UnsupportedOperationException
- * แต่ throw business exception ที่มีความหมายแทน)
- */
 @Component
 public class ReturnedState implements BorrowState {
 

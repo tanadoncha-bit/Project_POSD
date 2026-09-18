@@ -5,10 +5,6 @@ import com.example.itborrow.domain.enums.BorrowStatus;
 import com.example.itborrow.exception.InvalidBorrowStateException;
 import org.springframework.stereotype.Component;
 
-/**
- * สถานะ PENDING: รอ Admin อนุมัติ
- * ทำได้แค่ approve() หรือ cancel() เท่านั้น ยังรับของ/คืนของไม่ได้
- */
 @Component
 public class PendingState implements BorrowState {
 
@@ -31,8 +27,7 @@ public class PendingState implements BorrowState {
 
     @Override
     public void cancel(BorrowRequest request) {
-        // PENDING ยกเลิกได้เลย ไม่ต้องเปลี่ยนสถานะอุปกรณ์เพราะยังไม่เคยถูกจองจริง
-        request.setStatus(BorrowStatus.RETURNED); // ใช้ RETURNED แทนสถานะ "ปิดงาน" เพื่อไม่ต้องเพิ่ม enum ใหม่
+        request.setStatus(BorrowStatus.RETURNED);
     }
 
     @Override
