@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AssetTrack IT</title>
+
+    <!-- src ใช้เมื่อเปิดผ่าน Live Server; th:href ใช้เมื่อรันผ่าน Spring Boot -->
+    <link rel="stylesheet"
+            href="../../static/css/style.css"
+            th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- ปุ่มเปิดและปิด Sidebar -->
+    <button type="button"
+            id="sidebar-toggle"
+            class="sidebar-toggle"
+            aria-label="เปิดเมนู"
+            aria-controls="main-sidebar"
+            aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- เมนูหลัก -->
+    <aside id="main-sidebar" class="sidebar">
+        <div class="sidebar-brand">
+            <span>AssetTrack IT</span>
+        </div>
+
+        <nav aria-label="เมนูหลัก">
+            <a href="#" class="nav-link active" aria-current="page">Dashboard</a>
+            <a href="../equipment/list.html"
+                th:href="@{/equipment}"
+                class="nav-link">Equipment</a>
+            <a href="#" class="nav-link">My Borrowing</a>
+            <a href="#" class="nav-link">Setting</a>
+        </nav>
+    </aside>
+
+    <!-- พื้นหลังสำหรับกดปิด Sidebar บนจอเล็ก -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <main>
+        <!-- ข้อความต้อนรับอยู่นอกกรอบรูปภาพ -->
+        <div class="dashboard-intro">
+            <h1>อุปกรณ์ IT ที่พร้อมสำหรับคุณ</h1>
+            <p class="dashboard-description">
+                ค้นหาอุปกรณ์ ตรวจสอบสถานะ และเลือกอุปกรณ์ที่ต้องการยืม
+            </p>
+        </div>
+
+        <!-- แบนเนอร์เป็นภาพเต็มกรอบ ไม่มีข้อความวางทับ -->
+        <section class="dashboard-hero" aria-label="ภาพแบนเนอร์อุปกรณ์ IT">
+            <img class="dashboard-hero-image"
+                    src="../../static/banner.jpg"
+                    th:src="@{/banner.jpg}"
+                    alt="">
+        </section>
+
+        <!-- ปุ่มไปหน้ารายการอุปกรณ์ อยู่ใต้ภาพด้านซ้าย -->
+        <div class="dashboard-actions">
+            <a href="../equipment/list.html"
+                th:href="@{/equipment}"
+                class="dashboard-primary-link">
+                    ดูรายการอุปกรณ์
+            </a>
+        </div>
+    </main>
+
+    <!-- ใช้ JavaScript ของ Sidebar ที่มีอยู่แล้ว -->
+    <script src="../../static/js/sidebar.js"
+            th:src="@{/js/sidebar.js}"></script>
+</body>
+</html>
