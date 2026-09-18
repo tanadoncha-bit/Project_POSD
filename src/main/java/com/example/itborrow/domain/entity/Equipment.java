@@ -1,5 +1,7 @@
 package com.example.itborrow.domain.entity;
 
+import com.example.itborrow.domain.enums.EquipmentStatus;
+
 import jakarta.persistence.*;
 
 @Entity
