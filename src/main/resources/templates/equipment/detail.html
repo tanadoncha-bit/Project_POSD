@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>รายละเอียดอุปกรณ์ | AssetTrack IT</title>
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <button type="button"
+            id="sidebar-toggle"
+            class="sidebar-toggle"
+            aria-label="เปิดเมนู"
+            aria-controls="main-sidebar"
+            aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <aside id="main-sidebar" class="sidebar">
+        <div class="sidebar-brand">
+            <span>AssetTrack IT</span>
+        </div>
+
+        <nav aria-label="เมนูหลัก">
+            <a href="../dashboard/index.html"
+                th:href="@{/Dashboard}"
+                class="nav-link">
+                    Dashboard
+            </a>
+
+            <a href="list.html"
+                th:href="@{/equipment}"
+                class="nav-link active"
+                aria-current="page">
+                    Equipment
+            </a>
+
+            <a href="../borrow/my-history.html"
+                th:href="@{/borrow/my-history}"
+                class="nav-link">
+                    My Borrowing
+            </a>
+
+            <a href="#"
+                class="nav-link">
+                    Setting
+            </a>
+        </nav>
+
+        <a href="../profile/index.html"
+            th:href="@{/profile}"
+            class="sidebar-profile">
+
+            <div class="profile-avatar"
+                aria-hidden="true">
+                <span th:text="${currentUser != null
+                    and !#strings.isEmpty(currentUser.username)
+                    ? #strings.substring(currentUser.username, 0, 1)
+                    : 'U'}">
+                    U
+                </span>
+            </div>
+
+            <div class="profile-information">
+                <strong class="profile-name"
+                    th:text="${currentUser != null
+                        ? currentUser.username
+                        : 'ผู้ใช้งาน'}">
+                    ผู้ใช้งาน
+                </strong>
+
+                <span class="profile-role"
+                    th:text="${currentUser != null
+                        ? currentUser.role
+                        : 'USER'}">
+                    USER
+                </span>
+            </div>
+        </a>
+    </aside>
+
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+    <main>
+        <header class="page-heading">
+            <p class="page-label">ASSETTRACK IT</p>
+
+            <h1>รายละเอียดอุปกรณ์</h1>
+
+            <p class="page-description">
+                ตรวจสอบข้อมูลและสถานะของอุปกรณ์ก่อนทำรายการยืม
+            </p>
+        </header>
+
+        <section class="equipment-detail"
+                 aria-labelledby="equipment-information-heading">
+
+            <div class="section-heading">
+                <h2 id="equipment-information-heading">
+                    ข้อมูลอุปกรณ์
+                </h2>
+
+                <p>รายละเอียดอุปกรณ์ที่บันทึกไว้ในระบบ</p>
+            </div>
+
+            <div class="equipment-detail-layout">
+                <div class="equipment-image-area">
+                    <div class="equipment-image-placeholder">
+                        <span class="image-placeholder-icon"
+                              aria-hidden="true">
+                            ▧
+                        </span>
+
+                        <strong>ยังไม่มีรูปภาพ</strong>
+
+                        <p>รูปภาพอุปกรณ์จะแสดงในส่วนนี้</p>
+                    </div>
+                </div>
+
+                <div class="equipment-info-card">
+                    <div class="equipment-info-grid">
+                        <div class="equipment-info-item">
+                            <span class="information-label">
+                                รหัสอุปกรณ์
+                            </span>
+
+                            <strong th:text="${equipment.assetCode}">
+                                —
+                            </strong>
+                        </div>
+
+                        <div class="equipment-info-item">
+                            <span class="information-label">
+                                ชื่ออุปกรณ์
+                            </span>
+
+                            <strong th:text="${equipment.name}">
+                                —
+                            </strong>
+                        </div>
+
+                        <div class="equipment-info-item">
+                            <span class="information-label">
+                                สถานะอุปกรณ์
+                            </span>
+
+                            <span class="status-badge"
+                                  th:classappend="${equipment.status.name() == 'AVAILABLE'}
+                                      ? ' status-available'
+                                      : (${equipment.status.name() == 'IN_USE'}
+                                      ? ' status-in-use'
+                                      : (${equipment.status.name() == 'MAINTENANCE'}
+                                      ? ' status-maintenance'
+                                      : ' status-disposed'))"
+                                  th:text="${equipment.status.name() == 'AVAILABLE'}
+                                      ? 'พร้อมให้ยืม'
+                                      : (${equipment.status.name() == 'IN_USE'}
+                                      ? 'กำลังถูกยืม'
+                                      : (${equipment.status.name() == 'MAINTENANCE'}
+                                      ? 'ซ่อมบำรุง'
+                                      : 'เลิกใช้งาน'))">
+                                —
+                            </span>
+                        </div>
+
+                        <div class="equipment-info-item equipment-description">
+                            <span class="information-label">
+                                รายละเอียดเพิ่มเติม
+                            </span>
+
+                            <p>
+                                ยังไม่มีรายละเอียดเพิ่มเติมของอุปกรณ์
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-actions">
+                <a href="list.html"
+                   th:href="@{/equipment}"
+                   class="detail-back-link">
+                    กลับไปหน้ารายการอุปกรณ์
+                </a>
+
+                <a href="../borrow/form.html"
+                   th:href="@{/borrow/form(equipmentId=${equipment.id})}"
+                   th:if="${equipment.status.name() == 'AVAILABLE'}"
+                   class="dashboard-primary-link">
+                    ยืมอุปกรณ์
+                </a>
+
+                <button type="button"
+                        class="disabled-button"
+                        style="display: none;"
+                        th:style="${equipment.status.name() != 'AVAILABLE'}
+                            ? 'display: inline-flex;'
+                            : 'display: none;'"
+                        disabled>
+                    ไม่สามารถยืมได้
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../static/js/sidebar.js"
+            th:src="@{/js/sidebar.js}"></script>
+</body>
+
+</html>

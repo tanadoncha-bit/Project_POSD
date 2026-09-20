@@ -6,10 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class DashboardController {
 
-    @GetMapping({"/", "Dashboard"})
+    @GetMapping({"/", "/Dashboard"})
     public String showDashboard() {
         return "dashboard/index";
     }
-    
-    
 }

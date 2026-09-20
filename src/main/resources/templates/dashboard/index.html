@@ -30,13 +30,61 @@
         </div>
 
         <nav aria-label="เมนูหลัก">
-            <a href="#" class="nav-link active" aria-current="page">Dashboard</a>
+            <a href="index.html"
+                th:href="@{/Dashboard}"
+                class="nav-link active"
+                aria-current="page">
+                    Dashboard
+            </a>
+
             <a href="../equipment/list.html"
                 th:href="@{/equipment}"
-                class="nav-link">Equipment</a>
-            <a href="#" class="nav-link">My Borrowing</a>
-            <a href="#" class="nav-link">Setting</a>
+                class="nav-link">
+                    Equipment
+            </a>
+
+            <a href="../borrow/my-history.html"
+                th:href="@{/borrow/my-history}"
+                class="nav-link">
+                    My Borrowing
+            </a>
+
+            <a href="#"
+                class="nav-link">
+                    Setting
+            </a>
         </nav>
+
+        <a href="../profile/index.html"
+            th:href="@{/profile}"
+            class="sidebar-profile">
+
+            <div class="profile-avatar"
+                aria-hidden="true">
+                <span th:text="${currentUser != null
+                    and !#strings.isEmpty(currentUser.username)
+                    ? #strings.substring(currentUser.username, 0, 1)
+                    : 'U'}">
+                    U
+                </span>
+            </div>
+
+            <div class="profile-information">
+                <strong class="profile-name"
+                    th:text="${currentUser != null
+                        ? currentUser.username
+                        : 'ผู้ใช้งาน'}">
+                    ผู้ใช้งาน
+                </strong>
+
+                <span class="profile-role"
+                    :text="${currentUser != null
+                        ? currentUser.role
+                        : 'USER'}">
+                    USER
+                </span>
+            </div>
+        </a>
     </aside>
 
     <!-- พื้นหลังสำหรับกดปิด Sidebar บนจอเล็ก -->

@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="th" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>รายการอุปกรณ์ | AssetTrack IT</title>
-    <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
 </head>
+
 <body>
     <button type="button"
             id="sidebar-toggle"
@@ -24,47 +30,111 @@
         </div>
 
         <nav aria-label="เมนูหลัก">
-            <a href="#" class="nav-link">Dashboard</a>
-            <a href="#" class="nav-link active" aria-current="page">Equipment</a>
-            <a href="#" class="nav-link">My Borrowing</a>
-            <a href="#" class="nav-link">Setting</a>
+            <a href="../dashboard/index.html"
+                th:href="@{/Dashboard}"
+                class="nav-link">
+                    Dashboard
+            </a>
+
+            <a href="list.html"
+                th:href="@{/equipment}"
+                class="nav-link active"
+                aria-current="page">
+                    Equipment
+            </a>
+
+            <a href="../borrow/my-history.html"
+                th:href="@{/borrow/my-history}"
+                class="nav-link">
+                    My Borrowing
+            </a>
+
+            <a href="#"
+                class="nav-link">
+                Setting
+            </a>
         </nav>
+
+        <a href="../profile/index.html"
+            th:href="@{/profile}"
+            class="sidebar-profile">
+
+            <div class="profile-avatar"
+                aria-hidden="true">
+                <span th:text="${currentUser != null
+                    and !#strings.isEmpty(currentUser.username)
+                    ? #strings.substring(currentUser.username, 0, 1)
+                    : 'U'}">
+                    U
+                </span>
+            </div>
+
+            <div class="profile-information">
+                <strong class="profile-name"
+                    th:text="${currentUser != null
+                        ? currentUser.username
+                        : 'ผู้ใช้งาน'}">
+                    ผู้ใช้งาน
+                </strong>
+
+                <span class="profile-role"
+                    th:text="${currentUser != null
+                        ? currentUser.role
+                        : 'USER'}">
+                    USER
+                </span>
+            </div>
+        </a>
     </aside>
 
-    <!-- ใช้แตะเพื่อปิดเมนูบนหน้าจอเล็ก -->
     <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
     <main>
-        <div class="page-heading">
+        <header class="page-heading">
+            <p class="page-label">ASSETTRACK IT</p>
+
             <h1>รายการอุปกรณ์</h1>
-            <p class="page-description">ค้นหาและตรวจสอบสถานะอุปกรณ์ IT ที่ต้องการยืม</p>
-        </div>
+
+            <p class="page-description">
+                ค้นหา ตรวจสอบสถานะ และเลือกอุปกรณ์ IT ที่ต้องการยืม
+            </p>
+        </header>
 
         <section aria-labelledby="equipment-heading">
             <div class="section-heading">
-                <div>
-                    <h2 id="equipment-heading">อุปกรณ์ทั้งหมด</h2>
-                    <p>เลือกดูอุปกรณ์ที่ต้องการ</p>
-                </div>
+                <h2 id="equipment-heading">อุปกรณ์ทั้งหมด</h2>
+
+                <p>
+                    พบอุปกรณ์
+                    <span id="equipment-count"
+                          th:text="${equipments != null ? #lists.size(equipments) : 0}">
+                        0
+                    </span>
+                    รายการ
+                </p>
             </div>
 
             <div class="filters">
                 <div>
-                    <label for="keyword">ค้นหาอุปกรณ์</label>
-                    <input
-                        type="search"
-                        id="keyword"
-                        name="keyword"
-                        placeholder="ชื่อหรือรหัสอุปกรณ์"
-                    >
+                    <label for="equipment-search">
+                        ค้นหาอุปกรณ์
+                    </label>
+
+                    <input type="search"
+                           id="equipment-search"
+                           name="keyword"
+                           placeholder="ชื่อหรือรหัสอุปกรณ์">
                 </div>
 
                 <div>
-                    <label for="status">สถานะ</label>
-                    <select id="status" name="status">
+                    <label for="equipment-status">
+                        สถานะ
+                    </label>
+
+                    <select id="equipment-status" name="status">
                         <option value="">ทุกสถานะ</option>
-                        <option value="AVAILABLE">พร้อมยืม</option>
-                        <option value="IN_USE">กำลังใช้งาน</option>
+                        <option value="AVAILABLE">พร้อมให้ยืม</option>
+                        <option value="IN_USE">กำลังถูกยืม</option>
                         <option value="MAINTENANCE">ซ่อมบำรุง</option>
                         <option value="DISPOSED">เลิกใช้งาน</option>
                     </select>
@@ -78,24 +148,62 @@
                             <th scope="col">รหัสอุปกรณ์</th>
                             <th scope="col">ชื่ออุปกรณ์</th>
                             <th scope="col">สถานะ</th>
-                            <th scope="col">รายละเอียด</th>
+                            <th scope="col">การดำเนินการ</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="equipment : ${equipments}">
+
+                    <tbody id="equipment-table-body">
+                        <tr class="equipment-row"
+                            style="display: none;"
+                            th:style="'display: table-row;'"
+                            th:each="equipment : ${equipments}"
+                            th:attr="data-name=${equipment.name},
+                                     data-code=${equipment.assetCode},
+                                     data-status=${equipment.status}">
+
                             <td th:text="${equipment.assetCode}"></td>
+
                             <td th:text="${equipment.name}"></td>
-                            <td th:text="${equipment.status}"></td>
+
                             <td>
-                                <a href="#" th:href="@{/equipment/{id}(id=${equipment.id})}" class="detail-link">ดูรายละเอียด</a>
+                                <span class="status-badge"
+                                      th:classappend="${equipment.status.name() == 'AVAILABLE'}
+                                          ? ' status-available'
+                                          : (${equipment.status.name() == 'IN_USE'}
+                                          ? ' status-in-use'
+                                          : (${equipment.status.name() == 'MAINTENANCE'}
+                                          ? ' status-maintenance'
+                                          : ' status-disposed'))"
+                                      th:text="${equipment.status.name() == 'AVAILABLE'}
+                                          ? 'พร้อมให้ยืม'
+                                          : (${equipment.status.name() == 'IN_USE'}
+                                          ? 'กำลังถูกยืม'
+                                          : (${equipment.status.name() == 'MAINTENANCE'}
+                                          ? 'ซ่อมบำรุง'
+                                          : 'เลิกใช้งาน'))">
+                                </span>
+                            </td>
+
+                            <td>
+                                <a href="detail.html"
+                                   th:href="@{/equipment/{id}(id=${equipment.id})}"
+                                   class="detail-link">
+                                    ดูรายละเอียด
+                                </a>
+                            </td>
+                        </tr>
+
+                        <tr id="filter-empty-row" style="display: none;">
+                            <td colspan="4" class="empty-state">
+                                <strong>ไม่พบอุปกรณ์</strong>
+                                <p>ลองเปลี่ยนคำค้นหาหรือสถานะที่เลือก</p>
                             </td>
                         </tr>
 
                         <tr th:if="${equipments == null or #lists.isEmpty(equipments)}">
                             <td colspan="4" class="empty-state">
-                                <span class="empty-state-icon" aria-hidden="true">▣</span>
                                 <strong>ยังไม่มีรายการอุปกรณ์</strong>
-                                <p>เมื่อมีข้อมูลอุปกรณ์ รายการจะแสดงที่นี่</p>
+                                <p>รายการอุปกรณ์จะแสดงเมื่อมีข้อมูลในระบบ</p>
                             </td>
                         </tr>
                     </tbody>
@@ -104,6 +212,8 @@
         </section>
     </main>
 
-    <script src="../../static/js/sidebar.js" th:src="@{/js/sidebar.js}"></script>
+    <script src="../../static/js/sidebar.js"
+            th:src="@{/js/sidebar.js}"></script>
 </body>
+
 </html>
