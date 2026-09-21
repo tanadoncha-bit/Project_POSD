@@ -1,11 +1,12 @@
 package com.example.itborrow.service;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import com.example.itborrow.domain.entity.Equipment;
 
 public interface EquipmentService {
-    List<Equipment> getAllEquipments();
+    Page<Equipment> getAllEquipments(Pageable pageable);
     Equipment getEquipmentById(Long id);
     Equipment createEquipment(Equipment equipment);
     Equipment updateEquipment(Long id, Equipment equipmentDetails);
