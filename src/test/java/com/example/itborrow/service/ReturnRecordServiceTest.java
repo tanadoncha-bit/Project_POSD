@@ -58,7 +58,7 @@ class ReturnRecordServiceTest {
 
         equipment = new Equipment();
         equipment.setId(10L);
-        equipment.setStatus(EquipmentStatus.BORROWED);
+        equipment.setStatus(EquipmentStatus.IN_USE);
 
         BorrowItem item = new BorrowItem();
         item.setEquipment(equipment);
@@ -88,16 +88,10 @@ class ReturnRecordServiceTest {
 
         var result = service.returnEquipment(1L, dto);
 
-        // 1) ต้องเรียก state.returnEquipment() ผ่าน State Pattern
         verify(mockState).returnEquipment(borrowRequest);
 
-        // 2) ต้องเรียก strategy.calculate() ผ่าน Strategy Pattern และใช้ค่าที่คำนวณได้จริง
         assertThat(result.getFineAmount()).isEqualByComparingTo(BigDecimal.valueOf(100));
-
-        // 3) อุปกรณ์ต้องกลับสถานะเป็น AVAILABLE หลังคืนสำเร็จ
         assertThat(equipment.getStatus()).isEqualTo(EquipmentStatus.AVAILABLE);
-
-        // 4) ต้องบันทึก ReturnRecord ลง repository
         verify(returnRecordRepository).save(any(ReturnRecord.class));
     }
 
@@ -116,7 +110,7 @@ class ReturnRecordServiceTest {
 
     @Test
     void returnEquipment_noFine_whenReturnedOnTime() {
-        borrowRequest.setDueDate(LocalDate.now().plusDays(1)); // ยังไม่เกินกำหนด
+        borrowRequest.setDueDate(LocalDate.now().plusDays(1));
         borrowRequest.setStatus(BorrowStatus.BORROWED);
 
         ReturnRequestDto dto = new ReturnRequestDto();
@@ -127,7 +121,7 @@ class ReturnRecordServiceTest {
         when(stateResolver.resolve(BorrowStatus.BORROWED)).thenReturn(mockState);
         when(fineStrategyResolver.resolve(Role.STAFF)).thenReturn(mockStrategy);
         when(mockStrategy.calculate(eq(borrowRequest), any(LocalDate.class)))
-                .thenReturn(BigDecimal.ZERO); // คืนตรงเวลา ไม่มีค่าปรับ
+                .thenReturn(BigDecimal.ZERO);
         when(returnRecordRepository.save(any(ReturnRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
