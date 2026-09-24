@@ -1,12 +1,13 @@
 package com.example.itborrow.service.impl;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import com.example.itborrow.domain.entity.Equipment;
 import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.service.EquipmentService;
 
-import java.util.List;
 
 @Service
 public class EquipmentServiceImpl implements EquipmentService {
@@ -19,8 +20,8 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<Equipment> getAllEquipments() {
-        return equipmentRepository.findAll();
+    public Page<Equipment> getAllEquipments(Pageable pageable) {
+    return equipmentRepository.findAll(pageable);
     }
 
     @Override

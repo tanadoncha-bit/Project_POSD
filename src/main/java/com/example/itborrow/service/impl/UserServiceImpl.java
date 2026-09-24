@@ -33,4 +33,18 @@ public class UserServiceImpl implements UserService {
         // สามารถเพิ่ม Logic ตรวจสอบอีเมลซ้ำตรงนี้ได้ก่อนบันทึก
         return userRepository.save(user);
     }
+
+    @Override
+    public User updateUser(Long id, User userDetails) {
+        User user = getUserById(id);
+        // user.setName(userDetails.getName());
+        // user.setEmail(userDetails.getEmail());
+        // อัปเดตฟิลด์อื่นๆ ของ User ตามที่มีใน Entity
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
 }
