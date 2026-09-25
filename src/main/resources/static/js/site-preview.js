@@ -4,25 +4,42 @@ const previewSessionKeys = {
     role: "leaditPreviewRole"
 };
 
+const isStaticPreview =
+    window.location.pathname.includes(
+        "/src/main/resources/templates/"
+    );
 
-function isPreviewAuthenticated() {
-    return sessionStorage.getItem(
-        previewSessionKeys.authenticated
-    ) === "true";
+
+function isAuthenticated() {
+    if (isStaticPreview) {
+        return sessionStorage.getItem(
+            previewSessionKeys.authenticated
+        ) === "true";
+    }
+
+    return document.body.dataset.authenticated === "true";
 }
 
 
-function getPreviewUsername() {
-    return sessionStorage.getItem(
-        previewSessionKeys.username
-    ) || "Preview User";
+function getCurrentUsername() {
+    if (isStaticPreview) {
+        return sessionStorage.getItem(
+            previewSessionKeys.username
+        ) || "Preview User";
+    }
+
+    return document.body.dataset.username || "";
 }
 
 
-function getPreviewRole() {
-    return sessionStorage.getItem(
-        previewSessionKeys.role
-    ) || "USER";
+function getCurrentRole() {
+    if (isStaticPreview) {
+        return sessionStorage.getItem(
+            previewSessionKeys.role
+        ) || "USER";
+    }
+
+    return document.body.dataset.role || "";
 }
 
 
@@ -51,12 +68,33 @@ function clearPreviewLogin() {
 }
 
 
+function getFragmentUrl() {
+    if (isStaticPreview) {
+        return `../fragments/site.html?v=${Date.now()}`;
+    }
+
+    return `/fragments/site.html?v=${Date.now()}`;
+}
+
+
 async function loadSiteTemplates() {
-    const response = await fetch("../fragments/site.html");
+    const headerAlreadyRendered =
+        document.querySelector("#site-header .site-header");
+
+    if (headerAlreadyRendered) {
+        return;
+    }
+
+    const response = await fetch(
+        getFragmentUrl(),
+        {
+            cache: "no-store"
+        }
+    );
 
     if (!response.ok) {
         throw new Error(
-            "ไม่สามารถโหลด fragments/site.html ได้"
+            "Unable to load fragments/site.html"
         );
     }
 
@@ -91,6 +129,12 @@ async function loadSiteTemplates() {
         "register-modal-template",
         "site-modals"
     );
+
+    injectTemplate(
+        fragmentDocument,
+        "search-overlay-template",
+        "site-modals"
+    );
 }
 
 
@@ -109,9 +153,41 @@ function injectTemplate(
         return;
     }
 
-    target.appendChild(
-        template.content.cloneNode(true)
-    );
+    const templateContent =
+        document.importNode(
+            template.content,
+            true
+        );
+
+    target.appendChild(templateContent);
+}
+
+
+function applyEnvironmentRoutes() {
+    if (isStaticPreview) {
+        return;
+    }
+
+    document
+        .querySelectorAll("[data-spring-href]")
+        .forEach((element) => {
+            element.href =
+                element.dataset.springHref;
+        });
+
+    document
+        .querySelectorAll("[data-spring-src]")
+        .forEach((element) => {
+            element.src =
+                element.dataset.springSrc;
+        });
+
+    document
+        .querySelectorAll("[data-spring-action]")
+        .forEach((element) => {
+            element.action =
+                element.dataset.springAction;
+        });
 }
 
 
@@ -135,7 +211,9 @@ function initializeMobileMenu() {
         document.querySelector(".menu-toggle");
 
     const navigation =
-        document.getElementById("main-navigation");
+        document.getElementById(
+            "main-navigation"
+        );
 
     function setMenuOpen(isOpen) {
         document.body.classList.toggle(
@@ -150,127 +228,49 @@ function initializeMobileMenu() {
 
         menuButton?.setAttribute(
             "aria-label",
-            isOpen ? "ปิดเมนู" : "เปิดเมนู"
-        );
-    }
-
-    menuButton?.addEventListener("click", () => {
-        const isOpen =
-            document.body.classList.contains(
-                "menu-open"
-            );
-
-        setMenuOpen(!isOpen);
-    });
-
-    navigation?.addEventListener("click", (event) => {
-        if (event.target.closest("a")) {
-            setMenuOpen(false);
-        }
-    });
-
-    window.addEventListener("resize", () => {
-        if (window.innerWidth > 820) {
-            setMenuOpen(false);
-        }
-    });
-}
-
-
-function initializeSearch() {
-    const searchForm =
-        document.querySelector(".header-search");
-
-    const searchButton =
-        searchForm?.querySelector(".search-toggle");
-
-    const searchInput =
-        searchForm?.querySelector(
-            ".header-search-input"
-        );
-
-    const currentPage =
-        document.body.dataset.page || "";
-
-    if (currentPage === "requests") {
-        searchForm.action =
-            "../borrow/my-history.html";
-
-        searchInput.placeholder =
-            "Search your requests...";
-    } else {
-        searchForm.action =
-            "../equipment/list.html";
-
-        searchInput.placeholder =
-            "Search equipment...";
-    }
-
-    function setSearchOpen(isOpen) {
-        searchForm?.classList.toggle(
-            "search-open",
             isOpen
+                ? "Close menu"
+                : "Open menu"
         );
-
-        searchButton?.setAttribute(
-            "aria-expanded",
-            String(isOpen)
-        );
-
-        if (isOpen) {
-            window.setTimeout(() => {
-                searchInput?.focus();
-            }, 150);
-        }
     }
 
-    searchButton?.addEventListener(
+    menuButton?.addEventListener(
         "click",
-        (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
+        () => {
             const isOpen =
-                searchForm.classList.contains(
-                    "search-open"
+                document.body.classList.contains(
+                    "menu-open"
                 );
 
-            setSearchOpen(!isOpen);
+            setMenuOpen(!isOpen);
         }
     );
 
-    searchForm?.addEventListener(
-        "submit",
+    navigation?.addEventListener(
+        "click",
         (event) => {
-            if (!searchInput.value.trim()) {
-                event.preventDefault();
-                setSearchOpen(true);
+            if (event.target.closest("a")) {
+                setMenuOpen(false);
             }
         }
     );
 
-    document.addEventListener("click", (event) => {
-        if (
-            searchForm?.classList.contains(
-                "search-open"
-            ) &&
-            !searchForm.contains(event.target)
-        ) {
-            setSearchOpen(false);
+    window.addEventListener(
+        "resize",
+        () => {
+            if (window.innerWidth > 900) {
+                setMenuOpen(false);
+            }
         }
-    });
-
-    window.previewSearch = {
-        open: () => setSearchOpen(true),
-        close: () => setSearchOpen(false),
-        input: searchInput
-    };
+    );
 }
 
 
 function initializeProfileMenu() {
     const profileDropdown =
-        document.querySelector(".profile-dropdown");
+        document.querySelector(
+            ".profile-dropdown"
+        );
 
     const profileTrigger =
         profileDropdown?.querySelector(
@@ -306,19 +306,25 @@ function initializeProfileMenu() {
         }
     );
 
-    document.addEventListener("click", (event) => {
-        if (
-            profileDropdown &&
-            !profileDropdown.contains(event.target)
-        ) {
-            setProfileMenuOpen(false);
+    document.addEventListener(
+        "click",
+        (event) => {
+            if (
+                profileDropdown &&
+                !profileDropdown.contains(
+                    event.target
+                )
+            ) {
+                setProfileMenuOpen(false);
+            }
         }
-    });
+    );
 }
 
 
 function setModalOpen(modalId, isOpen) {
-    const modal = document.getElementById(modalId);
+    const modal =
+        document.getElementById(modalId);
 
     if (!modal) {
         return;
@@ -329,7 +335,7 @@ function setModalOpen(modalId, isOpen) {
     const hasOpenModal =
         Array.from(
             document.querySelectorAll(
-                ".modal-backdrop"
+                ".modal-backdrop, .search-overlay"
             )
         ).some((currentModal) => {
             return !currentModal.hidden;
@@ -341,9 +347,11 @@ function setModalOpen(modalId, isOpen) {
     );
 
     if (isOpen) {
-        modal.querySelector(
-            ".modal-close"
-        )?.focus();
+        modal
+            .querySelector(
+                "button, input, select, textarea"
+            )
+            ?.focus();
     }
 }
 
@@ -352,6 +360,11 @@ function initializeAuthenticationModals() {
     document.addEventListener(
         "click",
         (event) => {
+            const protectedAction =
+                event.target.closest(
+                    "[data-requires-login]"
+                );
+
             const openLoginButton =
                 event.target.closest(
                     "[data-open-login]"
@@ -367,17 +380,25 @@ function initializeAuthenticationModals() {
                     "[data-close-modal]"
                 );
 
-            const protectedAction =
-                event.target.closest(
-                    "[data-requires-login]"
-                );
-
             if (
                 protectedAction &&
-                !isPreviewAuthenticated()
+                !isAuthenticated()
             ) {
                 event.preventDefault();
-                setModalOpen("login-modal", true);
+
+                document
+                    .querySelectorAll(
+                        ".equipment-detail-backdrop, .success-modal-backdrop"
+                    )
+                    .forEach((modal) => {
+                        modal.hidden = true;
+                    });
+
+                setModalOpen(
+                    "login-modal",
+                    true
+                );
+
                 return;
             }
 
@@ -415,7 +436,12 @@ function initializeAuthenticationModals() {
                         ".modal-backdrop"
                     );
 
-                setModalOpen(modal.id, false);
+                if (modal) {
+                    setModalOpen(
+                        modal.id,
+                        false
+                    );
+                }
             }
         }
     );
@@ -444,6 +470,10 @@ function initializeAuthenticationModals() {
     loginForm?.addEventListener(
         "submit",
         (event) => {
+            if (!isStaticPreview) {
+                return;
+            }
+
             event.preventDefault();
 
             const username =
@@ -451,13 +481,16 @@ function initializeAuthenticationModals() {
                     .getElementById(
                         "login-username"
                     )
-                    .value
-                    .trim();
+                    ?.value.trim();
 
             savePreviewLogin(username);
 
-            setModalOpen("login-modal", false);
-            updatePreviewAuthentication();
+            setModalOpen(
+                "login-modal",
+                false
+            );
+
+            updateAuthenticationView();
         }
     );
 
@@ -469,15 +502,40 @@ function initializeAuthenticationModals() {
     registerForm?.addEventListener(
         "submit",
         (event) => {
+            if (!isStaticPreview) {
+                return;
+            }
+
             event.preventDefault();
+
+            const password =
+                document
+                    .getElementById(
+                        "register-password"
+                    )
+                    ?.value;
+
+            const confirmPassword =
+                document
+                    .getElementById(
+                        "register-confirm-password"
+                    )
+                    ?.value;
+
+            if (password !== confirmPassword) {
+                window.alert(
+                    "Password and Confirm Password must match."
+                );
+
+                return;
+            }
 
             const name =
                 document
                     .getElementById(
                         "register-name"
                     )
-                    .value
-                    .trim();
+                    ?.value.trim();
 
             savePreviewLogin(name);
 
@@ -486,7 +544,7 @@ function initializeAuthenticationModals() {
                 false
             );
 
-            updatePreviewAuthentication();
+            updateAuthenticationView();
         }
     );
 
@@ -498,6 +556,10 @@ function initializeAuthenticationModals() {
             button.addEventListener(
                 "click",
                 () => {
+                    if (!isStaticPreview) {
+                        return;
+                    }
+
                     savePreviewLogin(
                         "KKU Preview User"
                     );
@@ -507,7 +569,7 @@ function initializeAuthenticationModals() {
                         false
                     );
 
-                    updatePreviewAuthentication();
+                    updateAuthenticationView();
                 }
             );
         });
@@ -516,36 +578,49 @@ function initializeAuthenticationModals() {
         .querySelector(
             "[data-preview-logout]"
         )
-        ?.addEventListener("click", () => {
-            clearPreviewLogin();
-            updatePreviewAuthentication();
-        });
+        ?.addEventListener(
+            "click",
+            () => {
+                if (isStaticPreview) {
+                    clearPreviewLogin();
+                    updateAuthenticationView();
+                    return;
+                }
 
-    document.addEventListener(
-        "keydown",
-        (event) => {
-            if (event.key !== "Escape") {
-                return;
+                window.location.href = "/logout";
             }
-
-            document
-                .querySelectorAll(
-                    ".modal-backdrop"
-                )
-                .forEach((modal) => {
-                    setModalOpen(
-                        modal.id,
-                        false
-                    );
-                });
-        }
-    );
+        );
 }
 
 
-function updatePreviewAuthentication() {
+function initializeSearchOverlay() {
+    const searchOverlay = document.getElementById("search-overlay");
+    const searchInput = document.getElementById("global-search-input");
+
+    // เลือกแท็กคำค้นหายอดนิยม (Laptop, MacBook, ฯลฯ)
+    document.addEventListener("click", (event) => {
+        const keywordButton = event.target.closest("[data-search-keyword]");
+
+        if (keywordButton && searchInput) {
+            searchInput.value = keywordButton.dataset.searchKeyword;
+            searchInput.focus();
+        }
+    });
+
+    // ปิด Overlay เมื่อคลิกพื้นที่ว่างภายนอก Panel
+    searchOverlay?.addEventListener("click", (event) => {
+        if (event.target === searchOverlay) {
+            if (typeof setSearchOpen === "function") {
+                setSearchOpen(false);
+            }
+        }
+    });
+}
+
+
+function updateAuthenticationView() {
     const authenticated =
-        isPreviewAuthenticated();
+        isAuthenticated();
 
     document
         .querySelectorAll("[data-guest-only]")
@@ -559,26 +634,37 @@ function updatePreviewAuthentication() {
             element.hidden = !authenticated;
         });
 
-    const username = getPreviewUsername();
-    const role = getPreviewRole();
+    const username =
+        getCurrentUsername();
+
+    const role =
+        getCurrentRole();
 
     document
-        .querySelectorAll("[data-profile-name]")
+        .querySelectorAll(
+            "[data-profile-name]"
+        )
         .forEach((element) => {
             element.textContent = username;
         });
 
     document
-        .querySelectorAll("[data-profile-role]")
+        .querySelectorAll(
+            "[data-profile-role]"
+        )
         .forEach((element) => {
             element.textContent = role;
         });
 
     document
-        .querySelectorAll("[data-profile-initial]")
+        .querySelectorAll(
+            "[data-profile-initial]"
+        )
         .forEach((element) => {
             element.textContent =
-                username.charAt(0).toUpperCase();
+                username
+                    ? username.charAt(0).toUpperCase()
+                    : "U";
         });
 
     document.body.dataset.authenticated =
@@ -586,24 +672,59 @@ function updatePreviewAuthentication() {
 }
 
 
-async function initializeSitePreview() {
-    try {
-        await loadSiteTemplates();
+function initializeEscapeKey() {
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (event.key !== "Escape") {
+                return;
+            }
 
-        initializeActiveNavigation();
-        initializeMobileMenu();
-        initializeSearch();
-        initializeProfileMenu();
-        initializeAuthenticationModals();
-        updatePreviewAuthentication();
-
-        document.dispatchEvent(
-            new CustomEvent("leadit:site-ready")
-        );
-    } catch (error) {
-        console.error(error);
-    }
+            document
+                .querySelectorAll(
+                    ".modal-backdrop"
+                )
+                .forEach((modal) => {
+                    if (!modal.hidden) {
+                        setModalOpen(
+                            modal.id,
+                            false
+                        );
+                    }
+                });
+        }
+    );
 }
 
 
-initializeSitePreview();
+async function initializeSite() {
+    try {
+        await loadSiteTemplates();
+    } catch (error) {
+        console.warn(
+            "Shared templates were not fetched; using server-rendered fragments.",
+            error
+        );
+    }
+
+    applyEnvironmentRoutes();
+    initializeActiveNavigation();
+    initializeMobileMenu();
+    initializeProfileMenu();
+    initializeAuthenticationModals();
+    initializeSearchOverlay();
+    initializeEscapeKey();
+    updateAuthenticationView();
+
+    document.dispatchEvent(
+        new CustomEvent(
+            "leadit:site-ready"
+        )
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeSite
+);

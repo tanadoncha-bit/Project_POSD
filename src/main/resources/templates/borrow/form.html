@@ -1,12 +1,27 @@
 <!DOCTYPE html>
-<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Borrow Equipment | LeadIT</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- Spring Security CSRF -->
+    <meta name="_csrf"
+          th:if="${_csrf != null}"
+          th:content="${_csrf.token}">
+
+    <meta name="_csrf_header"
+          th:if="${_csrf != null}"
+          th:content="${_csrf.headerName}">
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
     <link rel="preconnect"
           href="https://fonts.gstatic.com"
           crossorigin>
@@ -15,223 +30,540 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          th:href="@{/css/style.css}"
-          href="/css/style.css">
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
 </head>
 
-<body th:attr="data-login-error=${loginError}">
+<body class="borrow-form-preview-page"
+      data-page="borrow">
 
-    <header th:replace="~{fragments/site :: header('equipment')}"></header>
 
-    <main class="form-page">
-        <form id="borrow-request-form"
-              class="form-card"
+    <main class="borrow-form-preview">
+
+        <form class="borrow-form-modal"
+              id="borrow-request-form"
               novalidate>
 
-            <header class="form-card-header">
+            <!-- =================================================
+                 HEADER
+                 ================================================= -->
+
+            <header class="borrow-form-header">
+
                 <div>
-                    <span class="detail-eyebrow">Borrow Request</span>
 
                     <h1>Borrow Equipment Form</h1>
 
                     <p>
-                        Specify the borrower, return date,
-                        and equipment you want to borrow
+                        Specify the borrower, return due date,
+                        and select equipment to borrow
                     </p>
+
                 </div>
 
-                <a class="form-close-button"
-                   th:href="@{/equipment}"
-                   href="/equipment"
-                   aria-label="ปิดหน้าฟอร์ม">
+                <button class="borrow-form-close"
+                        id="borrow-form-close"
+                        type="button"
+                        aria-label="Close borrow form">
 
-                    ×
-                </a>
+                    <span data-icon-slot="close"
+                          aria-hidden="true">
+
+                        <!-- ใส่ Lucide X SVG ตรงนี้ -->
+
+                    </span>
+
+                </button>
+
             </header>
 
-            <div class="form-card-body">
 
-                <!-- ID ผู้ใช้จะส่งมาจาก Security ภายหลัง -->
+            <!-- =================================================
+                 BODY
+                 ================================================= -->
+
+            <div class="borrow-form-body">
+
+                <!-- API ต้องใช้ userId -->
+
                 <input id="current-user-id"
+                       name="userId"
                        type="hidden"
-                       th:value="${currentUserId}">
+                       value="1"
+                       th:value="${currentUser != null
+                                  ? currentUser.id
+                                  : ''}">
 
-                <!-- User information -->
-                <section class="borrow-user-panel">
-                    <div class="borrow-user-avatar"
-                         th:text="${username != null and !#strings.isEmpty(username)
-                             ? #strings.substring(username, 0, 1).toUpperCase()
-                             : 'U'}">
+                <!-- API ต้องใช้ borrowDate -->
 
-                        U
+                <input id="borrow-date"
+                       name="borrowDate"
+                       type="hidden">
+
+
+                <!-- =============================================
+                     USER INFORMATION
+                     ============================================= -->
+
+                <section class="borrow-form-section">
+
+                    <h2 class="borrow-section-title">
+
+                        <span data-icon-slot="user"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide User SVG ตรงนี้ -->
+
+                        </span>
+
+                        User
+
+                    </h2>
+
+
+                    <!-- ตัวอย่างสำหรับ Live Server -->
+
+                    <div class="borrow-user-summary"
+                         th:remove="all">
+
+                        <p>
+                            <strong>Name:</strong>
+                            Preview User
+                        </p>
+
+                        <p>
+                            <strong>Faculty:</strong>
+                            College of Computing
+                        </p>
+
+                        <p>
+                            <strong>Role:</strong>
+                            Student
+                        </p>
+
                     </div>
 
-                    <div class="borrow-user-information">
-                        <span>Borrower</span>
 
-                        <strong th:text="${username != null
-                            ? username
-                            : 'Current user'}">
+                    <!-- ข้อมูลผู้ใช้จริงจาก Spring Boot -->
 
-                            Current user
-                        </strong>
+                    <div class="borrow-user-summary"
+                         hidden
+                         th:if="${currentUser != null}"
+                         th:attr="hidden=${null}">
 
-                        <small th:text="${role != null
-                            ? role
-                            : 'USER'}">
+                        <p>
+                            <strong>Name:</strong>
 
-                            USER
-                        </small>
+                            <span th:text="${currentUser.username}">
+                                User
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Email:</strong>
+
+                            <span th:text="${currentUser.email}">
+                                Email
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Role:</strong>
+
+                            <span th:text="${currentUser.role}">
+                                USER
+                            </span>
+                        </p>
+
                     </div>
+
+
+                    <!-- กรณี Spring Boot ยังหาข้อมูลผู้ใช้ไม่ได้ -->
+
+                    <div class="borrow-user-summary"
+                         hidden
+                         th:if="${currentUser == null}"
+                         th:attr="hidden=${null}">
+
+                        <p>
+                            User information is unavailable.
+                            Please sign in again.
+                        </p>
+
+                    </div>
+
                 </section>
 
-                <!-- Selected equipment -->
-                <div class="field">
-                    <label for="equipment-id">
+
+                <!-- =============================================
+                     SELECT EQUIPMENT
+                     ============================================= -->
+
+                <section class="borrow-form-section">
+
+                    <h2 class="borrow-section-title">
+
+                        <span data-icon-slot="laptop"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide Laptop SVG ตรงนี้ -->
+
+                        </span>
+
                         Select Equipment
+
+                        <span class="selected-equipment-count"
+                              id="selected-equipment-count">
+
+                            0
+                        </span>
+
+                    </h2>
+
+
+                    <!-- ตัวอย่างอุปกรณ์สำหรับ Live Server -->
+
+                    <div class="equipment-choice-list"
+                         th:remove="all">
+
+                        <label class="equipment-choice">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   value="1">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span>Keychron</span>
+
+                        </label>
+
+
+                        <label class="equipment-choice">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   value="2">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span>MacBook</span>
+
+                        </label>
+
+
+                        <label class="equipment-choice">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   value="3">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span>Viper V2</span>
+
+                        </label>
+
+
+                        <label class="equipment-choice">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   value="4">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span>HP Victus</span>
+
+                        </label>
+
+
+                        <label class="equipment-choice">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   value="5">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span>Logi G733</span>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- อุปกรณ์จริงจาก Spring Boot -->
+
+                    <div class="equipment-choice-list"
+                         hidden
+                         th:if="${availableEquipments != null
+                                  and !availableEquipments.isEmpty()}"
+                         th:attr="hidden=${null}">
+
+                        <label class="equipment-choice"
+                               th:each="equipment : ${availableEquipments}">
+
+                            <input type="checkbox"
+                                   name="equipmentIds"
+                                   th:value="${equipment.id}">
+
+                            <span class="equipment-choice-check"
+                                  aria-hidden="true">
+
+                                <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                            </span>
+
+                            <span th:text="${equipment.name}">
+                                Equipment
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- ไม่มีอุปกรณ์พร้อมให้ยืม -->
+
+                    <div class="borrow-equipment-empty"
+                         hidden
+                         th:if="${availableEquipments == null
+                                  or availableEquipments.isEmpty()}"
+                         th:attr="hidden=${null}">
+
+                        No equipment is currently available
+                        for borrowing.
+
+                    </div>
+
+                </section>
+
+
+                <!-- =============================================
+                     DUE DATE
+                     ============================================= -->
+
+                <section class="borrow-form-section">
+
+                    <label class="borrow-section-title"
+                           for="borrow-due-date">
+
+                        <span data-icon-slot="calendar"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide Calendar SVG ตรงนี้ -->
+
+                        </span>
+
+                        Due Date
+
                     </label>
 
-                    <select id="equipment-id" required>
-                        <option value="">
-                            Select equipment
-                        </option>
+                    <div class="borrow-date-field">
 
-                        <option th:each="equipment : ${equipments}"
-                                th:value="${equipment.id}"
-                                th:selected="${selectedEquipmentId != null
-                                    and selectedEquipmentId == equipment.id}"
-                                th:disabled="${equipment.status != 'AVAILABLE'}"
-                                th:text="|${equipment.name} (${equipment.status})|">
-
-                            Equipment
-                        </option>
-                    </select>
-
-                    <small class="field-help">
-                        Only available equipment can be selected
-                    </small>
-                </div>
-
-                <!-- Borrow date -->
-                <div class="form-row">
-                    <div class="field">
-                        <label for="borrow-date">
-                            Borrow Date
-                        </label>
-
-                        <input id="borrow-date"
+                        <input id="borrow-due-date"
+                               name="dueDate"
                                type="date"
-                               readonly
+                               aria-label="Select return due date"
                                required>
+
+                        <span class="borrow-date-icon"
+                              data-icon-slot="calendar-picker"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide CalendarDays SVG ตรงนี้ -->
+
+                        </span>
+
                     </div>
 
-                    <div class="field">
-                        <label for="due-date">
-                            Due Date
-                        </label>
+                </section>
 
-                        <input id="due-date"
-                               type="date"
-                               required>
-                    </div>
-                </div>
 
-                <!-- Note -->
-                <div class="field">
-                    <label for="borrow-note">
+                <!-- =============================================
+                     NOTE
+                     ============================================= -->
+
+                <section class="borrow-form-section">
+
+                    <label class="borrow-section-title"
+                           for="borrow-note">
+
+                        <span data-icon-slot="clipboard"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide ClipboardList SVG ตรงนี้ -->
+
+                        </span>
+
                         Note
+
                     </label>
 
                     <textarea id="borrow-note"
+                              name="note"
                               rows="5"
                               maxlength="500"
                               placeholder="Enter your note here"></textarea>
 
-                    <small class="field-help">
-                        Maximum 500 characters
-                    </small>
-                </div>
+                    <div class="borrow-note-counter">
 
-                <!-- Error message -->
-                <div id="borrow-form-error"
-                     class="form-message form-message-error"
-                     role="alert"
-                     hidden>
-                </div>
+                        <span id="borrow-note-count">0</span>/500
+
+                    </div>
+
+                </section>
+
+
+                <!-- Error / Information Message -->
+
+                <p class="borrow-form-message"
+                   id="borrow-form-message"
+                   role="alert"
+                   hidden>
+                </p>
+
             </div>
 
-            <footer class="detail-actions">
-                <a class="button button-outline"
-                   th:href="@{/equipment}"
-                   href="/equipment">
+
+            <!-- =================================================
+                 ACTIONS
+                 ================================================= -->
+
+            <footer class="borrow-form-actions">
+
+                <button class="borrow-form-cancel"
+                        id="borrow-form-cancel"
+                        type="button">
 
                     Close
-                </a>
+                </button>
 
-                <button id="borrow-submit-button"
-                        class="button button-primary"
+                <button class="borrow-form-submit"
+                        id="borrow-submit-button"
                         type="submit">
 
-                    Submit Request
+                    <span data-icon-slot="submit-check"
+                          aria-hidden="true">
+
+                        <!-- ใส่ Lucide CircleCheck SVG ตรงนี้ -->
+
+                    </span>
+
+                    <span id="borrow-submit-label">
+                        Submit
+                    </span>
+
                 </button>
+
             </footer>
+
         </form>
+
     </main>
 
-    <footer th:replace="~{fragments/site :: footer}"></footer>
 
-    <!-- Success modal -->
-    <div id="borrow-success-modal"
-         class="modal-backdrop"
+    <!-- =========================================================
+         SUCCESS MODAL
+         ========================================================= -->
+
+    <div class="success-modal-backdrop"
+         id="borrow-success-modal"
          hidden>
 
-        <section class="borrow-success-modal"
+        <section class="success-modal"
                  role="dialog"
                  aria-modal="true"
-                 aria-labelledby="borrow-success-title">
+                 aria-labelledby="success-modal-title">
 
-            <button id="borrow-success-close"
-                    class="modal-close"
+            <button class="success-modal-close"
+                    id="success-modal-close"
                     type="button"
-                    aria-label="ปิดหน้าต่าง">
+                    aria-label="Close success message">
 
-                ×
+                <span data-icon-slot="close"
+                      aria-hidden="true">
+
+                    <!-- ใส่ Lucide X SVG ตรงนี้ -->
+
+                </span>
+
             </button>
 
-            <div class="success-icon" aria-hidden="true">
-                ✓
+
+            <div class="success-modal-content">
+
+                <span class="success-modal-icon"
+                      data-icon-slot="success-check"
+                      aria-hidden="true">
+
+                    <!-- ใส่ Lucide Check SVG ตรงนี้ -->
+
+                </span>
+
+                <h2 id="success-modal-title">
+                    Success Request
+                </h2>
+
+                <p>
+                    You can pick up your device at the specified
+                    Smart Locker.
+                </p>
+
             </div>
 
-            <h2 id="borrow-success-title">
-                Success Request
-            </h2>
 
-            <p>
-                Your borrow request has been submitted successfully.
-            </p>
+            <div class="success-modal-actions">
 
-            <div class="success-actions">
-                <a class="button button-outline"
-                   th:href="@{/equipment}"
-                   href="/equipment">
+                <button class="success-stay-button"
+                        id="success-stay-button"
+                        type="button">
 
                     Stay Here
-                </a>
+                </button>
 
-                <a class="button button-dark"
-                   th:href="@{/borrow/my-history}"
-                   href="/borrow/my-history">
+                <a class="success-view-button"
+                   href="./my-history.html"
+                   th:href="@{/my-requests}">
 
                     View Request
                 </a>
+
             </div>
+
         </section>
+
     </div>
 
-    <script th:src="@{/js/sidebar.js}"
-            src="/js/sidebar.js"></script>
 
-    <script th:src="@{/js/borrow-form.js}"
-            src="/js/borrow-form.js"></script>
+    <script src="../../static/js/borrow-form.js"
+            th:src="@{/js/borrow-form.js}"></script>
+
 </body>
 </html>

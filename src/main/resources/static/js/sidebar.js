@@ -1,10 +1,6 @@
 const menuButton = document.querySelector(".menu-toggle");
 const navigation = document.getElementById("main-navigation");
 
-const searchForm = document.querySelector(".header-search");
-const searchButton = searchForm?.querySelector(".search-toggle");
-const searchInput = searchForm?.querySelector(".header-search-input");
-
 const loginModal = document.getElementById("login-modal");
 const registerModal = document.getElementById("register-modal");
 
@@ -57,52 +53,71 @@ window.addEventListener("resize", () => {
 
 
 /* ================================================================
-   SEARCH DROPDOWN
+   SEARCH OVERLAY SLIDE ANIMATION 
    ================================================================ */
 
 function setSearchOpen(isOpen) {
-    if (!searchForm || !searchButton || !searchInput) {
+    // 1. ค้นหา Overlay โดยรองรับทั้งการใช้ ID และ Class
+    const searchOverlay = document.getElementById("search-overlay") || document.querySelector(".search-overlay");
+    const searchInput = document.getElementById("global-search-input") || document.querySelector(".search-overlay-form input");
+
+    if (!searchOverlay) {
+        console.error("❌ ไม่พบแท็ก Search Overlay! ตรวจสอบว่าใน HTML มี <div class='search-overlay'> หรือไม่");
         return;
     }
 
-    searchForm.classList.toggle("search-open", isOpen);
-
-    searchButton.setAttribute("aria-expanded", String(isOpen));
-    searchButton.setAttribute(
-        "aria-label",
-        isOpen ? "ปิดช่องค้นหา" : "เปิดช่องค้นหา"
-    );
-
     if (isOpen) {
-        setMenuOpen(false);
-        setProfileMenuOpen(false);
+        // เอา hidden ออกเพื่อให้มีสถานะอยู่ในหน้าเว็บ
+        searchOverlay.removeAttribute("hidden");
+        searchOverlay.style.display = "block";
 
-        window.setTimeout(() => {
-            searchInput.focus();
-        }, 150);
+        // ⭐️ ทริคสำคัญ: บังคับให้เบราว์เซอร์อัปเดตสถานะ (Reflow) ก่อนที่จะใส่ Transition ไม่งั้นมันจะไม่เล่น Animation
+        void searchOverlay.offsetWidth;
+
+        // สั่งสไลด์ลงมา
+        searchOverlay.classList.add("is-open");
+        document.body.classList.add("modal-open");
+
+        // ปิดเมนูอื่นๆ
+        if (typeof setMenuOpen === "function") setMenuOpen(false);
+        if (typeof setProfileMenuOpen === "function") setProfileMenuOpen(false);
+
+        // โฟกัสช่องพิมพ์
+        setTimeout(() => {
+            if (searchInput) searchInput.focus();
+        }, 300);
+
+    } else {
+        // ดึงขึ้น
+        searchOverlay.classList.remove("is-open");
+        document.body.classList.remove("modal-open");
+
+        // รอ Animation เสร็จค่อยซ่อน
+        setTimeout(() => {
+            if (!searchOverlay.classList.contains("is-open")) {
+                searchOverlay.setAttribute("hidden", "true");
+                searchOverlay.style.display = "none";
+            }
+        }, 350);
     }
 }
 
-searchButton?.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
+// ผูก Event Listener (เพิ่มคลาสปุ่มต่างๆ ให้ครอบคลุมมากขึ้น)
+document.addEventListener("click", (event) => {
+    // เช็คว่าปุ่มที่กด เป็นปุ่มเปิดค้นหาหรือไม่
+    const openSearchBtn = event.target.closest("[data-open-search], .search-toggle, .header-search .icon-button");
+    const closeSearchBtn = event.target.closest("[data-close-search], .search-overlay-close");
 
-    const isOpen = searchForm.classList.contains("search-open");
-
-    setSearchOpen(!isOpen);
-});
-
-searchInput?.addEventListener("click", (event) => {
-    event.stopPropagation();
-});
-
-searchForm?.addEventListener("submit", (event) => {
-    const keyword = searchInput?.value.trim();
-
-    if (!keyword) {
+    if (openSearchBtn) {
         event.preventDefault();
+        event.stopPropagation();
         setSearchOpen(true);
-        searchInput?.focus();
+    }
+
+    if (closeSearchBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        setSearchOpen(false);
     }
 });
 
@@ -234,13 +249,6 @@ document.querySelectorAll(".open-login").forEach((button) => {
 
 document.addEventListener("click", (event) => {
     if (
-        searchForm?.classList.contains("search-open") &&
-        !searchForm.contains(event.target)
-    ) {
-        setSearchOpen(false);
-    }
-
-    if (
         profileMenu &&
         !profileMenu.hidden &&
         !profileDropdown.contains(event.target)
@@ -269,9 +277,9 @@ document.addEventListener("keydown", (event) => {
         return;
     }
 
-    if (searchForm?.classList.contains("search-open")) {
+    const searchOverlay = document.getElementById("search-overlay");
+    if (searchOverlay && searchOverlay.classList.contains("is-open")) {
         setSearchOpen(false);
-        searchButton?.focus();
         return;
     }
 
@@ -373,6 +381,7 @@ function clearCatalogSearch() {
         currentUrl.pathname
     );
 
+    const searchInput = document.getElementById("global-search-input");
     if (searchInput) {
         searchInput.value = "";
     }
@@ -388,6 +397,7 @@ if (catalogCards.length > 0) {
     const keyword =
         searchParameters.get("keyword") || "";
 
+    const searchInput = document.getElementById("global-search-input");
     if (keyword && searchInput) {
         searchInput.value = keyword;
         setSearchOpen(true);

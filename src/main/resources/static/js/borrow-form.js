@@ -1,244 +1,548 @@
-const borrowRequestForm =
-    document.getElementById("borrow-request-form");
+document.addEventListener("DOMContentLoaded", () => {
+    const borrowForm =
+        document.getElementById("borrow-request-form");
 
-const currentUserIdInput =
-    document.getElementById("current-user-id");
+    const userIdInput =
+        document.getElementById("current-user-id");
 
-const equipmentSelect =
-    document.getElementById("equipment-id");
+    const borrowDateInput =
+        document.getElementById("borrow-date");
 
-const borrowDateInput =
-    document.getElementById("borrow-date");
+    const dueDateInput =
+        document.getElementById("borrow-due-date");
 
-const dueDateInput =
-    document.getElementById("due-date");
+    const noteInput =
+        document.getElementById("borrow-note");
 
-const borrowNoteInput =
-    document.getElementById("borrow-note");
+    const noteCount =
+        document.getElementById("borrow-note-count");
 
-const borrowSubmitButton =
-    document.getElementById("borrow-submit-button");
+    const submitButton =
+        document.getElementById("borrow-submit-button");
 
-const borrowFormError =
-    document.getElementById("borrow-form-error");
+    const submitLabel =
+        document.getElementById("borrow-submit-label");
 
-const borrowSuccessModal =
-    document.getElementById("borrow-success-modal");
+    const selectedCount =
+        document.getElementById(
+            "selected-equipment-count"
+        );
 
-const borrowSuccessCloseButton =
-    document.getElementById("borrow-success-close");
+    const formMessage =
+        document.getElementById("borrow-form-message");
+
+    const closeButton =
+        document.getElementById("borrow-form-close");
+
+    const cancelButton =
+        document.getElementById("borrow-form-cancel");
+
+    const successModal =
+        document.getElementById("borrow-success-modal");
+
+    const successCloseButton =
+        document.getElementById("success-modal-close");
+
+    const successStayButton =
+        document.getElementById("success-stay-button");
 
 
-function formatDate(date) {
-    const year = date.getFullYear();
-
-    const month = String(
-        date.getMonth() + 1
-    ).padStart(2, "0");
-
-    const day = String(
-        date.getDate()
-    ).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-}
-
-
-function initializeBorrowDates() {
-    if (!borrowDateInput || !dueDateInput) {
+    if (!borrowForm) {
         return;
     }
 
-    const today = new Date();
-    const tomorrow = new Date(today);
 
-    tomorrow.setDate(today.getDate() + 1);
-
-    borrowDateInput.value = formatDate(today);
-    dueDateInput.min = formatDate(tomorrow);
-
-    if (!dueDateInput.value) {
-        dueDateInput.value = formatDate(tomorrow);
-    }
-}
-
-
-function showBorrowError(message) {
-    if (!borrowFormError) {
-        return;
+    function isStaticPreview() {
+        return (
+            window.location.port === "5500" ||
+            window.location.port === "5501" ||
+            window.location.pathname.includes(
+                "/src/main/resources/templates/"
+            )
+        );
     }
 
-    borrowFormError.textContent = message;
-    borrowFormError.hidden = false;
-}
 
+    function formatLocalDate(date) {
+        const year = date.getFullYear();
 
-function clearBorrowError() {
-    if (!borrowFormError) {
-        return;
+        const month = String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+        const day = String(
+            date.getDate()
+        ).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
     }
 
-    borrowFormError.textContent = "";
-    borrowFormError.hidden = true;
-}
 
-
-function setBorrowSubmitting(isSubmitting) {
-    if (!borrowSubmitButton) {
-        return;
+    function getEquipmentInputs() {
+        return Array.from(
+            document.querySelectorAll(
+                'input[name="equipmentIds"]'
+            )
+        );
     }
 
-    borrowSubmitButton.disabled = isSubmitting;
-    borrowSubmitButton.textContent =
-        isSubmitting
-            ? "Submitting..."
-            : "Submit Request";
-}
 
-
-function setBorrowSuccessOpen(isOpen) {
-    if (!borrowSuccessModal) {
-        return;
+    function getSelectedEquipmentIds() {
+        return getEquipmentInputs()
+            .filter((input) => input.checked)
+            .map((input) => Number(input.value))
+            .filter((equipmentId) => {
+                return Number.isInteger(equipmentId) &&
+                    equipmentId > 0;
+            });
     }
 
-    borrowSuccessModal.hidden = !isOpen;
-    document.body.classList.toggle("modal-open", isOpen);
 
-    if (isOpen) {
-        borrowSuccessCloseButton?.focus();
-    }
-}
+    function updateSelectedEquipment() {
+        const equipmentInputs =
+            getEquipmentInputs();
 
+        equipmentInputs.forEach((input) => {
+            const equipmentChoice =
+                input.closest(".equipment-choice");
 
-function validateBorrowForm() {
-    const userId = currentUserIdInput?.value.trim();
-    const equipmentId = equipmentSelect?.value;
-    const borrowDate = borrowDateInput?.value;
-    const dueDate = dueDateInput?.value;
+            equipmentChoice?.classList.toggle(
+                "selected",
+                input.checked
+            );
+        });
 
-    if (!userId) {
-        return "ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบอีกครั้ง";
-    }
-
-    if (!equipmentId) {
-        return "กรุณาเลือกอุปกรณ์ที่ต้องการยืม";
-    }
-
-    if (!borrowDate) {
-        return "ไม่พบวันที่ยืม";
+        if (selectedCount) {
+            selectedCount.textContent = String(
+                getSelectedEquipmentIds().length
+            );
+        }
     }
 
-    if (!dueDate) {
-        return "กรุณาเลือกวันที่กำหนดคืน";
-    }
 
-    if (dueDate <= borrowDate) {
-        return "วันที่กำหนดคืนต้องอยู่หลังวันที่ยืม";
-    }
+    function initializeSelectedEquipment() {
+        const parameters =
+            new URLSearchParams(
+                window.location.search
+            );
 
-    return "";
-}
+        const selectedEquipmentId =
+            parameters.get("equipmentId");
 
-
-borrowRequestForm?.addEventListener(
-    "submit",
-    async (event) => {
-        event.preventDefault();
-        clearBorrowError();
-
-        const validationMessage =
-            validateBorrowForm();
-
-        if (validationMessage) {
-            showBorrowError(validationMessage);
+        if (!selectedEquipmentId) {
+            updateSelectedEquipment();
             return;
         }
 
-        const requestBody = {
-            userId: Number(currentUserIdInput.value),
-            borrowDate: borrowDateInput.value,
-            dueDate: dueDateInput.value,
-            note: borrowNoteInput.value.trim(),
-            items: [
-                {
-                    equipmentId: Number(equipmentSelect.value),
-                    quantity: 1
-                }
-            ]
-        };
+        const matchingInput =
+            getEquipmentInputs().find((input) => {
+                return input.value === selectedEquipmentId;
+            });
 
-        setBorrowSubmitting(true);
+        if (matchingInput) {
+            matchingInput.checked = true;
+        }
 
-        try {
-            const response = await fetch(
-                "/api/v1/borrow-requests",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(requestBody)
-                }
+        updateSelectedEquipment();
+    }
+
+
+    function initializeDates() {
+        const today = new Date();
+
+        const tomorrow = new Date(today);
+
+        tomorrow.setDate(
+            today.getDate() + 1
+        );
+
+        const todayValue =
+            formatLocalDate(today);
+
+        const tomorrowValue =
+            formatLocalDate(tomorrow);
+
+        if (borrowDateInput) {
+            borrowDateInput.value = todayValue;
+        }
+
+        if (dueDateInput) {
+            dueDateInput.min = tomorrowValue;
+
+            if (!dueDateInput.value) {
+                dueDateInput.value =
+                    tomorrowValue;
+            }
+        }
+    }
+
+
+    function updateNoteCount() {
+        if (!noteInput || !noteCount) {
+            return;
+        }
+
+        noteCount.textContent = String(
+            noteInput.value.length
+        );
+    }
+
+
+    function showMessage(message, type = "error") {
+        if (!formMessage) {
+            return;
+        }
+
+        formMessage.textContent = message;
+        formMessage.hidden = !message;
+
+        formMessage.classList.toggle(
+            "message-error",
+            type === "error"
+        );
+
+        formMessage.classList.toggle(
+            "message-success",
+            type === "success"
+        );
+    }
+
+
+    function setSubmitting(isSubmitting) {
+        if (!submitButton) {
+            return;
+        }
+
+        submitButton.disabled = isSubmitting;
+
+        submitButton.setAttribute(
+            "aria-busy",
+            String(isSubmitting)
+        );
+
+        if (submitLabel) {
+            submitLabel.textContent =
+                isSubmitting
+                    ? "Submitting..."
+                    : "Submit";
+        }
+    }
+
+
+    function setSuccessModalOpen(isOpen) {
+        if (!successModal) {
+            return;
+        }
+
+        successModal.hidden = !isOpen;
+
+        document.body.classList.toggle(
+            "modal-open",
+            isOpen
+        );
+
+        if (isOpen) {
+            successCloseButton?.focus();
+        }
+    }
+
+
+    function validateForm() {
+        if (!userIdInput?.value.trim()) {
+            return (
+                "User information was not found. " +
+                "Please sign in again."
             );
+        }
 
-            if (!response.ok) {
-                let message =
-                    "ไม่สามารถส่งคำขอยืมได้ กรุณาลองอีกครั้ง";
+        if (
+            !Number.isInteger(
+                Number(userIdInput.value)
+            ) ||
+            Number(userIdInput.value) <= 0
+        ) {
+            return "The user ID is invalid.";
+        }
 
-                try {
-                    const errorResponse =
-                        await response.json();
+        if (
+            getSelectedEquipmentIds().length === 0
+        ) {
+            return (
+                "Please select at least one " +
+                "equipment item."
+            );
+        }
 
-                    message =
-                        errorResponse.message ||
-                        errorResponse.error ||
-                        message;
-                } catch (error) {
-                    // ใช้ข้อความเริ่มต้นเมื่อ API ไม่ได้ส่ง JSON
-                }
+        if (!dueDateInput?.value) {
+            return "Please select a return due date.";
+        }
 
-                throw new Error(message);
+        if (
+            borrowDateInput?.value &&
+            dueDateInput.value <=
+                borrowDateInput.value
+        ) {
+            return (
+                "The return date must be after " +
+                "the borrow date."
+            );
+        }
+
+        if (
+            noteInput &&
+            noteInput.value.length > 500
+        ) {
+            return (
+                "The note must not exceed " +
+                "500 characters."
+            );
+        }
+
+        return "";
+    }
+
+
+    function createRequestBody() {
+        return {
+            userId: Number(userIdInput.value),
+
+            borrowDate:
+                borrowDateInput.value,
+
+            dueDate:
+                dueDateInput.value,
+
+            note:
+                noteInput?.value.trim() || "",
+
+            items:
+                getSelectedEquipmentIds().map(
+                    (equipmentId) => {
+                        return {
+                            equipmentId,
+                            quantity: 1
+                        };
+                    }
+                )
+        };
+    }
+
+
+    function getCsrfHeaders() {
+        const csrfToken =
+            document.querySelector(
+                'meta[name="_csrf"]'
+            )?.content;
+
+        const csrfHeader =
+            document.querySelector(
+                'meta[name="_csrf_header"]'
+            )?.content;
+
+        if (!csrfToken || !csrfHeader) {
+            return {};
+        }
+
+        return {
+            [csrfHeader]: csrfToken
+        };
+    }
+
+
+    async function readErrorMessage(response) {
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+        if (
+            contentType.includes(
+                "application/json"
+            )
+        ) {
+            const errorBody =
+                await response.json();
+
+            return (
+                errorBody.message ||
+                errorBody.error ||
+                "Unable to submit the borrow request."
+            );
+        }
+
+        const errorText =
+            await response.text();
+
+        return (
+            errorText ||
+            "Unable to submit the borrow request."
+        );
+    }
+
+
+    async function submitBorrowRequest(
+        requestBody
+    ) {
+        const response = await fetch(
+            "/api/v1/borrow-requests",
+            {
+                method: "POST",
+
+                credentials: "same-origin",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    ...getCsrfHeaders()
+                },
+
+                body: JSON.stringify(
+                    requestBody
+                )
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                await readErrorMessage(response)
+            );
+        }
+
+        return response.json();
+    }
+
+
+    function goBackToEquipment() {
+        if (isStaticPreview()) {
+            window.location.href =
+                "../equipment/list.html";
+
+            return;
+        }
+
+        window.location.href =
+            "/equipment";
+    }
+
+
+    getEquipmentInputs().forEach((input) => {
+        input.addEventListener(
+            "change",
+            updateSelectedEquipment
+        );
+    });
+
+
+    noteInput?.addEventListener(
+        "input",
+        updateNoteCount
+    );
+
+
+    borrowForm.addEventListener(
+        "submit",
+        async (event) => {
+            event.preventDefault();
+
+            showMessage("");
+
+            const validationMessage =
+                validateForm();
+
+            if (validationMessage) {
+                showMessage(validationMessage);
+                return;
             }
 
-            borrowRequestForm.reset();
-            initializeBorrowDates();
-            setBorrowSuccessOpen(true);
-        } catch (error) {
-            showBorrowError(error.message);
-        } finally {
-            setBorrowSubmitting(false);
+            const requestBody =
+                createRequestBody();
+
+            setSubmitting(true);
+
+            try {
+                /*
+                 * Live Server:
+                 * ไม่เรียก API เพื่อให้ตรวจหน้าตาและ Flow ได้
+                 *
+                 * Spring Boot:
+                 * ส่ง JSON ไป BorrowRequestController จริง
+                 */
+
+                if (!isStaticPreview()) {
+                    await submitBorrowRequest(
+                        requestBody
+                    );
+                }
+
+                setSuccessModalOpen(true);
+
+            } catch (error) {
+                showMessage(
+                    error.message ||
+                    "Unable to submit the borrow request."
+                );
+
+            } finally {
+                setSubmitting(false);
+            }
         }
-    }
-);
+    );
 
 
-borrowSuccessCloseButton?.addEventListener(
-    "click",
-    () => {
-        setBorrowSuccessOpen(false);
-    }
-);
+    closeButton?.addEventListener(
+        "click",
+        goBackToEquipment
+    );
 
 
-borrowSuccessModal?.addEventListener(
-    "click",
-    (event) => {
-        if (event.target === borrowSuccessModal) {
-            setBorrowSuccessOpen(false);
+    cancelButton?.addEventListener(
+        "click",
+        goBackToEquipment
+    );
+
+
+    successCloseButton?.addEventListener(
+        "click",
+        () => {
+            setSuccessModalOpen(false);
         }
-    }
-);
+    );
 
 
-document.addEventListener("keydown", (event) => {
-    if (
-        event.key === "Escape" &&
-        borrowSuccessModal &&
-        !borrowSuccessModal.hidden
-    ) {
-        setBorrowSuccessOpen(false);
-    }
+    successStayButton?.addEventListener(
+        "click",
+        () => {
+            setSuccessModalOpen(false);
+        }
+    );
+
+
+    successModal?.addEventListener(
+        "click",
+        (event) => {
+            if (event.target === successModal) {
+                setSuccessModalOpen(false);
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key === "Escape" &&
+                successModal &&
+                !successModal.hidden
+            ) {
+                setSuccessModalOpen(false);
+            }
+        }
+    );
+
+
+    initializeDates();
+    initializeSelectedEquipment();
+    updateNoteCount();
 });
-
-
-initializeBorrowDates();

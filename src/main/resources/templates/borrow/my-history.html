@@ -1,12 +1,18 @@
 <!DOCTYPE html>
-<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>My Request | LeadIT</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>My Requests | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
     <link rel="preconnect"
           href="https://fonts.gstatic.com"
           crossorigin>
@@ -15,228 +21,666 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          th:href="@{/css/style.css}"
-          href="/css/style.css">
+          href="../../static/css/style.css?v=1"
+          th:href="@{/css/style.css}">
 </head>
 
-<body th:attr="data-login-error=${loginError}">
+<body data-page="requests">
 
-    <header th:replace="~{fragments/site :: header('requests')}"></header>
+    <!-- Header จาก fragments/site.html -->
+    <div id="site-header"
+         th:replace="~{fragments/site :: siteHeader}"></div>
 
-    <main class="request-page">
 
-        <header class="catalog-heading">
+    <main class="request-history-page">
+
+        <!-- =====================================================
+             PAGE HEADING
+             ===================================================== -->
+
+        <header class="request-history-heading">
+
             <h1>My Requests</h1>
 
             <p>
-                Track your pending, approved, active,
-                overdue and returned equipment requests
+                Track your request statuses and return due dates
             </p>
 
-            <p id="request-search-summary"
-               class="catalog-search-summary"
-               hidden>
-            </p>
         </header>
 
-        <!-- Status filters -->
-        <nav class="request-tabs"
-             aria-label="กรองสถานะคำขอยืม">
 
-            <button class="request-tab active"
+        <!-- =====================================================
+             FILTER BUTTONS
+             ===================================================== -->
+
+        <nav class="request-filter-tabs"
+             aria-label="Filter borrow requests">
+
+            <button class="request-filter-button active"
                     type="button"
-                    data-request-filter="ALL">
+                    data-request-filter="ALL"
+                    aria-pressed="true">
 
-                All
+                All Request
             </button>
 
-            <button class="request-tab"
+            <button class="request-filter-button"
                     type="button"
-                    data-request-filter="PENDING">
-
-                Pending
-            </button>
-
-            <button class="request-tab"
-                    type="button"
-                    data-request-filter="ACTIVE">
+                    data-request-filter="ACTIVE"
+                    aria-pressed="false">
 
                 Active
             </button>
 
-            <button class="request-tab"
+            <button class="request-filter-button"
                     type="button"
-                    data-request-filter="RETURNED">
+                    data-request-filter="PENDING"
+                    aria-pressed="false">
+
+                Pending
+            </button>
+
+            <button class="request-filter-button"
+                    type="button"
+                    data-request-filter="RETURNED"
+                    aria-pressed="false">
 
                 Returned
             </button>
+
         </nav>
 
-        <!-- Request data -->
-        <section id="request-list"
-                 class="request-list"
-                 th:if="${borrowRequests != null
-                    and !#lists.isEmpty(borrowRequests)}">
 
-            <article class="request-card"
-                     th:each="request : ${borrowRequests}"
-                     th:data-request-id="${request.id}"
-                     th:data-request-status="${request.status}">
+        <!-- =====================================================
+             NOT LOGIN STATE — LIVE SERVER
 
-                <div class="request-main-information">
-                    <div class="request-thumbnail">
-                        LeadIT
-                    </div>
+             แสดงเมื่อยังไม่ได้ Login ในโหมด Preview
+             ===================================================== -->
 
-                    <div class="request-title">
-                        <span class="request-label">
-                            Borrow Request
-                        </span>
-
-                        <h2 th:text="|Request #${request.id}|">
-                            Request #1
-                        </h2>
-
-                        <p th:text="|${request.items != null
-                            ? #lists.size(request.items)
-                            : 0} item(s)|">
-
-                            0 item(s)
-                        </p>
-                    </div>
-                </div>
-
-                <div class="request-dates">
-                    <div>
-                        <span>Borrow date</span>
-
-                        <strong th:text="${request.borrowDate}">
-                            2026-09-25
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Due date</span>
-
-                        <strong th:text="${request.dueDate}">
-                            2026-09-30
-                        </strong>
-                    </div>
-                </div>
-
-                <div class="request-actions">
-                    <span class="status-badge"
-                          th:classappend="| status-${#strings.toLowerCase(request.status)}|"
-                          th:text="${request.status}">
-
-                        PENDING
-                    </span>
-
-                    <button class="button button-outline button-small request-details-toggle"
-                            type="button"
-                            aria-expanded="false">
-
-                        View Details
-                    </button>
-                </div>
-
-                <!-- Collapsible details -->
-                <div class="request-card-details"
-                     hidden>
-
-                    <div class="request-detail-section">
-                        <h3>Equipment</h3>
-
-                        <ul class="request-equipment-list"
-                            th:if="${request.items != null
-                                and !#lists.isEmpty(request.items)}">
-
-                            <li th:each="item : ${request.items}">
-                                <div>
-                                    <strong th:text="${item.equipmentName}">
-                                        Equipment name
-                                    </strong>
-
-                                    <span th:text="${item.assetCode}">
-                                        Asset code
-                                    </span>
-                                </div>
-
-                                <span th:text="|Quantity: ${item.quantity}|">
-                                    Quantity: 1
-                                </span>
-                            </li>
-                        </ul>
-
-                        <p class="request-no-equipment"
-                           th:if="${request.items == null
-                              or #lists.isEmpty(request.items)}">
-
-                            No equipment information
-                        </p>
-                    </div>
-
-                    <div class="request-detail-section">
-                        <h3>Note</h3>
-
-                        <p th:text="${request.note != null
-                            and !#strings.isEmpty(request.note)
-                            ? request.note
-                            : 'No additional note'}">
-
-                            No additional note
-                        </p>
-                    </div>
-                </div>
-            </article>
-        </section>
-
-        <!-- Database contains no requests -->
-        <section class="equipment-empty"
-                 th:if="${borrowRequests == null
-                    or #lists.isEmpty(borrowRequests)}">
-
-            <strong>No requests yet</strong>
+        <section class="request-login-state"
+                 data-guest-only>
 
             <p>
-                Your borrow requests will appear here
-                after you submit a request.
+                Please log in to view your request history.
             </p>
 
-            <a class="button button-primary request-empty-button"
-               th:href="@{/equipment}"
-               href="/equipment">
+        </section>
+
+
+        <!-- =====================================================
+             LIVE SERVER PREVIEW DATA
+
+             ใช้ตรวจหน้าตาและการกรองสถานะเท่านั้น
+             เมื่อรัน Spring Boot จะถูกลบด้วย th:remove
+             ===================================================== -->
+
+        <section class="request-list"
+                 id="request-preview-list"
+                 data-auth-only
+                 hidden
+                 th:remove="all">
+
+
+            <!-- REQUEST 1 — PENDING -->
+
+            <article class="request-card"
+                     data-request-card
+                     data-request-status="PENDING">
+
+                <header class="request-card-header">
+
+                    <div class="request-card-heading">
+
+                        <span class="request-card-icon"
+                              data-icon-slot="request-device"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
+
+                        </span>
+
+                        <div>
+
+                            <h2>Request #1</h2>
+
+                            <p>
+                                Jul 25, 2026 - Jul 30, 2026
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="request-card-status-area">
+
+                        <span class="request-pin">
+                            PIN: 4239
+                        </span>
+
+                        <span class="request-status request-status-pending">
+                            Pending
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div class="request-item-list">
+
+                    <article class="request-equipment-item">
+
+                        <div class="request-item-image">
+
+                            <span class="request-item-image-placeholder">
+                                LeadIT
+                            </span>
+
+                        </div>
+
+                        <div class="request-item-content">
+
+                            <h3>Keychron V2 65%</h3>
+
+                            <p>Quantity: 1</p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                Slot C-5
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="request-equipment-item">
+
+                        <div class="request-item-image">
+
+                            <span class="request-item-image-placeholder">
+                                LeadIT
+                            </span>
+
+                        </div>
+
+                        <div class="request-item-content">
+
+                            <h3>SUPERLIGHT 2C</h3>
+
+                            <p>Quantity: 1</p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                Slot C-3
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </article>
+
+
+            <!-- REQUEST 2 — RETURNED -->
+
+            <article class="request-card"
+                     data-request-card
+                     data-request-status="RETURNED">
+
+                <header class="request-card-header">
+
+                    <div class="request-card-heading">
+
+                        <span class="request-card-icon"
+                              data-icon-slot="request-device"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
+
+                        </span>
+
+                        <div>
+
+                            <h2>Request #2</h2>
+
+                            <p>
+                                Jul 10, 2026 - Jul 20, 2026
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="request-card-status-area">
+
+                        <span class="request-pin">
+                            PIN: N/A
+                        </span>
+
+                        <span class="request-status request-status-returned">
+                            Returned
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div class="request-item-list">
+
+                    <article class="request-equipment-item">
+
+                        <div class="request-item-image">
+
+                            <span class="request-item-image-placeholder">
+                                LeadIT
+                            </span>
+
+                        </div>
+
+                        <div class="request-item-content">
+
+                            <h3>Keychron V2 65%</h3>
+
+                            <p>Quantity: 1</p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                Slot C-5
+                            </span>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="request-equipment-item">
+
+                        <div class="request-item-image">
+
+                            <span class="request-item-image-placeholder">
+                                LeadIT
+                            </span>
+
+                        </div>
+
+                        <div class="request-item-content">
+
+                            <h3>Keychron V2 65%</h3>
+
+                            <p>Quantity: 1</p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                Slot C-6
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </article>
+
+
+            <!-- REQUEST 3 — ACTIVE -->
+
+            <article class="request-card"
+                     data-request-card
+                     data-request-status="ACTIVE">
+
+                <header class="request-card-header">
+
+                    <div class="request-card-heading">
+
+                        <span class="request-card-icon"
+                              data-icon-slot="request-device"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
+
+                        </span>
+
+                        <div>
+
+                            <h2>Request #3</h2>
+
+                            <p>
+                                Aug 1, 2026 - Aug 7, 2026
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="request-card-status-area">
+
+                        <span class="request-pin">
+                            PIN: 5812
+                        </span>
+
+                        <span class="request-status request-status-active">
+                            Active
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div class="request-item-list">
+
+                    <article class="request-equipment-item">
+
+                        <div class="request-item-image">
+
+                            <span class="request-item-image-placeholder">
+                                LeadIT
+                            </span>
+
+                        </div>
+
+                        <div class="request-item-content">
+
+                            <h3>MacBook Air 15&quot; M3</h3>
+
+                            <p>Quantity: 1</p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                Slot A-4
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             SPRING BOOT DATA
+
+             Controller ต้องส่ง List<BorrowResponseDto>
+             เข้ามาในชื่อ requests
+             ===================================================== -->
+
+        <section class="request-list"
+                 id="request-server-list"
+                 hidden
+                 th:if="${requests != null and !requests.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+            <article class="request-card"
+                     data-request-card
+                     th:each="request : ${requests}"
+                     th:attr="data-request-status=${
+                         request.status == 'APPROVED'
+                         or request.status == 'BORROWED'
+                         or request.status == 'OVERDUE'
+                         ? 'ACTIVE'
+                         : request.status
+                     }">
+
+                <header class="request-card-header">
+
+                    <div class="request-card-heading">
+
+                        <span class="request-card-icon"
+                              data-icon-slot="request-device"
+                              aria-hidden="true">
+
+                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
+
+                        </span>
+
+                        <div>
+
+                            <h2 th:text="|Request #${request.id}|">
+                                Request
+                            </h2>
+
+                            <p>
+                                <span th:text="${request.borrowDate}">
+                                    Borrow date
+                                </span>
+
+                                <span aria-hidden="true"> - </span>
+
+                                <span th:text="${request.dueDate}">
+                                    Due date
+                                </span>
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="request-card-status-area">
+
+                        <span class="request-pin"
+                              th:text="${requestPins != null
+                                        and requestPins[request.id] != null
+                                        ? 'PIN: ' + requestPins[request.id]
+                                        : 'PIN: N/A'}">
+
+                            PIN: N/A
+                        </span>
+
+                        <span class="request-status"
+                              th:classappend="${
+                                  request.status == 'PENDING'
+                                  ? ' request-status-pending'
+                                  : request.status == 'RETURNED'
+                                  ? ' request-status-returned'
+                                  : ' request-status-active'
+                              }"
+                              th:text="${
+                                  request.status == 'BORROWED'
+                                  ? 'Active'
+                                  : request.status == 'APPROVED'
+                                  ? 'Approved'
+                                  : request.status == 'OVERDUE'
+                                  ? 'Overdue'
+                                  : request.status == 'RETURNED'
+                                  ? 'Returned'
+                                  : 'Pending'
+                              }">
+
+                            Pending
+                        </span>
+
+                    </div>
+
+                </header>
+
+
+                <div class="request-item-list">
+
+                    <article class="request-equipment-item"
+                             th:each="item : ${request.items}">
+
+                        <div class="request-item-image">
+
+                            <img th:if="${equipmentImageUrls != null
+                                        and equipmentImageUrls[
+                                            item.equipmentId
+                                        ] != null}"
+                                 th:src="${equipmentImageUrls[
+                                             item.equipmentId
+                                         ]}"
+                                 th:alt="${item.equipmentName}">
+
+                            <span class="request-item-image-placeholder"
+                                  th:unless="${equipmentImageUrls != null
+                                             and equipmentImageUrls[
+                                                 item.equipmentId
+                                             ] != null}">
+
+                                LeadIT
+                            </span>
+
+                        </div>
+
+
+                        <div class="request-item-content">
+
+                            <h3 th:text="${item.equipmentName}">
+                                Equipment name
+                            </h3>
+
+                            <p th:text="|Quantity: ${item.quantity}|">
+                                Quantity: 1
+                            </p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true">
+
+                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
+
+                                </span>
+
+                                <span th:text="${
+                                    equipmentLockerNames != null
+                                    and equipmentLockerNames[
+                                        item.equipmentId
+                                    ] != null
+                                    ? equipmentLockerNames[
+                                        item.equipmentId
+                                    ]
+                                    : 'Slot pending'
+                                }">
+
+                                    Slot pending
+                                </span>
+
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             SPRING BOOT EMPTY STATE
+
+             แสดงเมื่อ Login แล้วแต่ยังไม่มีคำขอยืม
+             ===================================================== -->
+
+        <section class="request-empty-state"
+                 id="request-server-empty"
+                 hidden
+                 th:if="${requests == null or requests.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+            <p>
+                You do not have any borrow requests yet.
+            </p>
+
+            <a class="button button-dark"
+               href="../equipment/list.html"
+               th:href="@{/equipment}">
 
                 Browse Equipment
             </a>
+
         </section>
 
-        <!-- Requests exist but filter found nothing -->
-        <section id="request-filter-empty"
-                 class="equipment-empty"
+
+        <!-- =====================================================
+             FILTER EMPTY STATE
+
+             JavaScript จะแสดงเมื่อไม่มีข้อมูลตรงกับ Filter
+             ===================================================== -->
+
+        <section class="request-filter-empty"
+                 id="request-filter-empty"
                  hidden>
 
-            <strong>No matching requests</strong>
-
             <p>
-                Try selecting another status or search keyword.
+                No equipment found matching your filter criteria
             </p>
 
-            <button id="clear-request-filter"
-                    class="button button-outline request-empty-button"
-                    type="button">
-
-                Clear Filter
-            </button>
         </section>
+
     </main>
 
-    <footer th:replace="~{fragments/site :: footer}"></footer>
 
-    <script th:src="@{/js/sidebar.js}"
-            src="/js/sidebar.js"></script>
+    <!-- Footer จาก fragments/site.html -->
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
 
-    <script th:src="@{/js/request-history.js}"
-            src="/js/request-history.js"></script>
+    <!-- Login, Register และ Search Modal -->
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+
+    <!-- เรียกใช้สคริปต์  -->
+    <script src="../../static/js/sidebar.js"
+            th:src="@{/js/sidebar.js}"></script>
+
+    <script src="../../static/js/site-preview.js?v=1"
+            th:src="@{/js/site-preview.js}"></script>
+
+    <script src="../../static/js/request-history.js?v=1"
+            th:src="@{/js/request-history.js}"></script>
+
 </body>
 </html>

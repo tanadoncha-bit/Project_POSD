@@ -1,12 +1,22 @@
 <!DOCTYPE html>
-<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Equipment Detail | LeadIT</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title th:text="${equipment != null
+                     ? equipment.name + ' | LeadIT'
+                     : 'Equipment Detail | LeadIT'}">
+        Equipment Detail | LeadIT
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
     <link rel="preconnect"
           href="https://fonts.gstatic.com"
           crossorigin>
@@ -15,154 +25,275 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          th:href="@{/css/style.css}"
-          href="/css/style.css">
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
 </head>
 
-<body th:attr="data-login-error=${loginError}">
+<body data-page="equipment">
 
-    <!-- Header -->
-    <header th:replace="~{fragments/site :: header('equipment')}"></header>
+    <div id="site-header"
+         th:replace="~{fragments/site :: siteHeader}"></div>
 
-    <main class="detail-page">
-        <article class="detail-shell">
+    <main class="equipment-detail-page">
 
-            <!-- Detail header -->
-            <header class="detail-header">
-                <div>
-                    <span class="detail-eyebrow">Equipment Detail</span>
+        <nav class="equipment-breadcrumb"
+             aria-label="Breadcrumb">
 
-                    <h1 th:text="${equipment.name}">
-                        Equipment name
-                    </h1>
+            <a href="../dashboard/index.html"
+               th:href="@{/}">
+                Home
+            </a>
 
-                    <p>
-                        View equipment information and current availability
-                    </p>
-                </div>
+            <span aria-hidden="true">/</span>
 
-                <span class="status-badge"
-                      th:classappend="${equipment.status == 'AVAILABLE'}
-                          ? ' status-available'
-                          : ' status-unavailable'"
-                      th:text="${equipment.status == 'AVAILABLE'}
-                          ? 'Available'
-                          : ${equipment.status}">
+            <a href="list.html"
+               th:href="@{/equipment}">
+                Equipment
+            </a>
 
-                    Available
-                </span>
-            </header>
+            <span aria-hidden="true">/</span>
 
-            <!-- Detail content -->
-            <div class="detail-content">
+            <span th:text="${equipment != null
+                           ? equipment.name
+                           : 'Equipment Detail'}">
+                Equipment Detail
+            </span>
+        </nav>
 
-                <!-- Backend ยังไม่มี imageUrl -->
-                <div class="detail-image">
-                    <span>LeadIT Equipment</span>
-                </div>
+        <section class="equipment-detail-layout">
 
-                <div class="detail-info">
+            <!-- =================================================
+                 EQUIPMENT IMAGE
+                 ================================================= -->
 
-                    <div class="detail-spec">
-                        <span>Equipment name</span>
+            <div class="equipment-detail-gallery">
 
-                        <strong th:text="${equipment.name}">
-                            Equipment name
-                        </strong>
+                <div class="equipment-detail-main-image">
+
+                    <img src=""
+                         alt="Equipment"
+                         hidden
+                         th:if="${equipmentImageUrl != null
+                                and !equipmentImageUrl.isBlank()}"
+                         th:src="${equipmentImageUrl}"
+                         th:alt="${equipment != null
+                                  ? equipment.name
+                                  : 'Equipment'}"
+                         th:attr="hidden=${false}">
+
+                    <div class="equipment-detail-placeholder"
+                         th:unless="${equipmentImageUrl != null
+                                    and !equipmentImageUrl.isBlank()}">
+
+                        <span>LeadIT</span>
                     </div>
 
-                    <div class="detail-spec">
-                        <span>Equipment ID</span>
-
-                        <strong th:text="${equipment.id}">
-                            1
-                        </strong>
-                    </div>
-
-                    <div class="detail-spec">
-                        <span>Current status</span>
-
-                        <strong th:switch="${equipment.status}">
-                            <span th:case="'AVAILABLE'">
-                                Ready to borrow
-                            </span>
-
-                            <span th:case="'IN_USE'">
-                                Currently in use
-                            </span>
-
-                            <span th:case="'MAINTENANCE'">
-                                Under maintenance
-                            </span>
-
-                            <span th:case="'DISPOSED'">
-                                Unavailable
-                            </span>
-
-                            <span th:case="*"
-                                  th:text="${equipment.status}">
-                                Unknown
-                            </span>
-                        </strong>
-                    </div>
-
-                    <div class="detail-spec detail-spec-wide">
-                        <span>Hardware specifications</span>
-
-                        <strong>
-                            Specification information is not available
-                        </strong>
-                    </div>
-
-                    <div class="detail-spec detail-spec-wide">
-                        <span>Smart Locker</span>
-
-                        <strong>
-                            Locker slot will be assigned after approval
-                        </strong>
-                    </div>
+                    <span class="availability-badge"
+                          th:classappend="${equipment != null
+                                          and equipment.status != null
+                                          and equipment.status.name() != 'AVAILABLE'}
+                                          ? ' availability-badge-in-use'
+                                          : ''"
+                          th:text="${equipment != null
+                                   and equipment.status != null
+                                   ? equipment.status
+                                   : 'Available'}">
+                        Available
+                    </span>
                 </div>
             </div>
 
-            <!-- Detail actions -->
-            <footer class="detail-actions">
-                <a class="button button-outline"
-                   th:href="@{/equipment}"
-                   href="/equipment">
+            <!-- =================================================
+                 EQUIPMENT INFORMATION
+                 ================================================= -->
 
-                    Close
-                </a>
+            <div class="equipment-detail-information">
 
-                <!-- ยืมได้ -->
-                <a class="button button-primary"
-                   th:if="${equipment.status == 'AVAILABLE'}"
-                   th:classappend="${authenticated} ? '' : ' requires-login'"
-                   th:href="@{/borrow/form(equipmentId=${equipment.id})}"
-                   href="/borrow/form">
+                <p class="equipment-detail-category"
+                   th:text="${categoryName != null
+                            ? categoryName
+                            : 'Laptops'}">
+                    Laptops
+                </p>
 
-                    Borrow
-                </a>
+                <h1 th:text="${equipment != null
+                             ? equipment.name
+                             : 'MacBook Air 15 M3'}">
+                    MacBook Air 15 M3
+                </h1>
 
-                <!-- ยืมไม่ได้ -->
-                <button class="button button-disabled"
-                        th:unless="${equipment.status == 'AVAILABLE'}"
-                        type="button"
-                        disabled>
+                <p class="equipment-detail-code">
+                    Asset Code:
 
-                    Not Available
-                </button>
-            </footer>
-        </article>
+                    <strong th:text="${equipment != null
+                                     ? equipment.assetCode
+                                     : 'NB-001'}">
+                        NB-001
+                    </strong>
+                </p>
+
+                <p class="equipment-detail-description"
+                   th:text="${equipmentDescription != null
+                            ? equipmentDescription
+                            : 'View equipment information and submit a request to borrow this equipment.'}">
+                    View equipment information and submit a request
+                    to borrow this equipment.
+                </p>
+
+                <div class="equipment-detail-status-row">
+                    <span>Status</span>
+
+                    <strong th:text="${equipment != null
+                                     and equipment.status != null
+                                     ? equipment.status
+                                     : 'AVAILABLE'}">
+                        AVAILABLE
+                    </strong>
+                </div>
+
+                <div class="equipment-detail-actions">
+
+                    <a class="button equipment-back-button"
+                       href="list.html"
+                       th:href="@{/equipment}">
+                        Back
+                    </a>
+
+                    <a class="button button-primary equipment-detail-borrow"
+                       href="../borrow/form.html"
+                       th:href="${equipment != null
+                                ? '/borrow?equipmentId=' + equipment.id
+                                : '/borrow'}"
+                       th:classappend="${equipment != null
+                                       and equipment.status != null
+                                       and equipment.status.name() != 'AVAILABLE'}
+                                       ? ' is-disabled'
+                                       : ''"
+                       th:attr="aria-disabled=${equipment != null
+                                              and equipment.status != null
+                                              and equipment.status.name() != 'AVAILABLE'}"
+                       data-requires-login>
+
+                        <span aria-hidden="true">
+
+                            <!-- Lucide icon: ClipboardPlus -->
+                            <!-- วาง SVG ไอคอน ClipboardPlus ตรงนี้ -->
+
+                        </span>
+
+                        <span th:text="${equipment != null
+                                      and equipment.status != null
+                                      and equipment.status.name() != 'AVAILABLE'
+                                      ? 'Currently Unavailable'
+                                      : 'Borrow Equipment'}">
+                            Borrow Equipment
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             HARDWARE SPECIFICATIONS
+             ===================================================== -->
+
+        <section class="equipment-detail-specifications">
+
+            <h2>Hardware Specifications</h2>
+
+            <div class="equipment-specification-list">
+
+                <div class="equipment-specification-item">
+                    <span>CPU</span>
+
+                    <strong th:text="${processor != null
+                                     ? processor
+                                     : 'Apple M3'}">
+                        Apple M3
+                    </strong>
+                </div>
+
+                <div class="equipment-specification-item">
+                    <span>RAM</span>
+
+                    <strong th:text="${memory != null
+                                     ? memory
+                                     : '16 GB'}">
+                        16 GB
+                    </strong>
+                </div>
+
+                <div class="equipment-specification-item">
+                    <span>Storage</span>
+
+                    <strong th:text="${storage != null
+                                     ? storage
+                                     : '512 GB SSD'}">
+                        512 GB SSD
+                    </strong>
+                </div>
+
+                <div class="equipment-specification-item">
+                    <span>Purchase Date</span>
+
+                    <strong th:text="${purchaseDate != null
+                                     ? purchaseDate
+                                     : '-'}">
+                        -
+                    </strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             SMART LOCKER
+             ===================================================== -->
+
+        <section class="equipment-detail-locker">
+
+            <div class="equipment-locker-detail">
+
+                <span class="equipment-locker-icon"
+                      aria-hidden="true">
+
+                    <!-- Lucide icon: MapPin -->
+                    <!-- วาง SVG ไอคอน MapPin ตรงนี้ -->
+
+                </span>
+
+                <div>
+                    <span>Smart Locker Slot</span>
+
+                    <strong th:text="${lockerSlot != null
+                                     ? lockerSlot
+                                     : 'Waiting for locker assignment'}">
+                        Waiting for locker assignment
+                    </strong>
+                </div>
+            </div>
+
+            <span class="equipment-locker-status"
+                  th:if="${lockerSlot != null}">
+                Slot Online
+            </span>
+
+            <span class="equipment-locker-status is-pending"
+                  th:unless="${lockerSlot != null}">
+                Pending
+            </span>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer th:replace="~{fragments/site :: footer}"></footer>
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
 
-    <!-- Authentication modals -->
-    <div th:replace="~{fragments/site :: loginModal}"></div>
-    <div th:replace="~{fragments/site :: registerModal}"></div>
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
 
-    <script th:src="@{/js/sidebar.js}"
-            src="/js/sidebar.js"></script>
+    <script src="../../static/js/site-preview.js"
+            th:src="@{/js/site-preview.js}"></script>
 </body>
 </html>

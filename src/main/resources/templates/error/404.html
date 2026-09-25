@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Page Not Found | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
+</head>
+
+<body class="error-page"
+      data-page="error">
+
+    <header class="error-header">
+        <a class="error-brand"
+           href="../dashboard/index.html"
+           th:href="@{/}">
+
+            <span class="error-brand-icon"
+                  aria-hidden="true">
+
+                <!-- Lucide icon: Laptop -->
+                <!-- วาง SVG ไอคอน Laptop ตรงนี้ -->
+
+            </span>
+
+            <span>LeadIT</span>
+        </a>
+    </header>
+
+    <main class="error-main">
+
+        <section class="error-content">
+
+            <div class="error-illustration"
+                 aria-hidden="true">
+
+                <span class="error-illustration-icon">
+
+                    <!-- Lucide icon: SearchX -->
+                    <!-- วาง SVG ไอคอน SearchX ตรงนี้ -->
+
+                </span>
+            </div>
+
+            <p class="error-code">
+                404
+            </p>
+
+            <h1>Page not found</h1>
+
+            <p class="error-description">
+                The page you are looking for may have been moved,
+                removed, or is temporarily unavailable.
+            </p>
+
+            <div class="error-actions">
+
+                <button class="button error-back-button"
+                        type="button"
+                        onclick="history.back()">
+
+                    <span aria-hidden="true">
+
+                        <!-- Lucide icon: ArrowLeft -->
+                        <!-- วาง SVG ไอคอน ArrowLeft ตรงนี้ -->
+
+                    </span>
+
+                    Go Back
+                </button>
+
+                <a class="button button-primary"
+                   href="../dashboard/index.html"
+                   th:href="@{/}">
+
+                    <span aria-hidden="true">
+
+                        <!-- Lucide icon: House -->
+                        <!-- วาง SVG ไอคอน House ตรงนี้ -->
+
+                    </span>
+
+                    Back to Home
+                </a>
+            </div>
+
+            <p class="error-help">
+                If the problem continues, please contact the IT Helpdesk.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

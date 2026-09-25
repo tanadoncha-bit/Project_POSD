@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
@@ -17,14 +20,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
+    <!-- Live Server + Spring Boot -->
     <link rel="stylesheet"
-          href="../../static/css/style.css">
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
 </head>
 
 <body data-page="home">
 
-    <!-- Header จะโหลดมาจาก fragments/site.html -->
-    <div id="site-header"></div>
+    <!-- Header โหลดจาก fragments/site.html -->
+    <div id="site-header"
+         th:replace="~{fragments/site :: siteHeader}"></div>
 
     <main class="home-page">
 
@@ -33,9 +39,12 @@
              ===================================================== -->
 
         <section class="hero">
+
             <div class="hero-content">
+
                 <h1>
                     <span>Borrow IT Equipment</span>
+
                     Fast, Easy, Ready to Use
                 </h1>
 
@@ -46,25 +55,33 @@
                 </p>
 
                 <div class="hero-actions">
-                    <a class="button button-primary"
-                       href="../equipment/list.html"
-                       data-requires-login>
+
+                    <!-- ปุ่มเปิด Borrow Equipment Modal -->
+                    <button type="button" 
+                            class="button button-primary"
+                            id="open-borrow-modal-btn">
 
                         <span aria-hidden="true">+</span>
+
                         Borrow Equipment
-                    </a>
+                    </button>
 
                     <a class="button button-dark"
-                       href="../equipment/list.html">
+                       href="../equipment/list.html"
+                       th:href="@{/equipment}">
 
                         Browse Equipment
                     </a>
+
                 </div>
             </div>
 
             <div class="hero-media">
+
                 <img src="../../static/images/home-hero.png"
+                     th:src="@{/images/home-hero.png}"
                      alt="Laptops and IT equipment">
+
             </div>
         </section>
 
@@ -77,24 +94,31 @@
                  aria-label="LeadIT features">
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="fast-approval">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="fast-approval"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-check preview-icon"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m16 9-5.5 5.5L8 12"/></svg>
+
                 </span>
 
                 <h2>Fast Approval</h2>
 
                 <p>
-                    อนุมัติคำขอรวดเร็วและมีประสิทธิภาพ
+                    อนุมัติคำขอรวดเร็ว และมีประสิทธิภาพ
                 </p>
+
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="time-tracking">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="time-tracking"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-4 preview-icon"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+
                 </span>
 
                 <h2>Time Tracking</h2>
@@ -102,13 +126,17 @@
                 <p>
                     ติดตามระยะเวลาการยืมอุปกรณ์อย่างแม่นยำ
                 </p>
+
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="self-service">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="self-service"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-handshake preview-icon"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg>
+
                 </span>
 
                 <h2>Self-Service</h2>
@@ -116,13 +144,17 @@
                 <p>
                     จัดการคำขอด้วยตนเองได้อย่างง่ายดายและสะดวก
                 </p>
+
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="live-inventory">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="live-inventory"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shelving-unit preview-icon"><path d="M12 12V9a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/><path d="M16 20v-3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/><path d="M20 22V2"/><path d="M4 12h16"/><path d="M4 20h16"/><path d="M4 2v20"/><path d="M4 4h16"/></svg>
+
                 </span>
 
                 <h2>Live Inventory</h2>
@@ -130,13 +162,17 @@
                 <p>
                     ตรวจสอบสถานะอุปกรณ์ได้แบบเรียลไทม์
                 </p>
+
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="automated-alerts">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="automated-alerts"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell preview-icon"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+
                 </span>
 
                 <h2>Automated Alerts</h2>
@@ -144,13 +180,17 @@
                 <p>
                     แจ้งเตือนผู้ใช้งานเมื่อใกล้ถึงกำหนดคืน
                 </p>
+
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon"
-                      data-icon-slot="easy-returns">
 
-                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                <span class="feature-icon"
+                      data-icon-slot="easy-returns"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-undo-2 preview-icon"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+
                 </span>
 
                 <h2>Easy Returns</h2>
@@ -158,7 +198,9 @@
                 <p>
                     ดำเนินการคืนอุปกรณ์ได้ง่ายและรวดเร็ว
                 </p>
+
             </article>
+
         </section>
 
 
@@ -170,6 +212,7 @@
                  aria-labelledby="available-equipment-heading">
 
             <div class="section-heading">
+
                 <h2 id="available-equipment-heading">
                     Available Equipment
                 </h2>
@@ -178,215 +221,575 @@
                     Select equipment and submit a borrow request
                     immediately
                 </p>
+
             </div>
 
-        <!-- =====================================================
-            PREVIEW STATE: แสดงข้อมูลตัวอย่าง
-            ตอนนี้เปิดส่วนนี้ไว้เพื่อดูหน้าตาการ์ด
-            ===================================================== -->
+            <div class="equipment-grid equipment-preview-state"
+                 th:remove="all">
 
-        <div class="equipment-preview-state"
-            id="equipment-preview-state">
-
-            <div class="equipment-grid">
-
-                <a class="equipment-card"
-                    href="#">
+                <article class="equipment-card"
+                         tabindex="0"
+                         role="button"
+                         data-equipment-card
+                         data-equipment-id="1"
+                         data-name="MacBook Air 15&quot; M3"
+                         data-category="Laptops"
+                         data-code="LT-MAC-001"
+                         data-status="AVAILABLE"
+                         data-processor="Apple M3"
+                         data-memory="16 GB"
+                         data-storage="512 GB SSD"
+                         data-screen="15.3 inch"
+                         data-locker="Locker A-01">
 
                     <div class="equipment-card-image">
-                        <span class="equipment-image-placeholder">
-                            LeadIT
-                        </span>
+
+                        <img src="../../static/images/equipment-macbook.png"
+                             alt="MacBook Air 15 M3">
 
                         <span class="availability-badge">
                             Available
                         </span>
+
                     </div>
 
                     <div class="equipment-card-body">
+
                         <h3>MacBook Air 15&quot; M3</h3>
-                        <p>Laptops</p>
-                    </div>
-                </a>
 
-                <a class="equipment-card"
-                    href="#">
+                        <p>Laptops</p>
+
+                    </div>
+
+                </article>
+
+
+                <article class="equipment-card"
+                         tabindex="0"
+                         role="button"
+                         data-equipment-card
+                         data-equipment-id="2"
+                         data-name="HP Victus Gaming 16"
+                         data-category="Laptops"
+                         data-code="LT-HP-002"
+                         data-status="AVAILABLE"
+                         data-processor="AMD Ryzen 7"
+                         data-memory="16 GB"
+                         data-storage="1 TB SSD"
+                         data-screen="16.1 inch"
+                         data-locker="Locker A-02">
 
                     <div class="equipment-card-image">
-                        <span class="equipment-image-placeholder">
-                            LeadIT
-                        </span>
+
+                        <img src="../../static/images/equipment-victus.png"
+                             alt="HP Victus Gaming">
 
                         <span class="availability-badge">
                             Available
                         </span>
+
                     </div>
 
                     <div class="equipment-card-body">
+
                         <h3>HP Victus Gaming 16</h3>
+
                         <p>Laptops</p>
-                    </div>
-                </a>
 
-                <a class="equipment-card"
-                    href="#">
+                    </div>
+
+                </article>
+
+
+                <article class="equipment-card"
+                         tabindex="0"
+                         role="button"
+                         data-equipment-card
+                         data-equipment-id="3"
+                         data-name="Razer Viper V2 Pro White"
+                         data-category="Accessories"
+                         data-code="AC-RZ-003"
+                         data-status="AVAILABLE"
+                         data-processor="-"
+                         data-memory="-"
+                         data-storage="-"
+                         data-screen="-"
+                         data-locker="Locker B-01">
 
                     <div class="equipment-card-image">
-                        <span class="equipment-image-placeholder">
-                            LeadIT
-                        </span>
+
+                        <img src="../../static/images/equipment-razer.png"
+                             alt="Razer Viper V2 Pro White">
 
                         <span class="availability-badge">
                             Available
-                        </spa>
+                        </span>
+
                     </div>
 
                     <div class="equipment-card-body">
+
                         <h3>Razer Viper V2 Pro White</h3>
-                        <p>Accessories</p>
-                    </div>
-                </a>
 
-                <a class="equipment-card"
-                    href="#">
+                        <p>Accessories</p>
+
+                    </div>
+
+                </article>
+
+
+                <article class="equipment-card"
+                         tabindex="0"
+                         role="button"
+                         data-equipment-card
+                         data-equipment-id="4"
+                         data-name="Keychron V2 65%"
+                         data-category="Accessories"
+                         data-code="AC-KC-004"
+                         data-status="AVAILABLE"
+                         data-processor="-"
+                         data-memory="-"
+                         data-storage="-"
+                         data-screen="-"
+                         data-locker="Locker B-02">
 
                     <div class="equipment-card-image">
-                        <span class="equipment-image-placeholder">
-                            LeadIT
-                        </span>
+
+                        <img src="../../static/images/equipment-keyboard.png"
+                             alt="Keychron V2 65%">
 
                         <span class="availability-badge">
                             Available
                         </span>
+
                     </div>
 
                     <div class="equipment-card-body">
+
                         <h3>Keychron V2 65%</h3>
+
                         <p>Accessories</p>
+
                     </div>
-                </a>
+
+                </article>
+
+            </div>
+
+            <div class="equipment-grid"
+                 hidden
+                 th:if="${equipments != null and !equipments.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+                <article class="equipment-card"
+                   th:each="equipment : ${equipments}"
+                   tabindex="0"
+                   role="button"
+                   data-equipment-card
+                   data-category="IT Equipment"
+                   th:attr="data-equipment-id=${equipment.id},
+                            data-name=${equipment.name},
+                            data-code=${equipment.assetCode},
+                            data-status=${equipment.status}">
+
+                    <div class="equipment-card-image">
+
+                        <img th:if="${equipmentImageUrls != null
+                                    and equipmentImageUrls[equipment.id] != null}"
+                             th:src="${equipmentImageUrls[equipment.id]}"
+                             th:alt="${equipment.name}">
+
+                        <span class="equipment-image-placeholder"
+                              th:unless="${equipmentImageUrls != null
+                                         and equipmentImageUrls[equipment.id] != null}">
+
+                            LeadIT
+                        </span>
+
+                        <span class="availability-badge"
+                              th:classappend="${equipment.status != null
+                                               and equipment.status.name() != 'AVAILABLE'}
+                                               ? ' availability-badge-in-use'
+                                               : ''"
+                              th:text="${equipment.status != null
+                                        and equipment.status.name() == 'AVAILABLE'}
+                                        ? 'Available'
+                                        : 'In Use'">
+
+                            Available
+                        </span>
+
+                    </div>
+
+                    <div class="equipment-card-body">
+
+                        <h3 th:text="${equipment.name}">
+                            Equipment name
+                        </h3>
+
+                        <p th:text="${equipment.assetCode}">
+                            Asset code
+                        </p>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+            <div class="equipment-empty"
+                 hidden
+                 th:if="${equipments == null or equipments.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+                <h3>
+                    No equipment is currently available
+                </h3>
+
+                <p>
+                    Browse the equipment catalog or check again later.
+                </p>
 
             </div>
 
             <div class="view-all-wrapper">
+
                 <a class="button button-dark view-all"
-                    href="../equipment/list.html">
+                   href="../equipment/list.html"
+                   th:href="@{/equipment}">
+
                     View All
                 </a>
-            </div>
-        </div>
 
+            </div>
+
+        </section>
 
         <!-- =====================================================
-            EMPTY STATE: ใช้ตอน Admin ยังไม่ได้เพิ่มอุปกรณ์
-            ตอนนี้ซ่อนไว้ก่อนด้วย hidden
-        ===================================================== -->
+     SUCCESS REQUEST MODAL (ตามดีไซน์ Figma)
+     ===================================================== -->
+<div class="success-modal-backdrop" id="success-request-modal" hidden>
+    <div class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+        
+        <button class="success-modal-close" id="success-modal-close-btn" type="button" aria-label="Close modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+        </button>
 
-        <div class="equipment-empty"
-            id="equipment-empty-state"
-            hidden>
-
-            <strong>
-                ยังไม่มีอุปกรณ์พร้อมให้ยืมในขณะนี้
-            </strong>
-
-            <p>
-                โปรดลองตรวจสอบรายการอุปกรณ์อีกครั้งภายหลัง
-            </p>
-
-            <div class="view-all-wrapper">
-                <a class="button button-dark view-all"
-                href="../equipment/list.html">
-                    View All
-                </a>
-            </div>
+        <div class="success-modal-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
         </div>
-        </section>
+
+        <div class="success-modal-content">
+            <h2 id="success-modal-title">Success Request</h2>
+            <p>You can pick up your device at the specified Smart Locker.</p>
+        </div>
+
+        <div class="success-modal-actions">
+                <div class="success-modal-actions">
+                <button type="button" class="success-stay-button" id="success-stay-btn">Stay Here</button>
+            <a href="../borrow/my-history.html" th:href="@{/borrow/my-history}" class="button button-primary success-view-button">View Request</a>
+        </div>
+
+        </div>
+</div>
+
     </main>
 
-    <!-- =====================================================
-     EQUIPMENT DETAIL MODAL
-     ===================================================== -->
-
+    <!-- รายละเอียดอุปกรณ์ เปิดทับบนหน้า Home -->
     <div class="equipment-detail-backdrop"
-        id="equipment-detail-modal"
-        hidden>
+         id="equipment-detail-modal"
+         hidden>
 
         <section class="equipment-detail-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="equipment-modal-name">
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="equipment-modal-name">
 
-            <button class="equipment-modal-close"
-                id="equipment-modal-close"
-                type="button"
-                aria-label="Close equipment detail">
-                ×
-            </button>
-
-            <div class="equipment-modal-image">
-                <span id="equipment-modal-image-placeholder">
-                    LeadIT
-                </span>
-
-                <span class="availability-badge"
-                    id="equipment-modal-status">
-                    Available
-                </span>
-            </div>
-
-            <div class="equipment-modal-content">
-
-                <p class="equipment-modal-category"
-                    id="equipment-modal-category">
-                        Laptops
-                </p>
-
-                <h2 id="equipment-modal-name">
-                    Equipment name
-                </h2>
-
-                <p class="equipment-modal-description">
-                    View equipment information and submit a request to borrow this equipment.
-                </p>
-
-                <div class="equipment-modal-information">
-
-                    <div>
-                        <span>Availability</span>
-
-                        <strong id="equipment-modal-availability">
-                            Ready to borrow
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Request method</span>
-
-                        <strong>Online request</strong>
-                    </div>
-
+            <header class="equipment-modal-header">
+                <div class="equipment-modal-title">
+                    <h2 id="equipment-modal-name">Equipment name</h2>
+                    <p id="equipment-modal-category">IT Equipment</p>
                 </div>
 
-                <button class="button button-primary equipment-borrow-button"
-                        id="equipment-borrow-button"
+                <button class="equipment-modal-close"
+                        id="equipment-modal-close"
                         type="button"
-                        data-requires-login>
-                    Borrow Equipment
+                        aria-label="Close equipment detail">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         width="24"
+                         height="24"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
                 </button>
+            </header>
 
+            <div class="equipment-modal-body">
+                <div class="equipment-modal-image">
+                    <img id="equipment-modal-image" src="" alt="" hidden>
+                    <span class="equipment-modal-placeholder"
+                          id="equipment-modal-image-placeholder">LeadIT</span>
+                </div>
+
+                <section class="equipment-specifications">
+                    <h3>Specifications</h3>
+                    <div class="specification-grid">
+                        <p><strong>Asset code:</strong> <span id="equipment-modal-code">-</span></p>
+                        <p><strong>Processor:</strong> <span id="equipment-modal-processor">-</span></p>
+                        <p><strong>Memory:</strong> <span id="equipment-modal-memory">-</span></p>
+                        <p><strong>Storage:</strong> <span id="equipment-modal-storage">-</span></p>
+                        <p><strong>Display:</strong> <span id="equipment-modal-screen">-</span></p>
+                        <p><strong>Status:</strong> <span id="equipment-modal-status-text">Available</span></p>
+                    </div>
+                </section>
+
+                <div class="equipment-locker-row">
+                    <div class="equipment-locker-detail">
+                        <span class="equipment-locker-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 width="24"
+                                 height="24"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1"
+                                 stroke-linecap="round"
+                                 stroke-linejoin="round">
+                                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </span>
+                        <p>Available at <strong id="equipment-modal-locker">Locker</strong></p>
+                    </div>
+
+                    <span class="equipment-locker-status"
+                          id="equipment-modal-status">Available</span>
+                </div>
+
+                <div class="equipment-modal-actions">
+                    <button class="equipment-modal-cancel"
+                            id="equipment-modal-cancel"
+                            type="button">Cancel</button>
+
+                    <button class="equipment-borrow-button"
+                            id="equipment-borrow-button"
+                            type="button"
+                            data-requires-login>
+                        <span aria-hidden="true">+</span>
+                        <span id="equipment-borrow-label">Borrow</span>
+                    </button>
+                </div>
             </div>
         </section>
     </div>
 
-    <!-- Footer จะโหลดมาจาก fragments/site.html -->
-    <div id="site-footer"></div>
 
-    <!-- Login และ Register Modal -->
-    <div id="site-modals"></div>
+    <!-- =====================================================
+         BORROW EQUIPMENT FORM POPUP MODAL
+         ===================================================== -->
+    <div class="equipment-detail-backdrop" id="borrow-form-modal" hidden>
+        <div class="borrow-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="borrow-modal-title">
+            
+            <header class="borrow-modal-header">
+                <div class="equipment-modal-title">
+                    <h2 id="borrow-modal-title" class="borrow-modal-heading">Borrow Equipment Form</h2>
+                    <p class="borrow-modal-subheading">Specify the borrower, return due date, and select equipment to borrow</p>
+                </div>
+                <button class="equipment-modal-close" id="borrow-modal-close" type="button" aria-label="Close form">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </header>
 
-    <script src="../../static/js/site-preview.js"></script>
-    <script src="/src/main/resources/static/js/equipment-catalog.js?v=2"></script>
+            <form th:action="@{/borrow}" method="post" id="borrowForm">
+                
+                <!-- 1. User Info Section -->
+                <div class="borrow-form-group">
+                    <div class="borrow-form-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>User</span>
+                    </div>
+                    <div class="borrow-user-info">
+                        Name: <span th:text="${user != null ? user.name : 'Tanadon Chaisila'}">Tanadon Chaisila</span> &nbsp;|&nbsp; 
+                        Faculty: <span th:text="${user != null ? user.faculty : 'College of Computing'}">College of Computing</span> &nbsp;|&nbsp; 
+                        Role: <span th:text="${user != null ? user.role : 'Student'}">Student</span>
+                    </div>
+                </div>
+
+                <!-- 2. Select Equipment Section -->
+                <div class="borrow-form-group">
+                    <div class="borrow-form-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+                        <span>Select Equipment</span>
+                    </div>
+                    <div class="equipment-chip-group">
+                        <label class="equipment-chip">
+                            <input type="checkbox" name="equipmentIds" value="1" checked> Keychron
+                        </label>
+                        <label class="equipment-chip">
+                            <input type="checkbox" name="equipmentIds" value="2"> MacBook
+                        </label>
+                        <label class="equipment-chip">
+                            <input type="checkbox" name="equipmentIds" value="3"> Viper V2..
+                        </label>
+                        <label class="equipment-chip">
+                            <input type="checkbox" name="equipmentIds" value="4"> HP Victus
+                        </label>
+                        <label class="equipment-chip">
+                            <input type="checkbox" name="equipmentIds" value="5"> Logi G733
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. Due Date Section -->
+                <div class="borrow-form-group">
+                    <div class="borrow-form-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        <span>Due Date</span>
+                    </div>
+                    <input type="date" class="borrow-input" name="returnDate" required placeholder="Select Return Date">
+                </div>
+
+                <!-- 4. Note Section -->
+                <div class="borrow-form-group">
+                    <div class="borrow-form-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span>Note</span>
+                    </div>
+                    <textarea class="borrow-input" name="note" rows="3" placeholder="Enter your note here"></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="borrow-modal-actions">
+                    <button type="button" class="equipment-modal-cancel" id="borrow-modal-cancel-btn">Close</button>
+                    <button type="submit" class="btn-submit-borrow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Submit
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- Footer โหลดจาก fragments/site.html -->
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
+
+    <!-- Login, Register และ Search Modal -->
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+
+
+    <!-- Live Server + Spring Boot -->
+    <script src="../../static/js/site-preview.js"
+            th:src="@{/js/site-preview.js}"></script>
+
+    <script src="../../static/js/equipment-catalog.js"
+            th:src="@{/js/equipment-catalog.js}"></script>
+
+    <!-- Script ควบคุมการเปิด-ปิด และ Submit ของ Borrow Modal Form -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const openBtn = document.getElementById("open-borrow-modal-btn");
+        const borrowModal = document.getElementById("borrow-form-modal");
+        const closeBtn = document.getElementById("borrow-modal-close");
+        const cancelBtn = document.getElementById("borrow-modal-cancel-btn");
+        const borrowForm = document.getElementById("borrowForm");
+
+        const successModal = document.getElementById("success-request-modal");
+        const successCloseBtn = document.getElementById("success-modal-close-btn");
+        const successStayBtn = document.getElementById("success-stay-btn");
+
+        // ฟังก์ชันเปิด Borrow Modal พร้อมติ๊กเลือกอุปกรณ์
+        window.openBorrowModal = function (equipmentId) {
+            if (borrowModal) {
+                // ลบการเลือกทั้งหมดก่อน
+                const checkboxes = borrowModal.querySelectorAll('input[name="equipmentIds"]');
+                checkboxes.forEach(cb => cb.checked = false);
+
+                // ติ๊กเลือกชิ้นที่ตรงกับ ID ที่คลิก
+                if (equipmentId) {
+                    const targetCheckbox = borrowModal.querySelector(`input[name="equipmentIds"][value="${equipmentId}"]`);
+                    if (targetCheckbox) targetCheckbox.checked = true;
+                }
+
+                borrowModal.removeAttribute("hidden");
+            }
+        };
+
+
+        // ปุ่ม + Borrow Equipment บน Hero
+        if (openBtn) {
+            openBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                openBorrowModal();
+            });
+        }
+
+        function closeFormModal() {
+    if (borrowModal) {
+        borrowModal.setAttribute("hidden", "true");
+    }
+    document.body.classList.remove("modal-open");
+}
+
+function closeSuccessModal() {
+    if (successModal) {
+        successModal.setAttribute("hidden", "true");
+    }
+    document.body.classList.remove("modal-open");
+}
+
+        if (closeBtn) closeBtn.addEventListener("click", closeFormModal);
+        if (cancelBtn) cancelBtn.addEventListener("click", closeFormModal);
+        if (successCloseBtn) successCloseBtn.addEventListener("click", closeSuccessModal);
+        if (successStayBtn) successStayBtn.addEventListener("click", closeSuccessModal);
+
+        if (borrowModal) {
+            borrowModal.addEventListener("click", function (e) {
+                if (e.target === borrowModal) closeFormModal();
+            });
+        }
+
+        if (successModal) {
+            successModal.addEventListener("click", function (e) {
+                if (e.target === successModal) closeSuccessModal();
+            });
+        }
+
+        // ดักจับการ Submit ฟอร์ม
+        if (borrowForm) {
+            borrowForm.addEventListener("submit", function (e) {
+                if (window.location.port === "5500" || window.location.protocol === "file:") {
+                    e.preventDefault();
+                    closeFormModal();
+                    if (successModal) successModal.removeAttribute("hidden");
+                    borrowForm.reset();
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(pageTitle, pageName, pageContent)">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title th:replace="${pageTitle}">
+        LeadIT
+    </title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
+</head>
+
+<body th:attr="data-page=${pageName}">
+
+    <div id="site-header"
+         th:replace="~{fragments/site :: siteHeader}"></div>
+
+    <main th:replace="${pageContent}">
+        <section class="page-container">
+            <h1>LeadIT</h1>
+        </section>
+    </main>
+
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
+
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+
+    <script src="../../static/js/site-preview.js"
+            th:src="@{/js/site-preview.js}"></script>
+</body>
+</html>

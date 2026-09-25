@@ -1,197 +1,301 @@
-const requestCards = Array.from(
-    document.querySelectorAll(".request-card")
-);
+document.addEventListener("DOMContentLoaded", () => {
+    const filterButtons =
+        Array.from(
+            document.querySelectorAll(
+                "[data-request-filter]"
+            )
+        );
 
-const requestTabs = Array.from(
-    document.querySelectorAll(".request-tab")
-);
+    const requestCards =
+        Array.from(
+            document.querySelectorAll(
+                "[data-request-card]"
+            )
+        );
 
-const requestFilterEmpty =
-    document.getElementById("request-filter-empty");
+    const filterEmptyState =
+        document.getElementById(
+            "request-filter-empty"
+        );
 
-const requestSearchSummary =
-    document.getElementById("request-search-summary");
+    const serverEmptyState =
+        document.getElementById(
+            "request-server-empty"
+        );
 
-const clearRequestFilterButton =
-    document.getElementById("clear-request-filter");
-
-let selectedRequestStatus = "ALL";
-let requestKeyword = "";
-
-
-function normalizeRequestText(value) {
-    return String(value || "")
-        .trim()
-        .toLowerCase();
-}
+    let currentFilter = "ALL";
 
 
-function statusMatchesFilter(status, filter) {
-    if (filter === "ALL") {
+    function normalizeStatus(status) {
+        const normalizedStatus =
+            String(status || "")
+                .trim()
+                .toUpperCase()
+                .replaceAll(" ", "_");
+
+        if (
+            normalizedStatus === "APPROVED" ||
+            normalizedStatus === "BORROWED" ||
+            normalizedStatus === "OVERDUE" ||
+            normalizedStatus === "IN_USE"
+        ) {
+            return "ACTIVE";
+        }
+
+        return normalizedStatus;
+    }
+
+
+    function getSearchKeyword() {
+        const searchParameters =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        return (
+            searchParameters
+                .get("keyword")
+                ?.trim()
+                .toLowerCase() || ""
+        );
+    }
+
+
+    function isPreviewAuthenticated() {
+        return (
+            document.body.dataset.authenticated ===
+            "true"
+        );
+    }
+
+
+    function isStaticPreview() {
+        return (
+            window.location.port === "5500" ||
+            window.location.port === "5501" ||
+            window.location.pathname.includes(
+                "/src/main/resources/templates/"
+            )
+        );
+    }
+
+
+    function cardMatchesFilter(card) {
+        if (currentFilter === "ALL") {
+            return true;
+        }
+
+        const cardStatus =
+            normalizeStatus(
+                card.dataset.requestStatus
+            );
+
+        return cardStatus === currentFilter;
+    }
+
+
+    function cardMatchesSearch(card) {
+        const keyword =
+            getSearchKeyword();
+
+        if (!keyword) {
+            return true;
+        }
+
+        const searchableText =
+            [
+                card.textContent,
+                card.dataset.requestStatus
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
+
+        return searchableText.includes(keyword);
+    }
+
+
+    function shouldShowFilterEmpty(
+        visibleCardCount
+    ) {
+        if (visibleCardCount > 0) {
+            return false;
+        }
+
+        if (requestCards.length === 0) {
+            return false;
+        }
+
+        if (
+            isStaticPreview() &&
+            !isPreviewAuthenticated()
+        ) {
+            return false;
+        }
+
         return true;
     }
 
-    if (filter === "ACTIVE") {
-        return [
-            "APPROVED",
-            "BORROWED",
-            "OVERDUE"
-        ].includes(status);
-    }
 
-    return status === filter;
-}
+    function updateFilterButtons() {
+        filterButtons.forEach((button) => {
+            const buttonFilter =
+                button.dataset.requestFilter;
 
+            const selected =
+                buttonFilter === currentFilter;
 
-function filterRequests() {
-    if (requestCards.length === 0) {
-        return;
-    }
-
-    const normalizedKeyword =
-        normalizeRequestText(requestKeyword);
-
-    let visibleCount = 0;
-
-    requestCards.forEach((card) => {
-        const status =
-            String(card.dataset.requestStatus || "")
-                .toUpperCase();
-
-        const searchableText =
-            normalizeRequestText(card.textContent);
-
-        const matchesStatus =
-            statusMatchesFilter(
-                status,
-                selectedRequestStatus
+            button.classList.toggle(
+                "active",
+                selected
             );
-
-        const matchesKeyword =
-            normalizedKeyword === "" ||
-            searchableText.includes(normalizedKeyword);
-
-        const shouldShow =
-            matchesStatus && matchesKeyword;
-
-        card.hidden = !shouldShow;
-
-        if (shouldShow) {
-            visibleCount++;
-        }
-    });
-
-    if (requestFilterEmpty) {
-        requestFilterEmpty.hidden = visibleCount !== 0;
-    }
-
-    if (requestSearchSummary) {
-        if (normalizedKeyword === "") {
-            requestSearchSummary.hidden = true;
-            requestSearchSummary.textContent = "";
-        } else {
-            requestSearchSummary.hidden = false;
-            requestSearchSummary.textContent =
-                `Search results for "${requestKeyword}" — ${visibleCount} request(s)`;
-        }
-    }
-}
-
-
-requestTabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-        requestTabs.forEach((currentTab) => {
-            currentTab.classList.remove("active");
-        });
-
-        tab.classList.add("active");
-
-        selectedRequestStatus =
-            tab.dataset.requestFilter || "ALL";
-
-        filterRequests();
-    });
-});
-
-
-document
-    .querySelectorAll(".request-details-toggle")
-    .forEach((button) => {
-        button.addEventListener("click", () => {
-            const requestCard =
-                button.closest(".request-card");
-
-            const details =
-                requestCard?.querySelector(
-                    ".request-card-details"
-                );
-
-            if (!details) {
-                return;
-            }
-
-            const isOpen = !details.hidden;
-
-            details.hidden = isOpen;
 
             button.setAttribute(
-                "aria-expanded",
-                String(!isOpen)
+                "aria-pressed",
+                String(selected)
+            );
+        });
+    }
+
+
+    function applyRequestFilter() {
+        let visibleCardCount = 0;
+
+        requestCards.forEach((card) => {
+            const visible =
+                cardMatchesFilter(card) &&
+                cardMatchesSearch(card);
+
+            card.hidden = !visible;
+
+            if (visible) {
+                visibleCardCount += 1;
+            }
+        });
+
+        if (filterEmptyState) {
+            filterEmptyState.hidden =
+                !shouldShowFilterEmpty(
+                    visibleCardCount
+                );
+        }
+
+        /*
+         * ถ้ามีการ์ดอยู่ แต่ Filter ไม่ตรง
+         * จะซ่อน Server Empty State เพื่อไม่ให้
+         * Empty State สองอันแสดงพร้อมกัน
+         */
+        if (
+            serverEmptyState &&
+            requestCards.length > 0
+        ) {
+            serverEmptyState.hidden = true;
+        }
+
+        updateFilterButtons();
+    }
+
+
+    function selectFilter(filter) {
+        const normalizedFilter =
+            normalizeStatus(filter);
+
+        const allowedFilters =
+            [
+                "ALL",
+                "ACTIVE",
+                "PENDING",
+                "RETURNED"
+            ];
+
+        currentFilter =
+            allowedFilters.includes(
+                normalizedFilter
+            )
+                ? normalizedFilter
+                : "ALL";
+
+        applyRequestFilter();
+    }
+
+
+    function initializeFilterFromUrl() {
+        const searchParameters =
+            new URLSearchParams(
+                window.location.search
             );
 
-            button.textContent =
-                isOpen
-                    ? "View Details"
-                    : "Hide Details";
-        });
+        const status =
+            searchParameters.get("status");
+
+        if (status) {
+            selectFilter(status);
+            return;
+        }
+
+        selectFilter("ALL");
+    }
+
+
+    filterButtons.forEach((button) => {
+        button.addEventListener(
+            "click",
+            () => {
+                selectFilter(
+                    button.dataset.requestFilter
+                );
+            }
+        );
     });
 
 
-clearRequestFilterButton?.addEventListener(
-    "click",
-    () => {
-        selectedRequestStatus = "ALL";
-        requestKeyword = "";
+    /*
+     * site-preview.js จะส่ง Event นี้หลังจาก
+     * โหลด Header, Footer และตรวจสอบ Login แล้ว
+     */
+    document.addEventListener(
+        "leadit:site-ready",
+        () => {
+            applyRequestFilter();
+        }
+    );
 
-        requestTabs.forEach((tab) => {
-            tab.classList.toggle(
-                "active",
-                tab.dataset.requestFilter === "ALL"
-            );
+
+    /*
+     * ตรวจจับตอน Preview Login หรือ Logout
+     * เพราะ site-preview.js จะเปลี่ยน
+     * data-authenticated บน body
+     */
+    const authenticationObserver =
+        new MutationObserver((mutations) => {
+            const authenticationChanged =
+                mutations.some((mutation) => {
+                    return (
+                        mutation.type ===
+                            "attributes" &&
+                        mutation.attributeName ===
+                            "data-authenticated"
+                    );
+                });
+
+            if (authenticationChanged) {
+                applyRequestFilter();
+            }
         });
 
-        const currentUrl =
-            new URL(window.location.href);
 
-        currentUrl.searchParams.delete("keyword");
-
-        window.history.replaceState(
-            {},
-            "",
-            currentUrl.pathname
-        );
-
-        if (searchInput) {
-            searchInput.value = "";
+    authenticationObserver.observe(
+        document.body,
+        {
+            attributes: true,
+            attributeFilter: [
+                "data-authenticated"
+            ]
         }
-
-        setSearchOpen(false);
-        filterRequests();
-    }
-);
+    );
 
 
-if (requestCards.length > 0) {
-    const searchParameters =
-        new URLSearchParams(window.location.search);
-
-    requestKeyword =
-        searchParameters.get("keyword") || "";
-
-    if (requestKeyword && searchInput) {
-        searchInput.value = requestKeyword;
-        setSearchOpen(true);
-    }
-
-    filterRequests();
-}
+    initializeFilterFromUrl();
+});

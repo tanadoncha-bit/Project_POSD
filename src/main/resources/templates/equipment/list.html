@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
 
@@ -19,260 +21,506 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          href="../../static/css/style.css">
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
 </head>
 
 <body data-page="equipment">
 
     <!-- Header จาก fragments/site.html -->
-    <div id="site-header"></div>
+    <div id="site-header"
+         th:replace="~{fragments/site :: siteHeader}"></div>
+
 
     <main class="catalog-main">
 
         <header class="catalog-heading">
+
             <h1>Equipment Catalog</h1>
 
             <p>
-                Click any equipment to view details and submit
-                a borrow request
+                Click any equipment to view details and submit a borrow request
             </p>
+
         </header>
 
 
         <!-- =====================================================
-             PREVIEW EQUIPMENT
-             ข้อมูลตัวอย่างสำหรับตรวจดีไซน์ผ่าน Live Server
+             LIVE SERVER PREVIEW
+
+             การ์ดส่วนนี้ใช้ตรวจหน้าตาตาม Figma เท่านั้น
+             เมื่อรัน Spring Boot จะถูกลบออกด้วย th:remove
              ===================================================== -->
 
         <section class="catalog-grid"
                  id="catalog-preview-state"
-                 aria-label="Equipment catalog">
+                 aria-label="Equipment catalog"
+                 th:remove="all">
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="1"
+                     data-name="MacBook Air 15&quot; M3"
+                     data-category="Laptops"
+                     data-code="LT-MAC-001"
+                     data-status="AVAILABLE"
+                     data-processor="Apple M3"
+                     data-memory="16 GB"
+                     data-storage="512 GB SSD"
+                     data-screen="15.3 inch"
+                     data-locker="Locker A-01">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-macbook.png"
+                         alt="MacBook Air 15 M3">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
+
                     <h2>MacBook Air 15&quot; M3</h2>
+
                     <p>Laptops</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="2"
+                     data-name="HP Victus Gaming 16-e0082AX"
+                     data-category="Laptops"
+                     data-code="LT-HP-002"
+                     data-status="AVAILABLE"
+                     data-processor="AMD Ryzen 7"
+                     data-memory="16 GB"
+                     data-storage="1 TB SSD"
+                     data-screen="16.1 inch"
+                     data-locker="Locker A-02">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-victus.png"
+                         alt="HP Victus Gaming">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
+
                     <h2>HP Victus Gaming 16-e0082AX</h2>
+
                     <p>Laptops</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="3"
+                     data-name="Razer Viper V2 Pro White"
+                     data-category="Accessories"
+                     data-code="AC-RZ-003"
+                     data-status="AVAILABLE"
+                     data-processor="-"
+                     data-memory="-"
+                     data-storage="-"
+                     data-screen="-"
+                     data-locker="Locker B-01">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-razer.png"
+                         alt="Razer Viper V2 Pro White">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
+
                     <h2>Razer Viper V2 Pro White</h2>
+
                     <p>Accessories</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="4"
+                     data-name="Logitech Gaming G733 Wireless"
+                     data-category="Accessories"
+                     data-code="AC-LG-004"
+                     data-status="IN_USE"
+                     data-processor="-"
+                     data-memory="-"
+                     data-storage="-"
+                     data-screen="-"
+                     data-locker="Locker B-02">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
+
+                    <img src="../../static/images/equipment-headset.png"
+                         alt="Logitech Gaming G733 Wireless">
+
+                    <span class="availability-badge status-in-use">
+                        In Used
                     </span>
 
-                    <span class="availability-badge status-unavailable">
-                        In Use
-                    </span>
                 </div>
 
                 <div class="equipment-card-body">
+
                     <h2>Logitech Gaming G733 Wireless</h2>
+
                     <p>Accessories</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="5"
+                     data-name="Logitech G Pro X Superlight 2"
+                     data-category="Accessories"
+                     data-code="AC-LG-005"
+                     data-status="AVAILABLE"
+                     data-processor="-"
+                     data-memory="-"
+                     data-storage="-"
+                     data-screen="-"
+                     data-locker="Locker B-03">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-mouse.png"
+                         alt="Logitech G Pro X Superlight 2">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
-                    <h2>Logitech G Pro X Superlight 2C</h2>
+
+                    <h2>Logitech G Pro X Superlight 2</h2>
+
                     <p>Accessories</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="6"
+                     data-name="MacBook Air 15&quot; M3"
+                     data-category="Laptops"
+                     data-code="LT-MAC-006"
+                     data-status="AVAILABLE"
+                     data-processor="Apple M3"
+                     data-memory="16 GB"
+                     data-storage="512 GB SSD"
+                     data-screen="15.3 inch"
+                     data-locker="Locker A-03">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-macbook.png"
+                         alt="MacBook Air 15 M3">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
+
                     <h2>MacBook Air 15&quot; M3</h2>
+
                     <p>Laptops</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="7"
+                     data-name="MacBook Air 15&quot; M3"
+                     data-category="Laptops"
+                     data-code="LT-MAC-007"
+                     data-status="AVAILABLE"
+                     data-processor="Apple M3"
+                     data-memory="16 GB"
+                     data-storage="512 GB SSD"
+                     data-screen="15.3 inch"
+                     data-locker="Locker A-04">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
 
-                    <span class="availability-badge status-maintenance">
-                        Maintenance
-                    </span>
-                </div>
-
-                <div class="equipment-card-body">
-                    <h2>LG UltraGear Monitor 27&quot;</h2>
-                    <p>Monitors</p>
-                </div>
-            </a>
-
-
-            <a class="equipment-card"
-               href="#">
-
-                <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+                    <img src="../../static/images/equipment-macbook.png"
+                         alt="MacBook Air 15 M3">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
+
+                    <h2>MacBook Air 15&quot; M3</h2>
+
+                    <p>Laptops</p>
+
+                </div>
+
+            </article>
+
+
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="8"
+                     data-name="Keychron V2 65%"
+                     data-category="Accessories"
+                     data-code="AC-KC-008"
+                     data-status="AVAILABLE"
+                     data-processor="-"
+                     data-memory="-"
+                     data-storage="-"
+                     data-screen="-"
+                     data-locker="Locker B-04">
+
+                <div class="equipment-card-image">
+
+                    <img src="../../static/images/equipment-keyboard.png"
+                         alt="Keychron V2 65%">
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+
+                </div>
+
+                <div class="equipment-card-body">
+
                     <h2>Keychron V2 65%</h2>
+
                     <p>Accessories</p>
+
                 </div>
-            </a>
+
+            </article>
 
 
-            <a class="equipment-card"
-               href="#">
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     data-equipment-id="9"
+                     data-name="MacBook Air 15&quot; M3"
+                     data-category="Laptops"
+                     data-code="LT-MAC-009"
+                     data-status="AVAILABLE"
+                     data-processor="Apple M3"
+                     data-memory="16 GB"
+                     data-storage="512 GB SSD"
+                     data-screen="15.3 inch"
+                     data-locker="Locker A-05">
 
                 <div class="equipment-card-image">
-                    <span class="equipment-image-placeholder">
-                        LeadIT
-                    </span>
+
+                    <img src="../../static/images/equipment-macbook.png"
+                         alt="MacBook Air 15 M3">
 
                     <span class="availability-badge">
                         Available
                     </span>
+
                 </div>
 
                 <div class="equipment-card-body">
-                    <h2>Epson Projector EB-E01</h2>
-                    <p>Projectors</p>
+
+                    <h2>MacBook Air 15&quot; M3</h2>
+
+                    <p>Laptops</p>
+
                 </div>
-            </a>
+
+            </article>
+
+        </section>
+
+
+        <!-- =====================================================
+             SPRING BOOT DATA
+
+             จะแสดงเมื่อ Controller ส่ง equipments มา
+             และฐานข้อมูลมีอุปกรณ์
+             ===================================================== -->
+
+        <section class="catalog-grid"
+                 aria-label="Equipment catalog"
+                 hidden
+                 th:if="${equipments != null and !equipments.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+            <article class="equipment-card"
+                     tabindex="0"
+                     role="button"
+                     data-equipment-card
+                     th:each="equipment : ${equipments}"
+                     th:attr="data-equipment-id=${equipment.id},
+                              data-name=${equipment.name},
+                              data-code=${equipment.assetCode},
+                              data-status=${equipment.status},
+                              data-category='IT Equipment',
+                              data-processor='-',
+                              data-memory='-',
+                              data-storage='-',
+                              data-screen='-',
+                              data-locker='Locker information pending'">
+
+                <div class="equipment-card-image">
+
+                    <!-- แสดงรูปเมื่อ Backend ส่ง equipmentImageUrls มา -->
+
+                    <img th:if="${equipmentImageUrls != null
+                                and equipmentImageUrls[equipment.id] != null}"
+                         th:src="${equipmentImageUrls[equipment.id]}"
+                         th:alt="${equipment.name}">
+
+                    <!-- แสดง Placeholder เมื่อยังไม่มีรูป -->
+
+                    <span class="equipment-image-placeholder"
+                          th:unless="${equipmentImageUrls != null
+                                     and equipmentImageUrls[equipment.id] != null}">
+
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge"
+                          th:classappend="${equipment.status != null
+                                           and equipment.status.name() != 'AVAILABLE'}
+                                           ? ' status-in-use'
+                                           : ''"
+                          th:text="${equipment.status != null
+                                    and equipment.status.name() == 'AVAILABLE'}
+                                    ? 'Available'
+                                    : 'In Used'">
+
+                        Available
+                    </span>
+
+                </div>
+
+                <div class="equipment-card-body">
+
+                    <h2 th:text="${equipment.name}">
+                        Equipment name
+                    </h2>
+
+                    <p th:text="${equipment.assetCode}">
+                        Asset code
+                    </p>
+
+                </div>
+
+            </article>
 
         </section>
 
 
         <!-- =====================================================
              EMPTY STATE
-             ใช้เมื่อ Admin ยังไม่ได้เพิ่มอุปกรณ์
-             ตอนนี้ซ่อนไว้เพื่อดูข้อมูลตัวอย่างก่อน
+
+             แสดงเมื่อรัน Spring Boot แล้วฐานข้อมูลยังไม่มีอุปกรณ์
              ===================================================== -->
 
         <section class="catalog-empty"
                  id="catalog-empty-state"
-                 hidden>
+                 hidden
+                 th:if="${equipments == null or equipments.isEmpty()}"
+                 th:attr="hidden=${null}">
 
             <strong>
-                ยังไม่มีรายการอุปกรณ์ในขณะนี้
+                No equipment is currently available
             </strong>
 
             <p>
-                โปรดลองตรวจสอบรายการอุปกรณ์อีกครั้งภายหลัง
+                Browse the equipment catalog or check again later.
             </p>
+
         </section>
 
     </main>
 
-    <!-- =====================================================
-     EQUIPMENT DETAIL MODAL
-     ===================================================== -->
+
+    <!-- =========================================================
+         EQUIPMENT DETAIL MODAL
+         ========================================================= -->
 
     <div class="equipment-detail-backdrop"
-        id="equipment-detail-modal"
-        hidden>
+         id="equipment-detail-modal"
+         hidden>
 
         <section class="equipment-detail-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="equipment-modal-name">
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="equipment-modal-name">
 
             <header class="equipment-modal-header">
-                <div>
+
+                <div class="equipment-modal-title">
+
                     <h2 id="equipment-modal-name">
-                        MacBook Air 15&quot; M3
+                        Equipment name
                     </h2>
 
                     <p id="equipment-modal-category">
-                        Laptop
+                        IT Equipment
                     </p>
+
                 </div>
 
                 <button class="equipment-modal-close"
@@ -281,112 +529,276 @@
                         aria-label="Close equipment detail">
 
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x preview-icon"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                
+
                 </button>
+
             </header>
+
 
             <div class="equipment-modal-body">
 
                 <div class="equipment-modal-image">
+
                     <img id="equipment-modal-image"
-                        src=""
-                        alt=""
-                        hidden>
+                         src=""
+                         alt=""
+                         hidden>
 
-                    <div class="equipment-model-placeholder"
-                        id="equipment-modal-image-placeholder">
+                    <span class="equipment-modal-placeholder"
+                          id="equipment-modal-image-placeholder">
+
                         LeadIT
-                    </div>
-                </div>
-
-                <section class="equipment-specifications"
-                        aria-labelledby="specifications-heading">
-
-                        <h3 id="specifications-heading">
-                            Hardware Specifications
-                        </h3>
-
-                        <div class="specification-grid">
-                            <p>
-                                <strong>CPU :</strong>
-                                <span>M3 8-core</span>
-                            </p>
-
-                            <p>
-                                <strong>Storage :</strong>
-                                <span>512GB SSD</span>
-                            </p>
-
-                            <p>
-                                <strong>Ram :</strong>
-                                <span>16GB Unified Memory</span>
-                            </p>
-
-                            <p>
-                                <strong>Purchase Date:</strong>
-                                <span>2024-04-05</span>
-                            </p>
-            </div>
-        </section>
-
-        <div class="equipment-locker-row">
-            <div class="equipment-locker-detail">
-
-                <span class="equipment-locker-icon"
-                        aria-hidden="true">
-
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin preview-icon"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-                </span>
-
-                <p>
-                    <strong>Smart Locker Slot :</strong>
-                    <span>Slot A-4</span>
-                </p>
-            </div>
-
-                <span class="equipment-locker-status"
-                    id="equipment-modal-status">
-                    Slot Online
-                </span>
-            </div>
-
-            <!-- เก็บ ID นี้ไว้ให้ JavaScript ใช้งาน -->
-            <span id="equipment-modal-availability" hidden>
-                Ready to borrow
-            </span>
-
-            <div class="equipment-modal-actions">
-                <button class="equipment-modal-cancel"
-                        id="equipment-modal-cancel"
-                        type="button">
-                    Close
-                </button>
-
-                <button class="equipment-borrow-button"
-                        id="equipment-borrow-button"
-                        type="button"
-                        data-requires-login>
-
-                    <span class="equipment-borrow-icon"
-                        aria-hidden="true">
-
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check preview-icon"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg>
                     </span>
 
-                    <span id="equipment-borrow-label">Borrow</span>
-                </button>
+                </div>
+
+
+                <section class="equipment-specifications">
+
+                    <h3>Specifications</h3>
+
+                    <div class="specification-grid">
+
+                        <p>
+                            <strong>Asset code:</strong>
+
+                            <span id="equipment-modal-code">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Processor:</strong>
+
+                            <span id="equipment-modal-processor">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Memory:</strong>
+
+                            <span id="equipment-modal-memory">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Storage:</strong>
+
+                            <span id="equipment-modal-storage">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Display:</strong>
+
+                            <span id="equipment-modal-screen">
+                                -
+                            </span>
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong>
+
+                            <span id="equipment-modal-status-text">
+                                Available
+                            </span>
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <div class="equipment-locker-row">
+
+                    <div class="equipment-locker-detail">
+
+                        <span class="equipment-locker-icon"
+                              aria-hidden="true">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin preview-icon"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+
+                        </span>
+
+                        <p>
+                            Available at
+
+                            <strong id="equipment-modal-locker">
+                                Locker
+                            </strong>
+                        </p>
+
+                    </div>
+
+                    <span class="equipment-locker-status"
+                          id="equipment-modal-status">
+
+                        Available
+                    </span>
+
+                </div>
+
+
+                <div class="equipment-modal-actions">
+
+                    <button class="equipment-modal-cancel"
+                            id="equipment-modal-cancel"
+                            type="button">
+
+                        Cancel
+                    </button>
+
+                    <button class="equipment-borrow-button"
+                            id="equipment-borrow-button"
+                            type="button"
+                            data-requires-login>
+
+                        <span aria-hidden="true">+</span>
+
+                        <span id="equipment-borrow-label">
+                            Borrow
+                        </span>
+
+                    </button>
+
+                </div>
+
             </div>
 
-        </div>
-    </section>
-</div>
+        </section>
+
+    </div>
+
+
+    <!-- =========================================================
+         BORROW FORM MODAL (ดึงจาก templates/borrow/form.html)
+         ========================================================= -->
+    <div th:replace="~{borrow/form :: borrowFormModal}"></div>
+
+
     <!-- Footer จาก fragments/site.html -->
-    <div id="site-footer"></div>
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
 
-    <!-- Login และ Register Modal -->
-    <div id="site-modals"></div>
+    <!-- Login, Register และ Search Modal -->
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
 
-    <script src="../../static/js/site-preview.js"></script>
-    <script src="/src/main/resources/static/js/equipment-catalog.js?v=2"></script>
+
+    <script src="../../static/js/site-preview.js"
+            th:src="@{/js/site-preview.js}"></script>
+
+    <script src="../../static/js/equipment-catalog.js"
+            th:src="@{/js/equipment-catalog.js}"></script>
+
+    <!-- JS ควบคุมฟอร์มการยืมอุปกรณ์ -->
+    <script src="../../static/js/borrow-form.js"
+            th:src="@{/js/borrow-form.js}"></script>
+
+
+            <!-- แปะไว้ก่อนปิดแท็ก </body> ในไฟล์ equipment/list.html -->
+<div class="equipment-detail-backdrop" id="borrow-form-modal" hidden>
+    <div class="borrow-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="borrow-modal-title">
+        <header class="borrow-modal-header">
+            <div class="equipment-modal-title">
+                <h2 id="borrow-modal-title" class="borrow-modal-heading">Borrow Equipment Form</h2>
+                <p class="borrow-modal-subheading">Specify the borrower, return due date, and select equipment to borrow</p>
+            </div>
+            <button class="equipment-modal-close" id="borrow-modal-close" type="button" aria-label="Close form">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
+            </button>
+        </header>
+
+        <form th:action="@{/borrow}" method="post" id="borrowForm">
+            <div class="borrow-form-group">
+                <div class="borrow-form-label">
+                    <span>User</span>
+                </div>
+                <div class="borrow-user-info">
+                    Name: Tanadon Chaisila | Faculty: College of Computing | Role: Student
+                </div>
+            </div>
+
+            <div class="borrow-form-group">
+                <div class="borrow-form-label">
+                    <span>Select Equipment</span>
+                </div>
+                <div class="equipment-chip-group">
+                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="1" checked> Keychron</label>
+                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="2"> MacBook</label>
+                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="3"> Viper V2..</label>
+                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="4"> HP Victus</label>
+                </div>
+            </div>
+
+            <div class="borrow-form-group">
+                <div class="borrow-form-label">
+                    <span>Due Date</span>
+                </div>
+                <input type="date" class="borrow-input" name="returnDate" required>
+            </div>
+
+            <div class="borrow-form-group">
+                <div class="borrow-form-label">
+                    <span>Note</span>
+                </div>
+                <textarea class="borrow-input" name="note" rows="3" placeholder="Enter your note here"></textarea>
+            </div>
+
+            <div class="borrow-modal-actions">
+                <button type="button" class="equipment-modal-cancel" id="borrow-modal-cancel-btn">Close</button>
+                <button type="submit" class="btn-submit-borrow">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const detailBorrowBtn = document.getElementById("equipment-borrow-button");
+        const detailModal = document.getElementById("equipment-detail-modal");
+        const borrowModal = document.getElementById("borrow-form-modal");
+        const closeBtn = document.getElementById("borrow-modal-close");
+        const cancelBtn = document.getElementById("borrow-modal-cancel-btn");
+
+        // เมื่อกดปุ่ม + Borrow ใน Detail Modal
+        if (detailBorrowBtn) {
+            detailBorrowBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                // 1. ปิด Detail Modal
+                if (detailModal) detailModal.setAttribute("hidden", "true");
+                
+                // 2. แสดง Borrow Form Modal
+                if (borrowModal) borrowModal.removeAttribute("hidden");
+            });
+        }
+
+        // ฟังก์ชันซ่อน Borrow Modal
+        function hideBorrowModal() {
+            if (borrowModal) borrowModal.setAttribute("hidden", "true");
+        }
+
+        if (closeBtn) closeBtn.addEventListener("click", hideBorrowModal);
+        if (cancelBtn) cancelBtn.addEventListener("click", hideBorrowModal);
+        
+        if (borrowModal) {
+            borrowModal.addEventListener("click", function (e) {
+                if (e.target === borrowModal) hideBorrowModal();
+            });
+        }
+    });
+</script>
+
+
 </body>
 </html>

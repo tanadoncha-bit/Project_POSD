@@ -23,7 +23,10 @@ public class EquipmentPageController {
 
     @GetMapping
     public String showEquipmentList(Model model) {
-        model.addAttribute("equipments",equipmentService.getAllEquipments(Pageable.unpaged()).getContent());
+        model.addAttribute(
+                "equipments",
+                equipmentService.getAllEquipments(Pageable.unpaged()).getContent()
+        );
 
         return "equipment/list";
     }

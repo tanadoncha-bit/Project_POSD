@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Profile | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
+</head>
+
+<body class="profile-page"
+      data-page="profile">
+
+    <!-- =====================================================
+         PROFILE HEADER
+         ===================================================== -->
+
+    <header class="profile-header">
+        <a class="profile-brand"
+           href="../dashboard/index.html"
+           th:href="@{/}">
+
+            <span class="profile-brand-icon"
+                  aria-hidden="true">
+                <!-- SVG Icon (รูป Laptop สไตล์ Figma) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="12" x="3" y="4" rx="2"/>
+                    <line x1="2" x2="22" y1="20" y2="20"/>
+                </svg>
+            </span>
+
+            <span>LeadIT</span>
+        </a>
+    </header>
+
+    <main class="profile-main">
+
+        <!-- =====================================================
+             PROFILE COVER
+             ===================================================== -->
+
+        <section class="profile-overview">
+            <div class="profile-cover">
+
+                <div class="profile-cover-placeholder"
+                     aria-hidden="true">
+                </div>
+
+                <img class="profile-cover-image"
+                     src=""
+                     alt=""
+                     hidden
+                     th:if="${coverImageUrl != null and !coverImageUrl.isBlank()}"
+                     th:src="${coverImageUrl}"
+                     th:attr="hidden=${false}">
+            </div>
+
+            <div class="profile-overview-content">
+
+                <div class="profile-avatar">
+                    <img src=""
+                         alt="Profile picture"
+                         hidden
+                         th:if="${profileImageUrl != null and !profileImageUrl.isBlank()}"
+                         th:src="${profileImageUrl}"
+                         th:attr="hidden=${false}">
+
+                    <span class="profile-avatar-placeholder"
+                          aria-hidden="true">
+
+                        <!-- Lucide icon: UserRound -->
+                        <!-- วาง SVG ไอคอน UserRound ตรงนี้ -->
+
+                    </span>
+                </div>
+
+                <div class="profile-identity">
+                    <h1 th:text="${user != null and user.username != null
+                                 ? user.username
+                                 : 'Alichaeiei'}">
+                        Alichaeiei
+                    </h1>
+
+                    <p th:text="${user != null and user.id != null
+                                ? user.id
+                                : '152146258965725'}">
+                        152146258965725
+                    </p>
+                </div>
+
+                <button class="profile-verify-button"
+                        type="button"
+                        id="verify-email-button">
+
+                    <span class="profile-button-icon"
+                          aria-hidden="true">
+
+                        <!-- Lucide icon: BadgeCheck -->
+                        <!-- วาง SVG ไอคอน BadgeCheck ตรงนี้ -->
+
+                    </span>
+
+                    <span>Verify Email</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- =====================================================
+             PROFILE CONTENT
+             ===================================================== -->
+
+        <div class="profile-content-grid">
+
+            <!-- =================================================
+                 PERSONAL DETAILS
+                 ================================================= -->
+
+            <section class="profile-details-card">
+                <header class="profile-section-header">
+                    <h2>PERSONAL DETAILS</h2>
+
+                    <button class="profile-edit-button"
+                            id="profile-edit-button"
+                            type="button">
+
+                        <span aria-hidden="true">
+
+                            <!-- Lucide icon: Pencil -->
+                            <!-- วาง SVG ไอคอน Pencil ตรงนี้ -->
+
+                        </span>
+
+                        <span id="profile-edit-label">
+                            Edit
+                        </span>
+                    </button>
+                </header>
+
+                <form class="profile-details-form"
+                      id="profile-details-form"
+                      method="post"
+                      action="/profile"
+                      th:action="@{/profile}">
+
+                    <input type="hidden"
+                           th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <div class="profile-form-grid">
+
+                        <div class="profile-form-field">
+                            <label for="profile-username">
+                                Username
+                            </label>
+
+                            <input id="profile-username"
+                                   name="username"
+                                   type="text"
+                                   value="Alichaeiei"
+                                   th:value="${user != null and user.username != null
+                                             ? user.username
+                                             : ''}"
+                                   autocomplete="username"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-email">
+                                Email
+                            </label>
+
+                            <input id="profile-email"
+                                   name="email"
+                                   type="email"
+                                   value="alicha@gmail.com"
+                                   th:value="${user != null and user.email != null
+                                             ? user.email
+                                             : ''}"
+                                   autocomplete="email"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-full-name">
+                                Full Name
+                            </label>
+
+                            <input id="profile-full-name"
+                                   name="fullName"
+                                   type="text"
+                                   value="Alicha"
+                                   th:value="${profile != null and profile.fullName != null
+                                             ? profile.fullName
+                                             : ''}"
+                                   autocomplete="name"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label>
+                                Password
+                            </label>
+
+                            <button class="profile-password-button"
+                                    id="change-password-button"
+                                    type="button">
+                                Change password
+                            </button>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-phone">
+                                Phone
+                            </label>
+
+                            <input id="profile-phone"
+                                   name="phone"
+                                   type="tel"
+                                   value="0999999999"
+                                   th:value="${profile != null and profile.phone != null
+                                             ? profile.phone
+                                             : ''}"
+                                   autocomplete="tel"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field profile-form-spacer"
+                             aria-hidden="true">
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-role">
+                                Role
+                            </label>
+
+                            <input id="profile-role"
+                                   name="role"
+                                   type="text"
+                                   value="นักศึกษา"
+                                   th:value="${user != null and user.role != null
+                                             ? user.role
+                                             : ''}"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field profile-form-spacer"
+                             aria-hidden="true">
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-department">
+                                Department
+                            </label>
+
+                            <input id="profile-department"
+                                   name="department"
+                                   type="text"
+                                   value="วิทยาลัยการคอมพิวเตอร์"
+                                   th:value="${profile != null and profile.department != null
+                                             ? profile.department
+                                             : ''}"
+                                   readonly>
+                        </div>
+                    </div>
+
+                    <div class="profile-form-actions"
+                         id="profile-form-actions"
+                         hidden>
+
+                        <button class="profile-cancel-button"
+                                id="profile-cancel-button"
+                                type="button">
+                            Cancel
+                        </button>
+
+                        <button class="profile-save-button"
+                                type="submit">
+                            Save Changes
+                        </button>
+                    </div>
+
+                    <p class="profile-form-message"
+                       id="profile-form-message"
+                       role="status"
+                       hidden>
+                    </p>
+                </form>
+            </section>
+
+            <!-- =================================================
+                 LOAN AND HISTORY
+                 ================================================= -->
+
+            <div class="profile-loan-column">
+
+                <!-- =============================================
+                     ACTIVE LOANS
+                     ============================================= -->
+
+                <section class="profile-list-card">
+                    <header class="profile-list-header">
+                        <h2>Active Loans</h2>
+                    </header>
+
+                    <div class="profile-loan-list">
+
+                        <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
+                        <article class="profile-loan-item"
+                                 th:remove="all">
+
+                            <div class="profile-loan-image">
+                                <span>LeadIT</span>
+                            </div>
+
+                            <div class="profile-loan-information">
+                                <h3>Keychron V2 65%</h3>
+                                <p>จำนวน: 1</p>
+
+                                <span class="profile-locker-location">
+
+                                    <span aria-hidden="true">
+                                        <!-- Lucide icon: MapPin -->
+                                    </span>
+
+                                    Slot C-5
+                                </span>
+                            </div>
+
+                            <span class="profile-loan-status status-active">
+                                In Use
+                            </span>
+                        </article>
+
+                        <!-- ข้อมูลจริงจาก Spring Boot -->
+                        <th:block th:if="${activeLoans != null and !activeLoans.isEmpty()}">
+                            <th:block th:each="loan : ${activeLoans}">
+                                <article class="profile-loan-item"
+                                         th:each="item : ${loan.items}">
+
+                                    <div class="profile-loan-image">
+                                        <img th:if="${equipmentImages != null
+                                                    and equipmentImages[item.equipmentId] != null}"
+                                             th:src="${equipmentImages[item.equipmentId]}"
+                                             th:alt="${item.equipmentName}">
+
+                                        <span th:unless="${equipmentImages != null
+                                                         and equipmentImages[item.equipmentId] != null}">
+                                            LeadIT
+                                        </span>
+                                    </div>
+
+                                    <div class="profile-loan-information">
+                                        <h3 th:text="${item.equipmentName}">
+                                            Equipment name
+                                        </h3>
+
+                                        <p>
+                                            จำนวน:
+                                            <span th:text="${item.quantity}">
+                                                1
+                                            </span>
+                                        </p>
+
+                                        <span class="profile-locker-location">
+
+                                            <span aria-hidden="true">
+                                                <!-- Lucide icon: MapPin -->
+                                            </span>
+
+                                            <span th:text="${equipmentLockers != null
+                                                           and equipmentLockers[item.equipmentId] != null
+                                                           ? equipmentLockers[item.equipmentId]
+                                                           : 'Locker pending'}">
+                                                Locker pending
+                                            </span>
+                                        </span>
+                                    </div>
+
+                                    <span class="profile-loan-status status-active"
+                                          th:text="${loan.status}">
+                                        In Use
+                                    </span>
+                                </article>
+                            </th:block>
+                        </th:block>
+
+                        <!-- ไม่มีข้อมูลจาก Admin -->
+                        <div class="profile-list-empty"
+                             hidden
+                             th:if="${activeLoans == null or activeLoans.isEmpty()}"
+                             th:attr="hidden=${false}">
+
+                            <span class="profile-empty-icon"
+                                  aria-hidden="true">
+
+                                <!-- Lucide icon: PackageOpen -->
+                                <!-- วาง SVG ไอคอน PackageOpen ตรงนี้ -->
+
+                            </span>
+
+                            <h3>No active loans</h3>
+
+                            <p>
+                                Your currently borrowed equipment
+                                will appear here.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =============================================
+                     BORROW HISTORY
+                     ============================================= -->
+
+                <section class="profile-list-card profile-history-card">
+                    <header class="profile-list-header">
+                        <h2>My Borrow History</h2>
+
+                        <a href="../borrow/my-history.html"
+                           th:href="@{/my-requests}">
+                            View All
+                        </a>
+                    </header>
+
+                    <div class="profile-history-list">
+
+                        <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
+                        <article class="profile-loan-item"
+                                 th:remove="all">
+
+                            <div class="profile-loan-image">
+                                <span>LeadIT</span>
+                            </div>
+
+                            <div class="profile-loan-information">
+                                <h3>Keychron V2 65%</h3>
+                                <p>จำนวน: 1</p>
+
+                                <span class="profile-locker-location">
+
+                                    <span aria-hidden="true">
+                                        <!-- Lucide icon: MapPin -->
+                                    </span>
+
+                                    Slot C-5
+                                </span>
+                            </div>
+                        </article>
+
+                        <article class="profile-loan-item"
+                                 th:remove="all">
+
+                            <div class="profile-loan-image">
+                                <span>LeadIT</span>
+                            </div>
+
+                            <div class="profile-loan-information">
+                                <h3>SUPERLIGHT 2C</h3>
+                                <p>จำนวน: 1</p>
+
+                                <span class="profile-locker-location">
+
+                                    <span aria-hidden="true">
+                                        <!-- Lucide icon: MapPin -->
+                                    </span>
+
+                                    Slot C-3
+                                </span>
+                            </div>
+                        </article>
+
+                        <!-- ข้อมูลจริงจาก Spring Boot -->
+                        <th:block th:if="${borrowHistory != null and !borrowHistory.isEmpty()}">
+                            <th:block th:each="request : ${borrowHistory}">
+                                <article class="profile-loan-item"
+                                         th:each="item : ${request.items}">
+
+                                    <div class="profile-loan-image">
+                                        <img th:if="${equipmentImages != null
+                                                    and equipmentImages[item.equipmentId] != null}"
+                                             th:src="${equipmentImages[item.equipmentId]}"
+                                             th:alt="${item.equipmentName}">
+
+                                        <span th:unless="${equipmentImages != null
+                                                         and equipmentImages[item.equipmentId] != null}">
+                                            LeadIT
+                                        </span>
+                                    </div>
+
+                                    <div class="profile-loan-information">
+                                        <h3 th:text="${item.equipmentName}">
+                                            Equipment name
+                                        </h3>
+
+                                        <p>
+                                            จำนวน:
+                                            <span th:text="${item.quantity}">
+                                                1
+                                            </span>
+                                        </p>
+
+                                        <span class="profile-locker-location">
+
+                                            <span aria-hidden="true">
+                                                <!-- Lucide icon: MapPin -->
+                                            </span>
+
+                                            <span th:text="${equipmentLockers != null
+                                                           and equipmentLockers[item.equipmentId] != null
+                                                           ? equipmentLockers[item.equipmentId]
+                                                           : 'Locker unavailable'}">
+                                                Locker unavailable
+                                            </span>
+                                        </span>
+                                    </div>
+                                </article>
+                            </th:block>
+                        </th:block>
+
+                        <!-- ไม่มีประวัติการยืม -->
+                        <div class="profile-list-empty"
+                             hidden
+                             th:if="${borrowHistory == null or borrowHistory.isEmpty()}"
+                             th:attr="hidden=${false}">
+
+                            <span class="profile-empty-icon"
+                                  aria-hidden="true">
+
+                                <!-- Lucide icon: History -->
+                                <!-- วาง SVG ไอคอน History ตรงนี้ -->
+
+                            </span>
+
+                            <h3>No borrow history</h3>
+
+                            <p>
+                                Completed and previous requests
+                                will appear here.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../static/js/profile.js"
+            th:src="@{/js/profile.js}"></script>
+</body>
+</html>

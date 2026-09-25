@@ -1,14 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>LeadIT Shared Components</title>
+</head>
+
+<body>
+
 <!-- =========================================================
-     HEADER TEMPLATE
+     HEADER
      ========================================================= -->
 
 <template id="site-header-template">
-    <header class="site-header">
+    <header class="site-header"
+            th:fragment="siteHeader">
         <a class="brand"
            href="../dashboard/index.html"
+           data-spring-href="/"
            aria-label="LeadIT Home">
 
-            <span class="logo-mark" aria-hidden="true">
+            <span class="logo-mark brand-logo" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      width="24"
                      height="24"
@@ -19,11 +31,8 @@
                      stroke-linecap="round"
                      stroke-linejoin="round">
 
-                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
-                    </path>
-
-                    <path d="M20.054 15.987H3.946">
-                    </path>
+                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"></path>
+                    <path d="M20.054 15.987H3.946"></path>
                 </svg>
             </span>
 
@@ -32,7 +41,7 @@
 
         <button class="menu-toggle"
                 type="button"
-                aria-label="เปิดเมนู"
+                aria-label="Open menu"
                 aria-expanded="false"
                 aria-controls="main-navigation">
 
@@ -41,21 +50,24 @@
             <span></span>
         </button>
 
-        <nav id="main-navigation"
-             class="main-navigation"
-             aria-label="เมนูหลัก">
+        <nav class="main-navigation"
+             id="main-navigation"
+             aria-label="Main navigation">
 
             <a href="../dashboard/index.html"
+               data-spring-href="/"
                data-nav-page="home">
                 Home
             </a>
 
             <a href="../equipment/list.html"
+               data-spring-href="/equipment"
                data-nav-page="equipment">
                 Equipment
             </a>
 
             <a href="../borrow/my-history.html"
+               data-spring-href="/my-requests"
                data-nav-page="requests"
                data-requires-login>
                 My Request
@@ -63,73 +75,33 @@
         </nav>
 
         <div class="header-actions">
-            <form class="header-search"
-                  method="get"
-                  role="search">
+            <button class="icon-button search-toggle"
+                    type="button"
+                    aria-label="Search equipment"
+                    aria-expanded="false"
+                    data-open-search>
 
-                <input class="header-search-input"
-                       name="keyword"
-                       type="search"
-                       placeholder="Search equipment..."
-                       aria-label="ค้นหา">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search preview-icon"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+            </button>
 
-                <button class="icon-button search-toggle"
-                        type="button"
-                        aria-label="เปิดช่องค้นหา"
-                        aria-expanded="false">
-
-                    <svg viewBox="0 0 24 24"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.7"
-                         stroke-linecap="round">
-
-                        <circle cx="11"
-                                cy="11"
-                                r="7">
-                        </circle>
-
-                        <path d="m20 20-4-4">
-                        </path>
-                    </svg>
-                </button>
-            </form>
-
-            <!-- Guest account button -->
+            <!-- แสดงตอนยังไม่เข้าสู่ระบบ -->
             <button class="icon-button account-button"
                     type="button"
-                    aria-label="เข้าสู่ระบบ"
+                    aria-label="Sign in"
                     data-guest-only
                     data-open-login>
 
-                <svg viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="1.5">
-
-                    <circle cx="12"
-                            cy="8"
-                            r="4">
-                    </circle>
-
-                    <path d="M4.5 21a7.5 7.5 0 0 1 15 0">
-                    </path>
-
-                    <circle cx="12"
-                            cy="12"
-                            r="10">
-                    </circle>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user preview-icon"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg>
             </button>
 
-            <!-- Authenticated account -->
+            <!-- แสดงตอนเข้าสู่ระบบแล้ว -->
             <div class="profile-dropdown"
                  data-auth-only
                  hidden>
 
                 <button class="profile-trigger"
                         type="button"
-                        aria-label="เปิดเมนูโปรไฟล์"
+                        aria-label="Open profile menu"
                         aria-expanded="false">
 
                     <span class="profile-avatar"
@@ -140,22 +112,24 @@
 
                 <div class="profile-menu" hidden>
                     <div class="profile-menu-user">
-                        <strong data-profile-name>
-                            Preview User
-                        </strong>
-
-                        <span data-profile-role>
-                            USER
-                        </span>
+                        <strong data-profile-name></strong>
+                        <span data-profile-role></span>
                     </div>
 
-                    <a href="../profile/index.html">
-                        View profile
+                    <a class="profile-menu-item"
+                       href="../profile/index.html"
+                       data-spring-href="/profile">
+
+                        <span data-icon-slot="profile"></span>
+                        My Profile
                     </a>
 
-                    <button type="button"
+                    <button class="profile-menu-item profile-logout"
+                            type="button"
                             data-preview-logout>
-                        Sign out
+
+                        <span data-icon-slot="logout"></span>
+                        Log Out
                     </button>
                 </div>
             </div>
@@ -165,11 +139,12 @@
 
 
 <!-- =========================================================
-     FOOTER TEMPLATE
+     FOOTER
      ========================================================= -->
 
 <template id="site-footer-template">
-    <footer class="site-footer">
+    <footer class="site-footer"
+            th:fragment="siteFooter">
         <div class="footer-grid">
             <section>
                 <h2>Equipment</h2>
@@ -218,7 +193,7 @@
 
         <div class="footer-bottom">
             <div class="footer-brand">
-                <span class="logo-mark small"
+                <span class="logo-mark footer-logo"
                       aria-hidden="true">
 
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -231,11 +206,8 @@
                          stroke-linecap="round"
                          stroke-linejoin="round">
 
-                        <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
-                        </path>
-
-                        <path d="M20.054 15.987H3.946">
-                        </path>
+                        <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"></path>
+                        <path d="M20.054 15.987H3.946"></path>
                     </svg>
                 </span>
 
@@ -251,30 +223,42 @@
 
 
 <!-- =========================================================
-     LOGIN MODAL TEMPLATE
+     LOGIN MODAL
      ========================================================= -->
 
 <template id="login-modal-template">
-    <div id="login-modal"
-         class="modal-backdrop"
+    <div class="modal-backdrop login-modal-backdrop"
+         id="login-modal"
+         th:fragment="loginModal"
          hidden>
 
-        <section class="auth-modal"
+        <section class="auth-modal login-modal"
                  role="dialog"
                  aria-modal="true"
-                 aria-labelledby="login-title">
+                 aria-labelledby="login-modal-title">
 
-            <button class="modal-close"
+            <button class="modal-close login-modal-close"
                     type="button"
-                    aria-label="ปิดหน้าต่าง"
+                    aria-label="Close login"
                     data-close-modal>
 
-                ×
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                </svg>
             </button>
 
-            <span class="logo-mark auth-logo"
-                  aria-hidden="true">
-
+            <div class="login-brand-logo" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      width="24"
                      height="24"
@@ -285,48 +269,51 @@
                      stroke-linecap="round"
                      stroke-linejoin="round">
 
-                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
-                    </path>
-
-                    <path d="M20.054 15.987H3.946">
-                    </path>
+                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"></path>
+                    <path d="M20.054 15.987H3.946"></path>
                 </svg>
-            </span>
+            </div>
 
-            <h2 id="login-title">
+            <h2 id="login-modal-title">
                 Sign in to your account
             </h2>
 
-            <p>
-                Welcome back! Please sign in to continue
+            <p class="login-subtitle">
+                Welcome back! please sign in to continue
             </p>
 
-            <button class="provider-button"
+            <button class="provider-button login-provider"
                     type="button"
                     data-preview-provider-login>
 
-                <img src="../../static/images/kku-logo.png"
+                <img class="provider-logo"
+                     src="../../static/images/kku-logo.png"
+                     data-spring-src="/images/kku-logo.png"
                      alt="KKU">
 
                 <span>Continue with KKU Mail</span>
             </button>
 
-            <button class="provider-button"
+            <button class="provider-button login-provider"
                     type="button"
                     data-preview-provider-login>
 
-                <img src="../../static/images/Google__G__logo.svg%201.png"
+                <img class="provider-logo"
+                     src="../../static/images/google-logo.png"
+                     data-spring-src="/images/google-logo.png"
                      alt="Google">
 
                 <span>Continue with Google</span>
             </button>
 
-            <div class="auth-divider">
+            <div class="login-divider">
                 <span>or</span>
             </div>
 
-            <form id="preview-login-form"
-                  class="auth-form">
+            <form class="login-form"
+                  id="preview-login-form"
+                  action="/login"
+                  method="post">
 
                 <label for="login-username">
                     Username
@@ -350,18 +337,15 @@
                        autocomplete="current-password"
                        required>
 
-                <button class="button button-dark button-block"
-                        type="submit">
-
+                <button class="login-submit" type="submit">
                     Continue
                 </button>
             </form>
 
             <p class="auth-switch">
-                Don't have an account?
+                Don&apos;t have an account?
 
-                <button type="button"
-                        data-open-register>
+                <button type="button" data-open-register>
                     Sign Up
                 </button>
             </p>
@@ -371,29 +355,24 @@
 
 
 <!-- =========================================================
-     REGISTER MODAL TEMPLATE
+     REGISTRATION MODAL
      ========================================================= -->
 
 <template id="register-modal-template">
-    <div id="register-modal"
-         class="modal-backdrop"
+    <div class="modal-backdrop login-modal-backdrop"
+         id="register-modal"
+         th:fragment="registerModal"
          hidden>
 
-        <section class="auth-modal register-modal"
+        <section class="auth-modal login-modal registration-modal"
                  role="dialog"
                  aria-modal="true"
                  aria-labelledby="register-title">
 
-            <button class="modal-close"
+            <button class="modal-close login-modal-close"
                     type="button"
-                    aria-label="ปิดหน้าต่าง"
+                    aria-label="Close registration"
                     data-close-modal>
-
-                ×
-            </button>
-
-            <span class="logo-mark auth-logo"
-                  aria-hidden="true">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
                      width="24"
@@ -403,83 +382,258 @@
                      stroke="currentColor"
                      stroke-width="1"
                      stroke-linecap="round"
-                     stroke-linejoin="round">
+                     stroke-linejoin="round"
+                     aria-hidden="true">
 
-                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 1 4 15.526V7a2 2 0 0 1 2-2z">
-                    </path>
-
-                    <path d="M20.054 15.987H3.946">
-                    </path>
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
                 </svg>
-            </span>
+            </button>
 
-            <h2 id="register-title">
-                Create your account
-            </h2>
+            <h2 id="register-title">Sign Up</h2>
 
-            <p>
-                Register with your university information
-            </p>
+            <form class="registration-form"
+                  id="preview-register-form"
+                  action="/register"
+                  method="post">
 
-            <form id="preview-register-form"
-                  class="auth-form">
+                <label for="register-username">
+                    Username
 
-                <div class="form-row">
-                    <div>
-                        <label for="register-name">
-                            Full name
-                        </label>
+                    <input id="register-username"
+                           name="username"
+                           type="text"
+                           placeholder="Enter your username"
+                           autocomplete="username"
+                           required>
+                </label>
 
-                        <input id="register-name"
-                               type="text"
-                               placeholder="Enter your full name"
+                <div class="registration-grid">
+                    <label for="register-password">
+                        Password
+
+                        <input id="register-password"
+                               name="password"
+                               type="password"
+                               placeholder="Enter your password"
+                               autocomplete="new-password"
                                required>
-                    </div>
+                    </label>
 
-                    <div>
-                        <label for="register-phone">
-                            Phone
-                        </label>
+                    <label for="register-confirm-password">
+                        Confirm Password
 
-                        <input id="register-phone"
-                               type="tel"
-                               placeholder="Enter your phone">
-                    </div>
+                        <input id="register-confirm-password"
+                               name="confirmPassword"
+                               type="password"
+                               placeholder="Enter your password"
+                               autocomplete="new-password"
+                               required>
+                    </label>
                 </div>
 
+                <label for="register-name">
+                    Full Name
+
+                    <input id="register-name"
+                           name="fullName"
+                           type="text"
+                           placeholder="Enter your Fullname"
+                           autocomplete="name"
+                           required>
+                </label>
+
                 <label for="register-email">
-                    KKU Email
+                    Email
+
+                    <input id="register-email"
+                           name="email"
+                           type="email"
+                           placeholder="Enter your Email"
+                           autocomplete="email"
+                           required>
                 </label>
 
-                <input id="register-email"
-                       type="email"
-                       placeholder="name@kkumail.com"
-                       required>
+                <label for="register-phone">
+                    Phone
 
-                <label for="register-password">
-                    Password
+                    <input id="register-phone"
+                           name="phone"
+                           type="tel"
+                           placeholder="Enter your Phone"
+                           autocomplete="tel">
                 </label>
 
-                <input id="register-password"
-                       type="password"
-                       placeholder="Create a password"
-                       required>
+                <div class="registration-grid">
+                    <label for="register-department">
+                        Department
 
-                <button class="button button-dark button-block"
-                        type="submit">
+                        <input id="register-department"
+                               name="department"
+                               type="text"
+                               placeholder="Enter your Department">
+                    </label>
 
-                    Create Account
-                </button>
+                    <label for="register-role">
+                        Role
+
+                        <input id="register-role"
+                               name="role"
+                               type="text"
+                               value="USER"
+                               readonly>
+                    </label>
+                </div>
+
+                <div class="registration-actions">
+                    <button class="registration-submit"
+                            type="submit">
+                        Continue
+                    </button>
+
+                    <button class="registration-cancel"
+                            type="button"
+                            data-close-modal>
+                        Cancel
+                    </button>
+                </div>
             </form>
-
-            <p class="auth-switch">
-                Already have an account?
-
-                <button type="button"
-                        data-open-login>
-                    Sign In
-                </button>
-            </p>
         </section>
     </div>
 </template>
+
+
+<!-- =========================================================
+     SEARCH OVERLAY
+     ========================================================= -->
+
+<template id="search-overlay-template">
+    <div class="search-overlay"
+         id="search-overlay"
+         th:fragment="searchOverlay"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="search-overlay-title"
+         hidden>
+
+        <div class="search-overlay-panel">
+            <header class="search-overlay-header">
+                <a class="brand"
+                   href="../dashboard/index.html"
+                   data-spring-href="/"
+                   aria-label="LeadIT Home">
+
+                    <span class="logo-mark small" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             width="24"
+                             height="24"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"></path>
+                            <path d="M20.054 15.987H3.946"></path>
+                        </svg>
+                    </span>
+
+                    <span>LeadIT</span>
+                </a>
+
+                <button class="search-overlay-close"
+                        type="button"
+                        aria-label="Close search"
+                        data-close-search>
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         width="24"
+                         height="24"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+            </header>
+
+            <form class="search-overlay-form"
+                  action="../equipment/list.html"
+                  data-spring-action="/equipment"
+                  method="get"
+                  role="search">
+
+                <label class="visually-hidden"
+                       for="global-search-input">
+                    Search equipment
+                </label>
+
+                <input id="global-search-input"
+                       name="keyword"
+                       type="search"
+                       placeholder="ค้นหาอุปกรณ์ที่ต้องการยืม"
+                       autocomplete="off">
+
+                <button type="submit" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         width="24"
+                         height="24"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </svg>
+                </button>
+            </form>
+
+            <section class="popular-searches">
+                <h2 id="search-overlay-title">การค้นหายอดนิยม</h2>
+
+                <div class="popular-search-tags">
+                    <button type="button" data-search-keyword="Laptop">
+                        Laptop
+                    </button>
+
+                    <button type="button" data-search-keyword="MacBook">
+                        MacBook
+                    </button>
+
+                    <button type="button" data-search-keyword="HP Victus">
+                        HP Victus
+                    </button>
+                </div>
+            </section>
+
+            <section class="search-result-preview">
+                <h2>ยอดนิยม</h2>
+
+                <p class="search-empty-message">
+                    พิมพ์ชื่อหรือรหัสอุปกรณ์เพื่อเริ่มค้นหา
+                </p>
+            </section>
+
+            <footer class="search-overlay-footer">
+                โปรดติดต่อที่ปรึกษาลูกค้าของเราได้ที่
+                1800-01-1112
+
+                <a href="#">FAQs</a>
+            </footer>
+        </div>
+    </div>
+</template>
+
+</body>
+</html>
