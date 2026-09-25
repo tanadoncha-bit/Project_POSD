@@ -1,219 +1,392 @@
 <!DOCTYPE html>
-<html lang="th" xmlns:th="http://www.thymeleaf.org">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>รายการอุปกรณ์ | AssetTrack IT</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Equipment Catalog | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet"
-          href="../../static/css/style.css"
-          th:href="@{/css/style.css}">
+          href="../../static/css/style.css">
 </head>
 
-<body>
-    <button type="button"
-            id="sidebar-toggle"
-            class="sidebar-toggle"
-            aria-label="เปิดเมนู"
-            aria-controls="main-sidebar"
-            aria-expanded="false">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
+<body data-page="equipment">
 
-    <aside id="main-sidebar" class="sidebar">
-        <div class="sidebar-brand">
-            <span>AssetTrack IT</span>
-        </div>
+    <!-- Header จาก fragments/site.html -->
+    <div id="site-header"></div>
 
-        <nav aria-label="เมนูหลัก">
-            <a href="../dashboard/index.html"
-                th:href="@{/Dashboard}"
-                class="nav-link">
-                    Dashboard
-            </a>
+    <main class="catalog-main">
 
-            <a href="list.html"
-                th:href="@{/equipment}"
-                class="nav-link active"
-                aria-current="page">
-                    Equipment
-            </a>
+        <header class="catalog-heading">
+            <h1>Equipment Catalog</h1>
 
-            <a href="../borrow/my-history.html"
-                th:href="@{/borrow/my-history}"
-                class="nav-link">
-                    My Borrowing
-            </a>
-
-            <a href="#"
-                class="nav-link">
-                Setting
-            </a>
-        </nav>
-
-        <a href="../profile/index.html"
-            th:href="@{/profile}"
-            class="sidebar-profile">
-
-            <div class="profile-avatar"
-                aria-hidden="true">
-                <span th:text="${currentUser != null
-                    and !#strings.isEmpty(currentUser.username)
-                    ? #strings.substring(currentUser.username, 0, 1)
-                    : 'U'}">
-                    U
-                </span>
-            </div>
-
-            <div class="profile-information">
-                <strong class="profile-name"
-                    th:text="${currentUser != null
-                        ? currentUser.username
-                        : 'ผู้ใช้งาน'}">
-                    ผู้ใช้งาน
-                </strong>
-
-                <span class="profile-role"
-                    th:text="${currentUser != null
-                        ? currentUser.role
-                        : 'USER'}">
-                    USER
-                </span>
-            </div>
-        </a>
-    </aside>
-
-    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-
-    <main>
-        <header class="page-heading">
-            <p class="page-label">ASSETTRACK IT</p>
-
-            <h1>รายการอุปกรณ์</h1>
-
-            <p class="page-description">
-                ค้นหา ตรวจสอบสถานะ และเลือกอุปกรณ์ IT ที่ต้องการยืม
+            <p>
+                Click any equipment to view details and submit
+                a borrow request
             </p>
         </header>
 
-        <section aria-labelledby="equipment-heading">
-            <div class="section-heading">
-                <h2 id="equipment-heading">อุปกรณ์ทั้งหมด</h2>
+
+        <!-- =====================================================
+             PREVIEW EQUIPMENT
+             ข้อมูลตัวอย่างสำหรับตรวจดีไซน์ผ่าน Live Server
+             ===================================================== -->
+
+        <section class="catalog-grid"
+                 id="catalog-preview-state"
+                 aria-label="Equipment catalog">
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>MacBook Air 15&quot; M3</h2>
+                    <p>Laptops</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>HP Victus Gaming 16-e0082AX</h2>
+                    <p>Laptops</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>Razer Viper V2 Pro White</h2>
+                    <p>Accessories</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge status-unavailable">
+                        In Use
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>Logitech Gaming G733 Wireless</h2>
+                    <p>Accessories</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>Logitech G Pro X Superlight 2C</h2>
+                    <p>Accessories</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>MacBook Air 15&quot; M3</h2>
+                    <p>Laptops</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge status-maintenance">
+                        Maintenance
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>LG UltraGear Monitor 27&quot;</h2>
+                    <p>Monitors</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>Keychron V2 65%</h2>
+                    <p>Accessories</p>
+                </div>
+            </a>
+
+
+            <a class="equipment-card"
+               href="#">
+
+                <div class="equipment-card-image">
+                    <span class="equipment-image-placeholder">
+                        LeadIT
+                    </span>
+
+                    <span class="availability-badge">
+                        Available
+                    </span>
+                </div>
+
+                <div class="equipment-card-body">
+                    <h2>Epson Projector EB-E01</h2>
+                    <p>Projectors</p>
+                </div>
+            </a>
+
+        </section>
+
+
+        <!-- =====================================================
+             EMPTY STATE
+             ใช้เมื่อ Admin ยังไม่ได้เพิ่มอุปกรณ์
+             ตอนนี้ซ่อนไว้เพื่อดูข้อมูลตัวอย่างก่อน
+             ===================================================== -->
+
+        <section class="catalog-empty"
+                 id="catalog-empty-state"
+                 hidden>
+
+            <strong>
+                ยังไม่มีรายการอุปกรณ์ในขณะนี้
+            </strong>
+
+            <p>
+                โปรดลองตรวจสอบรายการอุปกรณ์อีกครั้งภายหลัง
+            </p>
+        </section>
+
+    </main>
+
+    <!-- =====================================================
+     EQUIPMENT DETAIL MODAL
+     ===================================================== -->
+
+    <div class="equipment-detail-backdrop"
+        id="equipment-detail-modal"
+        hidden>
+
+        <section class="equipment-detail-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="equipment-modal-name">
+
+            <header class="equipment-modal-header">
+                <div>
+                    <h2 id="equipment-modal-name">
+                        MacBook Air 15&quot; M3
+                    </h2>
+
+                    <p id="equipment-modal-category">
+                        Laptop
+                    </p>
+                </div>
+
+                <button class="equipment-modal-close"
+                        id="equipment-modal-close"
+                        type="button"
+                        aria-label="Close equipment detail">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x preview-icon"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                
+                </button>
+            </header>
+
+            <div class="equipment-modal-body">
+
+                <div class="equipment-modal-image">
+                    <img id="equipment-modal-image"
+                        src=""
+                        alt=""
+                        hidden>
+
+                    <div class="equipment-model-placeholder"
+                        id="equipment-modal-image-placeholder">
+                        LeadIT
+                    </div>
+                </div>
+
+                <section class="equipment-specifications"
+                        aria-labelledby="specifications-heading">
+
+                        <h3 id="specifications-heading">
+                            Hardware Specifications
+                        </h3>
+
+                        <div class="specification-grid">
+                            <p>
+                                <strong>CPU :</strong>
+                                <span>M3 8-core</span>
+                            </p>
+
+                            <p>
+                                <strong>Storage :</strong>
+                                <span>512GB SSD</span>
+                            </p>
+
+                            <p>
+                                <strong>Ram :</strong>
+                                <span>16GB Unified Memory</span>
+                            </p>
+
+                            <p>
+                                <strong>Purchase Date:</strong>
+                                <span>2024-04-05</span>
+                            </p>
+            </div>
+        </section>
+
+        <div class="equipment-locker-row">
+            <div class="equipment-locker-detail">
+
+                <span class="equipment-locker-icon"
+                        aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin preview-icon"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
 
                 <p>
-                    พบอุปกรณ์
-                    <span id="equipment-count"
-                          th:text="${equipments != null ? #lists.size(equipments) : 0}">
-                        0
-                    </span>
-                    รายการ
+                    <strong>Smart Locker Slot :</strong>
+                    <span>Slot A-4</span>
                 </p>
             </div>
 
-            <div class="filters">
-                <div>
-                    <label for="equipment-search">
-                        ค้นหาอุปกรณ์
-                    </label>
-
-                    <input type="search"
-                           id="equipment-search"
-                           name="keyword"
-                           placeholder="ชื่อหรือรหัสอุปกรณ์">
-                </div>
-
-                <div>
-                    <label for="equipment-status">
-                        สถานะ
-                    </label>
-
-                    <select id="equipment-status" name="status">
-                        <option value="">ทุกสถานะ</option>
-                        <option value="AVAILABLE">พร้อมให้ยืม</option>
-                        <option value="IN_USE">กำลังถูกยืม</option>
-                        <option value="MAINTENANCE">ซ่อมบำรุง</option>
-                        <option value="DISPOSED">เลิกใช้งาน</option>
-                    </select>
-                </div>
+                <span class="equipment-locker-status"
+                    id="equipment-modal-status">
+                    Slot Online
+                </span>
             </div>
 
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">รหัสอุปกรณ์</th>
-                            <th scope="col">ชื่ออุปกรณ์</th>
-                            <th scope="col">สถานะ</th>
-                            <th scope="col">การดำเนินการ</th>
-                        </tr>
-                    </thead>
+            <!-- เก็บ ID นี้ไว้ให้ JavaScript ใช้งาน -->
+            <span id="equipment-modal-availability" hidden>
+                Ready to borrow
+            </span>
 
-                    <tbody id="equipment-table-body">
-                        <tr class="equipment-row"
-                            style="display: none;"
-                            th:style="'display: table-row;'"
-                            th:each="equipment : ${equipments}"
-                            th:attr="data-name=${equipment.name},
-                                     data-code=${equipment.assetCode},
-                                     data-status=${equipment.status}">
+            <div class="equipment-modal-actions">
+                <button class="equipment-modal-cancel"
+                        id="equipment-modal-cancel"
+                        type="button">
+                    Close
+                </button>
 
-                            <td th:text="${equipment.assetCode}"></td>
+                <button class="equipment-borrow-button"
+                        id="equipment-borrow-button"
+                        type="button"
+                        data-requires-login>
 
-                            <td th:text="${equipment.name}"></td>
+                    <span class="equipment-borrow-icon"
+                        aria-hidden="true">
 
-                            <td>
-                                <span class="status-badge"
-                                      th:classappend="${equipment.status.name() == 'AVAILABLE'}
-                                          ? ' status-available'
-                                          : (${equipment.status.name() == 'IN_USE'}
-                                          ? ' status-in-use'
-                                          : (${equipment.status.name() == 'MAINTENANCE'}
-                                          ? ' status-maintenance'
-                                          : ' status-disposed'))"
-                                      th:text="${equipment.status.name() == 'AVAILABLE'}
-                                          ? 'พร้อมให้ยืม'
-                                          : (${equipment.status.name() == 'IN_USE'}
-                                          ? 'กำลังถูกยืม'
-                                          : (${equipment.status.name() == 'MAINTENANCE'}
-                                          ? 'ซ่อมบำรุง'
-                                          : 'เลิกใช้งาน'))">
-                                </span>
-                            </td>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check preview-icon"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg>
+                    </span>
 
-                            <td>
-                                <a href="detail.html"
-                                   th:href="@{/equipment/{id}(id=${equipment.id})}"
-                                   class="detail-link">
-                                    ดูรายละเอียด
-                                </a>
-                            </td>
-                        </tr>
-
-                        <tr id="filter-empty-row" style="display: none;">
-                            <td colspan="4" class="empty-state">
-                                <strong>ไม่พบอุปกรณ์</strong>
-                                <p>ลองเปลี่ยนคำค้นหาหรือสถานะที่เลือก</p>
-                            </td>
-                        </tr>
-
-                        <tr th:if="${equipments == null or #lists.isEmpty(equipments)}">
-                            <td colspan="4" class="empty-state">
-                                <strong>ยังไม่มีรายการอุปกรณ์</strong>
-                                <p>รายการอุปกรณ์จะแสดงเมื่อมีข้อมูลในระบบ</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <span id="equipment-borrow-label">Borrow</span>
+                </button>
             </div>
-        </section>
-    </main>
 
-    <script src="../../static/js/sidebar.js"
-            th:src="@{/js/sidebar.js}"></script>
+        </div>
+    </section>
+</div>
+    <!-- Footer จาก fragments/site.html -->
+    <div id="site-footer"></div>
+
+    <!-- Login และ Register Modal -->
+    <div id="site-modals"></div>
+
+    <script src="../../static/js/site-preview.js"></script>
+    <script src="/src/main/resources/static/js/equipment-catalog.js?v=2"></script>
 </body>
-
 </html>

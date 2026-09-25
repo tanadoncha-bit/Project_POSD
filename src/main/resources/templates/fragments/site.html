@@ -1,0 +1,485 @@
+<!-- =========================================================
+     HEADER TEMPLATE
+     ========================================================= -->
+
+<template id="site-header-template">
+    <header class="site-header">
+        <a class="brand"
+           href="../dashboard/index.html"
+           aria-label="LeadIT Home">
+
+            <span class="logo-mark" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
+                    </path>
+
+                    <path d="M20.054 15.987H3.946">
+                    </path>
+                </svg>
+            </span>
+
+            <span>LeadIT</span>
+        </a>
+
+        <button class="menu-toggle"
+                type="button"
+                aria-label="เปิดเมนู"
+                aria-expanded="false"
+                aria-controls="main-navigation">
+
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav id="main-navigation"
+             class="main-navigation"
+             aria-label="เมนูหลัก">
+
+            <a href="../dashboard/index.html"
+               data-nav-page="home">
+                Home
+            </a>
+
+            <a href="../equipment/list.html"
+               data-nav-page="equipment">
+                Equipment
+            </a>
+
+            <a href="../borrow/my-history.html"
+               data-nav-page="requests"
+               data-requires-login>
+                My Request
+            </a>
+        </nav>
+
+        <div class="header-actions">
+            <form class="header-search"
+                  method="get"
+                  role="search">
+
+                <input class="header-search-input"
+                       name="keyword"
+                       type="search"
+                       placeholder="Search equipment..."
+                       aria-label="ค้นหา">
+
+                <button class="icon-button search-toggle"
+                        type="button"
+                        aria-label="เปิดช่องค้นหา"
+                        aria-expanded="false">
+
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.7"
+                         stroke-linecap="round">
+
+                        <circle cx="11"
+                                cy="11"
+                                r="7">
+                        </circle>
+
+                        <path d="m20 20-4-4">
+                        </path>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Guest account button -->
+            <button class="icon-button account-button"
+                    type="button"
+                    aria-label="เข้าสู่ระบบ"
+                    data-guest-only
+                    data-open-login>
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.5">
+
+                    <circle cx="12"
+                            cy="8"
+                            r="4">
+                    </circle>
+
+                    <path d="M4.5 21a7.5 7.5 0 0 1 15 0">
+                    </path>
+
+                    <circle cx="12"
+                            cy="12"
+                            r="10">
+                    </circle>
+                </svg>
+            </button>
+
+            <!-- Authenticated account -->
+            <div class="profile-dropdown"
+                 data-auth-only
+                 hidden>
+
+                <button class="profile-trigger"
+                        type="button"
+                        aria-label="เปิดเมนูโปรไฟล์"
+                        aria-expanded="false">
+
+                    <span class="profile-avatar"
+                          data-profile-initial>
+                        U
+                    </span>
+                </button>
+
+                <div class="profile-menu" hidden>
+                    <div class="profile-menu-user">
+                        <strong data-profile-name>
+                            Preview User
+                        </strong>
+
+                        <span data-profile-role>
+                            USER
+                        </span>
+                    </div>
+
+                    <a href="../profile/index.html">
+                        View profile
+                    </a>
+
+                    <button type="button"
+                            data-preview-logout>
+                        Sign out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+</template>
+
+
+<!-- =========================================================
+     FOOTER TEMPLATE
+     ========================================================= -->
+
+<template id="site-footer-template">
+    <footer class="site-footer">
+        <div class="footer-grid">
+            <section>
+                <h2>Equipment</h2>
+
+                <ul>
+                    <li>Laptops</li>
+                    <li>Monitors</li>
+                    <li>Accessories</li>
+                    <li>Projectors</li>
+                    <li>Locker Locations</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Solutions</h2>
+
+                <ul>
+                    <li>Students</li>
+                    <li>Faculty</li>
+                    <li>Staff</li>
+                    <li>IT Admin</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Support &amp; Resources</h2>
+
+                <ul>
+                    <li>User Guide</li>
+                    <li>Borrowing Policy</li>
+                    <li>FAQ</li>
+                    <li>Report an Issue</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Legal &amp; Contact</h2>
+
+                <ul>
+                    <li>Contact IT Helpdesk</li>
+                    <li>Terms of Service</li>
+                    <li>Privacy Policy</li>
+                </ul>
+            </section>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-brand">
+                <span class="logo-mark small"
+                      aria-hidden="true">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         width="24"
+                         height="24"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
+                        <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
+                        </path>
+
+                        <path d="M20.054 15.987H3.946">
+                        </path>
+                    </svg>
+                </span>
+
+                <strong>LeadIT</strong>
+
+                <span>
+                    © 2026 LeadIT System. All rights reserved.
+                </span>
+            </div>
+        </div>
+    </footer>
+</template>
+
+
+<!-- =========================================================
+     LOGIN MODAL TEMPLATE
+     ========================================================= -->
+
+<template id="login-modal-template">
+    <div id="login-modal"
+         class="modal-backdrop"
+         hidden>
+
+        <section class="auth-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="login-title">
+
+            <button class="modal-close"
+                    type="button"
+                    aria-label="ปิดหน้าต่าง"
+                    data-close-modal>
+
+                ×
+            </button>
+
+            <span class="logo-mark auth-logo"
+                  aria-hidden="true">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z">
+                    </path>
+
+                    <path d="M20.054 15.987H3.946">
+                    </path>
+                </svg>
+            </span>
+
+            <h2 id="login-title">
+                Sign in to your account
+            </h2>
+
+            <p>
+                Welcome back! Please sign in to continue
+            </p>
+
+            <button class="provider-button"
+                    type="button"
+                    data-preview-provider-login>
+
+                <img src="../../static/images/kku-logo.png"
+                     alt="KKU">
+
+                <span>Continue with KKU Mail</span>
+            </button>
+
+            <button class="provider-button"
+                    type="button"
+                    data-preview-provider-login>
+
+                <img src="../../static/images/Google__G__logo.svg%201.png"
+                     alt="Google">
+
+                <span>Continue with Google</span>
+            </button>
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+
+            <form id="preview-login-form"
+                  class="auth-form">
+
+                <label for="login-username">
+                    Username
+                </label>
+
+                <input id="login-username"
+                       name="username"
+                       type="text"
+                       placeholder="Enter your username"
+                       autocomplete="username"
+                       required>
+
+                <label for="login-password">
+                    Password
+                </label>
+
+                <input id="login-password"
+                       name="password"
+                       type="password"
+                       placeholder="Enter your password"
+                       autocomplete="current-password"
+                       required>
+
+                <button class="button button-dark button-block"
+                        type="submit">
+
+                    Continue
+                </button>
+            </form>
+
+            <p class="auth-switch">
+                Don't have an account?
+
+                <button type="button"
+                        data-open-register>
+                    Sign Up
+                </button>
+            </p>
+        </section>
+    </div>
+</template>
+
+
+<!-- =========================================================
+     REGISTER MODAL TEMPLATE
+     ========================================================= -->
+
+<template id="register-modal-template">
+    <div id="register-modal"
+         class="modal-backdrop"
+         hidden>
+
+        <section class="auth-modal register-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="register-title">
+
+            <button class="modal-close"
+                    type="button"
+                    aria-label="ปิดหน้าต่าง"
+                    data-close-modal>
+
+                ×
+            </button>
+
+            <span class="logo-mark auth-logo"
+                  aria-hidden="true">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 1 4 15.526V7a2 2 0 0 1 2-2z">
+                    </path>
+
+                    <path d="M20.054 15.987H3.946">
+                    </path>
+                </svg>
+            </span>
+
+            <h2 id="register-title">
+                Create your account
+            </h2>
+
+            <p>
+                Register with your university information
+            </p>
+
+            <form id="preview-register-form"
+                  class="auth-form">
+
+                <div class="form-row">
+                    <div>
+                        <label for="register-name">
+                            Full name
+                        </label>
+
+                        <input id="register-name"
+                               type="text"
+                               placeholder="Enter your full name"
+                               required>
+                    </div>
+
+                    <div>
+                        <label for="register-phone">
+                            Phone
+                        </label>
+
+                        <input id="register-phone"
+                               type="tel"
+                               placeholder="Enter your phone">
+                    </div>
+                </div>
+
+                <label for="register-email">
+                    KKU Email
+                </label>
+
+                <input id="register-email"
+                       type="email"
+                       placeholder="name@kkumail.com"
+                       required>
+
+                <label for="register-password">
+                    Password
+                </label>
+
+                <input id="register-password"
+                       type="password"
+                       placeholder="Create a password"
+                       required>
+
+                <button class="button button-dark button-block"
+                        type="submit">
+
+                    Create Account
+                </button>
+            </form>
+
+            <p class="auth-switch">
+                Already have an account?
+
+                <button type="button"
+                        data-open-login>
+                    Sign In
+                </button>
+            </p>
+        </section>
+    </div>
+</template>

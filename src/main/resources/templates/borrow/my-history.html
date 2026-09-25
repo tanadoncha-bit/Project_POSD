@@ -1,325 +1,242 @@
 <!DOCTYPE html>
-<html lang="th"
-      xmlns:th="http://www.thymeleaf.org">
-
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <title>My Request | LeadIT</title>
 
-    <title>ประวัติการยืมของฉัน | AssetTrack IT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet"
-          href="../../static/css/style.css"
-          th:href="@{/css/style.css}">
+          th:href="@{/css/style.css}"
+          href="/css/style.css">
 </head>
 
-<body>
-    <button type="button"
-            id="sidebar-toggle"
-            class="sidebar-toggle"
-            aria-label="เปิดเมนู"
-            aria-controls="main-sidebar"
-            aria-expanded="false">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
+<body th:attr="data-login-error=${loginError}">
 
-    <aside id="main-sidebar" class="sidebar">
+    <header th:replace="~{fragments/site :: header('requests')}"></header>
 
-        <div class="sidebar-brand">
-            <span>AssetTrack IT</span>
-        </div>
+    <main class="request-page">
 
-        <nav aria-label="เมนูหลัก">
-            <a href="../dashboard/index.html"
-                th:href="@{/Dashboard}"
-                class="nav-link">
-                    Dashboard
-            </a>
+        <header class="catalog-heading">
+            <h1>My Requests</h1>
 
-            <a href="../equipment/list.html"
-                th:href="@{/equipment}"
-                class="nav-link">
-                    Equipment
-            </a>
-
-            <a href="my-history.html"
-                th:href="@{/borrow/my-history}"
-                class="nav-link active"
-                aria-current="page">
-                    My Borrowing
-            </a>
-
-            <a href="#"
-                class="nav-link">
-                    Setting
-            </a>
-        </nav>
-
-        <a href="../profile/index.html"
-            th:href="@{/profile}"
-            class="sidebar-profile">
-
-            <div class="profile-avatar"
-                aria-hidden="true">
-                <span th:text="${currentUser != null
-                    and !#strings.isEmpty(currentUser.username)
-                    ? #strings.substring(currentUser.username, 0, 1)
-                    : 'U'}">
-                    U
-                </span>
-            </div>
-
-            <div class="profile-information">
-                <strong class="profile-name"
-                    th:text="${currentUser != null
-                        ? currentUser.username
-                        : 'ผู้ใช้งาน'}">
-                    ผู้ใช้งาน
-                </strong>
-
-                <span class="profile-role"
-                    th:text="${currentUser != null
-                        ? currentUser.role
-                        : 'USER'}">
-                    USER
-                </span>
-            </div>
-        </a>
-    </aside>
-
-    <div id="sidebar-backdrop"
-         class="sidebar-backdrop">
-    </div>
-
-    <main>
-        <header class="page-heading">
-            <p class="page-label">
-                ASSETTRACK IT
+            <p>
+                Track your pending, approved, active,
+                overdue and returned equipment requests
             </p>
 
-            <h1>ประวัติการยืมของฉัน</h1>
-
-            <p class="page-description">
-                ติดตามคำขอยืม รายการที่กำลังยืม และรายการที่คืนแล้ว
+            <p id="request-search-summary"
+               class="catalog-search-summary"
+               hidden>
             </p>
         </header>
 
-        <section class="borrowing-history"
-                 aria-labelledby="borrowing-heading">
+        <!-- Status filters -->
+        <nav class="request-tabs"
+             aria-label="กรองสถานะคำขอยืม">
 
-            <div class="section-heading">
-                <h2 id="borrowing-heading">
-                    รายการทั้งหมด
-                </h2>
+            <button class="request-tab active"
+                    type="button"
+                    data-request-filter="ALL">
 
-                <p>
-                    พบรายการ
-                    <span id="borrowing-count"
-                          th:text="${borrowRequests != null
-                              ? #lists.size(borrowRequests)
-                              : 0}">
-                        0
-                    </span>
-                    รายการ
-                </p>
-            </div>
+                All
+            </button>
 
-            <div class="filters">
-                <div>
-                    <label for="borrowing-search">
-                        ค้นหารายการ
-                    </label>
+            <button class="request-tab"
+                    type="button"
+                    data-request-filter="PENDING">
 
-                    <input type="search"
-                           id="borrowing-search"
-                           placeholder="รหัสคำขอ ชื่อ หรือรหัสอุปกรณ์"
-                           autocomplete="off">
-                </div>
+                Pending
+            </button>
 
-                <div>
-                    <label for="borrowing-status">
-                        สถานะ
-                    </label>
+            <button class="request-tab"
+                    type="button"
+                    data-request-filter="ACTIVE">
 
-                    <select id="borrowing-status">
-                        <option value="">
-                            ทุกสถานะ
-                        </option>
+                Active
+            </button>
 
-                        <option value="PENDING">
-                            รอการอนุมัติ
-                        </option>
+            <button class="request-tab"
+                    type="button"
+                    data-request-filter="RETURNED">
 
-                        <option value="APPROVED">
-                            อนุมัติแล้ว
-                        </option>
+                Returned
+            </button>
+        </nav>
 
-                        <option value="BORROWED">
-                            กำลังยืม
-                        </option>
+        <!-- Request data -->
+        <section id="request-list"
+                 class="request-list"
+                 th:if="${borrowRequests != null
+                    and !#lists.isEmpty(borrowRequests)}">
 
-                        <option value="RETURNED">
-                            คืนแล้ว
-                        </option>
+            <article class="request-card"
+                     th:each="request : ${borrowRequests}"
+                     th:data-request-id="${request.id}"
+                     th:data-request-status="${request.status}">
 
-                        <option value="OVERDUE">
-                            เกินกำหนด
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="borrowing-grid"
-                 class="borrowing-grid">
-
-                <article class="borrowing-card"
-                         style="display: none;"
-                         th:style="'display: flex;'"
-                         th:each="request : ${borrowRequests}"
-                         th:attr="data-request-id=${request.id},
-                                  data-status=${request.status}">
-
-                    <div class="borrowing-card-header">
-                        <div>
-                            <span class="borrowing-card-label">
-                                รหัสคำขอ
-                            </span>
-
-                            <h3>
-                                <span>#</span>
-
-                                <span th:text="${request.id}">
-                                    —
-                                </span>
-                            </h3>
-                        </div>
-
-                        <span class="status-badge"
-                              th:classappend="${request.status == 'PENDING'}
-                                  ? ' borrow-status-pending'
-                                  : (${request.status == 'APPROVED'}
-                                  ? ' borrow-status-approved'
-                                  : (${request.status == 'BORROWED'}
-                                  ? ' borrow-status-borrowed'
-                                  : (${request.status == 'RETURNED'}
-                                  ? ' borrow-status-returned'
-                                  : ' borrow-status-overdue')))"
-                              th:text="${request.status == 'PENDING'}
-                                  ? 'รอการอนุมัติ'
-                                  : (${request.status == 'APPROVED'}
-                                  ? 'อนุมัติแล้ว'
-                                  : (${request.status == 'BORROWED'}
-                                  ? 'กำลังยืม'
-                                  : (${request.status == 'RETURNED'}
-                                  ? 'คืนแล้ว'
-                                  : 'เกินกำหนด')))">
-                            —
-                        </span>
+                <div class="request-main-information">
+                    <div class="request-thumbnail">
+                        LeadIT
                     </div>
 
-                    <div class="borrowing-equipment">
-                        <span class="borrowing-card-label">
-                            รายการอุปกรณ์
+                    <div class="request-title">
+                        <span class="request-label">
+                            Borrow Request
                         </span>
 
-                        <ul class="borrowed-equipment-list">
-                            <li th:each="item : ${request.items}"
-                                th:attr="data-equipment-name=${item.equipmentName},
-                                         data-equipment-code=${item.assetCode}">
+                        <h2 th:text="|Request #${request.id}|">
+                            Request #1
+                        </h2>
 
+                        <p th:text="|${request.items != null
+                            ? #lists.size(request.items)
+                            : 0} item(s)|">
+
+                            0 item(s)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="request-dates">
+                    <div>
+                        <span>Borrow date</span>
+
+                        <strong th:text="${request.borrowDate}">
+                            2026-09-25
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Due date</span>
+
+                        <strong th:text="${request.dueDate}">
+                            2026-09-30
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="request-actions">
+                    <span class="status-badge"
+                          th:classappend="| status-${#strings.toLowerCase(request.status)}|"
+                          th:text="${request.status}">
+
+                        PENDING
+                    </span>
+
+                    <button class="button button-outline button-small request-details-toggle"
+                            type="button"
+                            aria-expanded="false">
+
+                        View Details
+                    </button>
+                </div>
+
+                <!-- Collapsible details -->
+                <div class="request-card-details"
+                     hidden>
+
+                    <div class="request-detail-section">
+                        <h3>Equipment</h3>
+
+                        <ul class="request-equipment-list"
+                            th:if="${request.items != null
+                                and !#lists.isEmpty(request.items)}">
+
+                            <li th:each="item : ${request.items}">
                                 <div>
                                     <strong th:text="${item.equipmentName}">
-                                        —
+                                        Equipment name
                                     </strong>
 
                                     <span th:text="${item.assetCode}">
-                                        —
+                                        Asset code
                                     </span>
                                 </div>
 
-                                <span class="equipment-quantity"
-                                      th:text="'จำนวน ' + ${item.quantity}">
-                                    จำนวน 1
+                                <span th:text="|Quantity: ${item.quantity}|">
+                                    Quantity: 1
                                 </span>
                             </li>
                         </ul>
+
+                        <p class="request-no-equipment"
+                           th:if="${request.items == null
+                              or #lists.isEmpty(request.items)}">
+
+                            No equipment information
+                        </p>
                     </div>
 
-                    <div class="borrowing-date-grid">
-                        <div class="borrowing-date-item">
-                            <span class="borrowing-card-label">
-                                วันที่ยืม
-                            </span>
+                    <div class="request-detail-section">
+                        <h3>Note</h3>
 
-                            <strong th:text="${#temporals.format(
-                                request.borrowDate,
-                                'dd/MM/yyyy'
-                            )}">
-                                —
-                            </strong>
-                        </div>
+                        <p th:text="${request.note != null
+                            and !#strings.isEmpty(request.note)
+                            ? request.note
+                            : 'No additional note'}">
 
-                        <div class="borrowing-date-item">
-                            <span class="borrowing-card-label">
-                                กำหนดคืน
-                            </span>
-
-                            <strong th:text="${#temporals.format(
-                                request.dueDate,
-                                'dd/MM/yyyy'
-                            )}">
-                                —
-                            </strong>
-                        </div>
+                            No additional note
+                        </p>
                     </div>
+                </div>
+            </article>
+        </section>
 
-                    <div class="borrowing-card-footer">
-                        <a href="#"
-                           th:href="@{/borrow/{id}(id=${request.id})}"
-                           class="detail-link">
-                            ดูรายละเอียด
-                        </a>
-                    </div>
-                </article>
-            </div>
-
-            <div id="borrowing-filter-empty"
-                 class="borrowing-empty-state"
-                 style="display: none;">
-
-                <strong>ไม่พบรายการที่ค้นหา</strong>
-
-                <p>
-                    ลองเปลี่ยนคำค้นหาหรือสถานะที่เลือก
-                </p>
-            </div>
-
-            <div class="borrowing-empty-state"
+        <!-- Database contains no requests -->
+        <section class="equipment-empty"
                  th:if="${borrowRequests == null
                     or #lists.isEmpty(borrowRequests)}">
 
-                <strong>ยังไม่มีประวัติการยืม</strong>
+            <strong>No requests yet</strong>
 
-                <p>
-                    เมื่อส่งคำขอยืม รายการของคุณจะแสดงในส่วนนี้
-                </p>
+            <p>
+                Your borrow requests will appear here
+                after you submit a request.
+            </p>
 
-                <a href="../equipment/list.html"
-                   th:href="@{/equipment}"
-                   class="dashboard-primary-link">
-                    ดูรายการอุปกรณ์
-                </a>
-            </div>
+            <a class="button button-primary request-empty-button"
+               th:href="@{/equipment}"
+               href="/equipment">
+
+                Browse Equipment
+            </a>
+        </section>
+
+        <!-- Requests exist but filter found nothing -->
+        <section id="request-filter-empty"
+                 class="equipment-empty"
+                 hidden>
+
+            <strong>No matching requests</strong>
+
+            <p>
+                Try selecting another status or search keyword.
+            </p>
+
+            <button id="clear-request-filter"
+                    class="button button-outline request-empty-button"
+                    type="button">
+
+                Clear Filter
+            </button>
         </section>
     </main>
 
-    <script src="../../static/js/sidebar.js"
-            th:src="@{/js/sidebar.js}">
-    </script>
-</body>
+    <footer th:replace="~{fragments/site :: footer}"></footer>
 
+    <script th:src="@{/js/sidebar.js}"
+            src="/js/sidebar.js"></script>
+
+    <script th:src="@{/js/request-history.js}"
+            src="/js/request-history.js"></script>
+</body>
 </html>

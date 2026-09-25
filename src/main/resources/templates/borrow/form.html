@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Borrow Equipment | LeadIT</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          th:href="@{/css/style.css}"
+          href="/css/style.css">
+</head>
+
+<body th:attr="data-login-error=${loginError}">
+
+    <header th:replace="~{fragments/site :: header('equipment')}"></header>
+
+    <main class="form-page">
+        <form id="borrow-request-form"
+              class="form-card"
+              novalidate>
+
+            <header class="form-card-header">
+                <div>
+                    <span class="detail-eyebrow">Borrow Request</span>
+
+                    <h1>Borrow Equipment Form</h1>
+
+                    <p>
+                        Specify the borrower, return date,
+                        and equipment you want to borrow
+                    </p>
+                </div>
+
+                <a class="form-close-button"
+                   th:href="@{/equipment}"
+                   href="/equipment"
+                   aria-label="ปิดหน้าฟอร์ม">
+
+                    ×
+                </a>
+            </header>
+
+            <div class="form-card-body">
+
+                <!-- ID ผู้ใช้จะส่งมาจาก Security ภายหลัง -->
+                <input id="current-user-id"
+                       type="hidden"
+                       th:value="${currentUserId}">
+
+                <!-- User information -->
+                <section class="borrow-user-panel">
+                    <div class="borrow-user-avatar"
+                         th:text="${username != null and !#strings.isEmpty(username)
+                             ? #strings.substring(username, 0, 1).toUpperCase()
+                             : 'U'}">
+
+                        U
+                    </div>
+
+                    <div class="borrow-user-information">
+                        <span>Borrower</span>
+
+                        <strong th:text="${username != null
+                            ? username
+                            : 'Current user'}">
+
+                            Current user
+                        </strong>
+
+                        <small th:text="${role != null
+                            ? role
+                            : 'USER'}">
+
+                            USER
+                        </small>
+                    </div>
+                </section>
+
+                <!-- Selected equipment -->
+                <div class="field">
+                    <label for="equipment-id">
+                        Select Equipment
+                    </label>
+
+                    <select id="equipment-id" required>
+                        <option value="">
+                            Select equipment
+                        </option>
+
+                        <option th:each="equipment : ${equipments}"
+                                th:value="${equipment.id}"
+                                th:selected="${selectedEquipmentId != null
+                                    and selectedEquipmentId == equipment.id}"
+                                th:disabled="${equipment.status != 'AVAILABLE'}"
+                                th:text="|${equipment.name} (${equipment.status})|">
+
+                            Equipment
+                        </option>
+                    </select>
+
+                    <small class="field-help">
+                        Only available equipment can be selected
+                    </small>
+                </div>
+
+                <!-- Borrow date -->
+                <div class="form-row">
+                    <div class="field">
+                        <label for="borrow-date">
+                            Borrow Date
+                        </label>
+
+                        <input id="borrow-date"
+                               type="date"
+                               readonly
+                               required>
+                    </div>
+
+                    <div class="field">
+                        <label for="due-date">
+                            Due Date
+                        </label>
+
+                        <input id="due-date"
+                               type="date"
+                               required>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div class="field">
+                    <label for="borrow-note">
+                        Note
+                    </label>
+
+                    <textarea id="borrow-note"
+                              rows="5"
+                              maxlength="500"
+                              placeholder="Enter your note here"></textarea>
+
+                    <small class="field-help">
+                        Maximum 500 characters
+                    </small>
+                </div>
+
+                <!-- Error message -->
+                <div id="borrow-form-error"
+                     class="form-message form-message-error"
+                     role="alert"
+                     hidden>
+                </div>
+            </div>
+
+            <footer class="detail-actions">
+                <a class="button button-outline"
+                   th:href="@{/equipment}"
+                   href="/equipment">
+
+                    Close
+                </a>
+
+                <button id="borrow-submit-button"
+                        class="button button-primary"
+                        type="submit">
+
+                    Submit Request
+                </button>
+            </footer>
+        </form>
+    </main>
+
+    <footer th:replace="~{fragments/site :: footer}"></footer>
+
+    <!-- Success modal -->
+    <div id="borrow-success-modal"
+         class="modal-backdrop"
+         hidden>
+
+        <section class="borrow-success-modal"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="borrow-success-title">
+
+            <button id="borrow-success-close"
+                    class="modal-close"
+                    type="button"
+                    aria-label="ปิดหน้าต่าง">
+
+                ×
+            </button>
+
+            <div class="success-icon" aria-hidden="true">
+                ✓
+            </div>
+
+            <h2 id="borrow-success-title">
+                Success Request
+            </h2>
+
+            <p>
+                Your borrow request has been submitted successfully.
+            </p>
+
+            <div class="success-actions">
+                <a class="button button-outline"
+                   th:href="@{/equipment}"
+                   href="/equipment">
+
+                    Stay Here
+                </a>
+
+                <a class="button button-dark"
+                   th:href="@{/borrow/my-history}"
+                   href="/borrow/my-history">
+
+                    View Request
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <script th:src="@{/js/sidebar.js}"
+            src="/js/sidebar.js"></script>
+
+    <script th:src="@{/js/borrow-form.js}"
+            src="/js/borrow-form.js"></script>
+</body>
+</html>

@@ -1,260 +1,402 @@
-const toggleButton =
-    document.getElementById("sidebar-toggle");
+const menuButton = document.querySelector(".menu-toggle");
+const navigation = document.getElementById("main-navigation");
 
-const sidebar =
-    document.getElementById("main-sidebar");
+const searchForm = document.querySelector(".header-search");
+const searchButton = searchForm?.querySelector(".search-toggle");
+const searchInput = searchForm?.querySelector(".header-search-input");
 
-const backdrop =
-    document.getElementById("sidebar-backdrop");
+const loginModal = document.getElementById("login-modal");
+const registerModal = document.getElementById("register-modal");
 
-function setSidebarOpen(isOpen) {
-    document.body.classList.toggle(
-        "sidebar-open",
-        isOpen
-    );
+const protectedActions = document.querySelectorAll(".requires-login");
 
-    toggleButton.setAttribute(
-        "aria-expanded",
-        String(isOpen)
-    );
+const profileDropdown = document.querySelector(".profile-dropdown");
+const profileTrigger = profileDropdown?.querySelector(".profile-trigger");
+const profileMenu = profileDropdown?.querySelector(".profile-menu");
 
-    toggleButton.setAttribute(
+let lastFocusedElement = null;
+
+
+/* ================================================================
+   MOBILE MENU
+   ================================================================ */
+
+function setMenuOpen(isOpen) {
+    document.body.classList.toggle("menu-open", isOpen);
+
+    if (!menuButton) {
+        return;
+    }
+
+    menuButton.setAttribute("aria-expanded", String(isOpen));
+    menuButton.setAttribute(
         "aria-label",
         isOpen ? "ปิดเมนู" : "เปิดเมนู"
     );
-
-    sidebar.inert = !isOpen;
 }
 
-if (toggleButton && sidebar && backdrop) {
-    setSidebarOpen(false);
+menuButton?.addEventListener("click", () => {
+    const isOpen = document.body.classList.contains("menu-open");
 
-    toggleButton.addEventListener("click", () => {
-        const isOpen =
-            document.body.classList.contains(
-                "sidebar-open"
-            );
-
-        setSidebarOpen(!isOpen);
-    });
-
-    backdrop.addEventListener("click", () => {
-        setSidebarOpen(false);
-        toggleButton.focus();
-    });
-
-    document.addEventListener("keydown", (event) => {
-        const isOpen =
-            document.body.classList.contains(
-                "sidebar-open"
-            );
-
-        if (event.key === "Escape" && isOpen) {
-            setSidebarOpen(false);
-            toggleButton.focus();
-        }
-    });
-}
-
-const equipmentSearch =
-    document.getElementById("equipment-search");
-
-const equipmentStatus =
-    document.getElementById("equipment-status");
-
-const equipmentCount =
-    document.getElementById("equipment-count");
-
-const equipmentFilterEmpty =
-    document.getElementById("filter-empty-row");
-
-const equipmentRows = Array.from(
-    document.querySelectorAll(".equipment-row")
-).filter((row) => {
-    return row.dataset.name ||
-           row.dataset.code ||
-           row.dataset.status;
+    setMenuOpen(!isOpen);
+    setSearchOpen(false);
+    setProfileMenuOpen(false);
 });
 
-function filterEquipment() {
-    if (!equipmentSearch || !equipmentStatus) {
+navigation?.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+        setMenuOpen(false);
+    }
+});
+
+window.addEventListener("resize", () => {
+    if (window.innerWidth > 820) {
+        setMenuOpen(false);
+    }
+});
+
+
+/* ================================================================
+   SEARCH DROPDOWN
+   ================================================================ */
+
+function setSearchOpen(isOpen) {
+    if (!searchForm || !searchButton || !searchInput) {
         return;
     }
 
-    const keyword =
-        equipmentSearch.value.trim().toLowerCase();
+    searchForm.classList.toggle("search-open", isOpen);
 
-    const selectedStatus =
-        equipmentStatus.value;
+    searchButton.setAttribute("aria-expanded", String(isOpen));
+    searchButton.setAttribute(
+        "aria-label",
+        isOpen ? "ปิดช่องค้นหา" : "เปิดช่องค้นหา"
+    );
 
-    let visibleCount = 0;
+    if (isOpen) {
+        setMenuOpen(false);
+        setProfileMenuOpen(false);
 
-    equipmentRows.forEach((row) => {
-        const name =
-            (row.dataset.name || "").toLowerCase();
-
-        const code =
-            (row.dataset.code || "").toLowerCase();
-
-        const status =
-            row.dataset.status || "";
-
-        const matchesKeyword =
-            name.includes(keyword) ||
-            code.includes(keyword);
-
-        const matchesStatus =
-            selectedStatus === "" ||
-            status === selectedStatus;
-
-        const shouldShow =
-            matchesKeyword && matchesStatus;
-
-        row.style.display =
-            shouldShow ? "table-row" : "none";
-
-        if (shouldShow) {
-            visibleCount++;
-        }
-    });
-
-    if (equipmentCount && equipmentRows.length > 0) {
-        equipmentCount.textContent = visibleCount;
-    }
-
-    if (equipmentFilterEmpty &&
-        equipmentRows.length > 0) {
-
-        equipmentFilterEmpty.style.display =
-            visibleCount === 0
-                ? "table-row"
-                : "none";
+        window.setTimeout(() => {
+            searchInput.focus();
+        }, 150);
     }
 }
 
-if (equipmentSearch && equipmentStatus) {
-    equipmentSearch.addEventListener(
-        "input",
-        filterEquipment
-    );
+searchButton?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
 
-    equipmentStatus.addEventListener(
-        "change",
-        filterEquipment
-    );
-}
+    const isOpen = searchForm.classList.contains("search-open");
 
-const borrowingSearch =
-    document.getElementById("borrowing-search");
-
-const borrowingStatus =
-    document.getElementById("borrowing-status");
-
-const borrowingCount =
-    document.getElementById("borrowing-count");
-
-const borrowingFilterEmpty =
-    document.getElementById(
-        "borrowing-filter-empty"
-    );
-
-const borrowingCards = Array.from(
-    document.querySelectorAll(".borrowing-card")
-).filter((card) => {
-    return card.dataset.requestId ||
-           card.dataset.status;
+    setSearchOpen(!isOpen);
 });
 
-function getBorrowingSearchText(card) {
-    const equipmentItems = Array.from(
-        card.querySelectorAll(
-            "[data-equipment-name]"
-        )
-    );
+searchInput?.addEventListener("click", (event) => {
+    event.stopPropagation();
+});
 
-    const equipmentText = equipmentItems
-        .map((item) => {
-            const name =
-                item.dataset.equipmentName || "";
+searchForm?.addEventListener("submit", (event) => {
+    const keyword = searchInput?.value.trim();
 
-            const code =
-                item.dataset.equipmentCode || "";
+    if (!keyword) {
+        event.preventDefault();
+        setSearchOpen(true);
+        searchInput?.focus();
+    }
+});
 
-            return `${name} ${code}`;
-        })
-        .join(" ");
 
-    return [
-        card.dataset.requestId || "",
-        equipmentText
-    ]
-        .join(" ")
+/* ================================================================
+   PROFILE MENU
+   ================================================================ */
+
+function setProfileMenuOpen(isOpen) {
+    if (!profileTrigger || !profileMenu) {
+        return;
+    }
+
+    profileMenu.hidden = !isOpen;
+    profileTrigger.setAttribute("aria-expanded", String(isOpen));
+
+    if (isOpen) {
+        setSearchOpen(false);
+        setMenuOpen(false);
+    }
+}
+
+profileTrigger?.addEventListener("click", (event) => {
+    event.stopPropagation();
+
+    const isOpen = profileTrigger.getAttribute("aria-expanded") === "true";
+
+    setProfileMenuOpen(!isOpen);
+});
+
+profileMenu?.addEventListener("click", (event) => {
+    event.stopPropagation();
+});
+
+
+/* ================================================================
+   AUTH MODALS
+   ================================================================ */
+
+function setModalOpen(modal, isOpen) {
+    if (!modal) {
+        return;
+    }
+
+    modal.hidden = !isOpen;
+
+    const hasOpenModal =
+        (loginModal && !loginModal.hidden) ||
+        (registerModal && !registerModal.hidden);
+
+    document.body.classList.toggle("modal-open", Boolean(hasOpenModal));
+
+    if (isOpen) {
+        const closeButton = modal.querySelector(".modal-close");
+
+        window.setTimeout(() => {
+            closeButton?.focus();
+        }, 50);
+    }
+}
+
+function openLoginModal(trigger = null) {
+    lastFocusedElement = trigger;
+
+    setSearchOpen(false);
+    setMenuOpen(false);
+    setProfileMenuOpen(false);
+    setModalOpen(registerModal, false);
+    setModalOpen(loginModal, true);
+}
+
+function closeLoginModal() {
+    setModalOpen(loginModal, false);
+    lastFocusedElement?.focus();
+}
+
+function openRegisterModal() {
+    setModalOpen(loginModal, false);
+    setModalOpen(registerModal, true);
+}
+
+function closeRegisterModal() {
+    setModalOpen(registerModal, false);
+    lastFocusedElement?.focus();
+}
+
+protectedActions.forEach((action) => {
+    action.addEventListener("click", (event) => {
+        event.preventDefault();
+        openLoginModal(action);
+    });
+});
+
+loginModal
+    ?.querySelector(".modal-close")
+    ?.addEventListener("click", closeLoginModal);
+
+registerModal
+    ?.querySelector(".modal-close")
+    ?.addEventListener("click", closeRegisterModal);
+
+loginModal?.addEventListener("click", (event) => {
+    if (event.target === loginModal) {
+        closeLoginModal();
+    }
+});
+
+registerModal?.addEventListener("click", (event) => {
+    if (event.target === registerModal) {
+        closeRegisterModal();
+    }
+});
+
+document.querySelectorAll(".open-register").forEach((button) => {
+    button.addEventListener("click", openRegisterModal);
+});
+
+document.querySelectorAll(".open-login").forEach((button) => {
+    button.addEventListener("click", () => {
+        setModalOpen(registerModal, false);
+        setModalOpen(loginModal, true);
+    });
+});
+
+
+/* ================================================================
+   CLOSE WHEN CLICKING OUTSIDE
+   ================================================================ */
+
+document.addEventListener("click", (event) => {
+    if (
+        searchForm?.classList.contains("search-open") &&
+        !searchForm.contains(event.target)
+    ) {
+        setSearchOpen(false);
+    }
+
+    if (
+        profileMenu &&
+        !profileMenu.hidden &&
+        !profileDropdown.contains(event.target)
+    ) {
+        setProfileMenuOpen(false);
+    }
+});
+
+
+/* ================================================================
+   ESCAPE KEY
+   ================================================================ */
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    if (registerModal && !registerModal.hidden) {
+        closeRegisterModal();
+        return;
+    }
+
+    if (loginModal && !loginModal.hidden) {
+        closeLoginModal();
+        return;
+    }
+
+    if (searchForm?.classList.contains("search-open")) {
+        setSearchOpen(false);
+        searchButton?.focus();
+        return;
+    }
+
+    if (profileMenu && !profileMenu.hidden) {
+        setProfileMenuOpen(false);
+        profileTrigger?.focus();
+        return;
+    }
+
+    setMenuOpen(false);
+});
+
+
+/* ================================================================
+   OPEN LOGIN MODAL AFTER LOGIN ERROR
+   ================================================================ */
+
+const hasLoginError = document.body.dataset.loginError === "true";
+
+if (hasLoginError) {
+    openLoginModal();
+}
+
+/* ================================================================
+   EQUIPMENT CATALOG SEARCH
+   ================================================================ */
+
+const catalogCards = Array.from(
+    document.querySelectorAll(".catalog-equipment-card")
+);
+
+const catalogSearchSummary =
+    document.getElementById("catalog-search-summary");
+
+const catalogFilterEmpty =
+    document.getElementById("catalog-filter-empty");
+
+const clearCatalogSearchButton =
+    document.getElementById("clear-catalog-search");
+
+function normalizeSearchText(value) {
+    return String(value || "")
+        .trim()
         .toLowerCase();
 }
 
-function filterBorrowingHistory() {
-    if (!borrowingSearch || !borrowingStatus) {
+function filterEquipmentCatalog(keyword) {
+    if (catalogCards.length === 0) {
         return;
     }
 
-    const keyword =
-        borrowingSearch.value.trim().toLowerCase();
-
-    const selectedStatus =
-        borrowingStatus.value;
-
+    const normalizedKeyword = normalizeSearchText(keyword);
     let visibleCount = 0;
 
-    borrowingCards.forEach((card) => {
-        const searchText =
-            getBorrowingSearchText(card);
+    catalogCards.forEach((card) => {
+        const equipmentName =
+            normalizeSearchText(card.dataset.name);
 
-        const status =
-            card.dataset.status || "";
+        const equipmentStatus =
+            normalizeSearchText(card.dataset.status);
 
-        const matchesKeyword =
-            searchText.includes(keyword);
+        const matchesSearch =
+            normalizedKeyword === "" ||
+            equipmentName.includes(normalizedKeyword) ||
+            equipmentStatus.includes(normalizedKeyword);
 
-        const matchesStatus =
-            selectedStatus === "" ||
-            status === selectedStatus;
+        card.hidden = !matchesSearch;
 
-        const shouldShow =
-            matchesKeyword && matchesStatus;
-
-        card.style.display =
-            shouldShow ? "flex" : "none";
-
-        if (shouldShow) {
+        if (matchesSearch) {
             visibleCount++;
         }
     });
 
-    if (borrowingCount &&
-        borrowingCards.length > 0) {
-
-        borrowingCount.textContent =
-            visibleCount;
+    if (catalogSearchSummary) {
+        if (normalizedKeyword === "") {
+            catalogSearchSummary.hidden = true;
+            catalogSearchSummary.textContent = "";
+        } else {
+            catalogSearchSummary.hidden = false;
+            catalogSearchSummary.textContent =
+                `Search results for "${keyword}" — ${visibleCount} item(s)`;
+        }
     }
 
-    if (borrowingFilterEmpty &&
-        borrowingCards.length > 0) {
-
-        borrowingFilterEmpty.style.display =
-            visibleCount === 0
-                ? "block"
-                : "none";
+    if (catalogFilterEmpty) {
+        catalogFilterEmpty.hidden =
+            visibleCount !== 0 || normalizedKeyword === "";
     }
 }
 
-if (borrowingSearch && borrowingStatus) {
-    borrowingSearch.addEventListener(
-        "input",
-        filterBorrowingHistory
+function clearCatalogSearch() {
+    const currentUrl = new URL(window.location.href);
+
+    currentUrl.searchParams.delete("keyword");
+
+    window.history.replaceState(
+        {},
+        "",
+        currentUrl.pathname
     );
 
-    borrowingStatus.addEventListener(
-        "change",
-        filterBorrowingHistory
-    );
+    if (searchInput) {
+        searchInput.value = "";
+    }
+
+    filterEquipmentCatalog("");
+    setSearchOpen(false);
 }
+
+if (catalogCards.length > 0) {
+    const searchParameters =
+        new URLSearchParams(window.location.search);
+
+    const keyword =
+        searchParameters.get("keyword") || "";
+
+    if (keyword && searchInput) {
+        searchInput.value = keyword;
+        setSearchOpen(true);
+    }
+
+    filterEquipmentCatalog(keyword);
+}
+
+clearCatalogSearchButton?.addEventListener(
+    "click",
+    clearCatalogSearch
+);

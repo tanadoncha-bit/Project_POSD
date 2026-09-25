@@ -1,124 +1,392 @@
 <!DOCTYPE html>
-<html lang="th" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | AssetTrack IT</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <!-- src ใช้เมื่อเปิดผ่าน Live Server; th:href ใช้เมื่อรันผ่าน Spring Boot -->
+    <title>Home | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
     <link rel="stylesheet"
-            href="../../static/css/style.css"
-            th:href="@{/css/style.css}">
+          href="../../static/css/style.css">
 </head>
-<body>
-    <!-- ปุ่มเปิดและปิด Sidebar -->
-    <button type="button"
-            id="sidebar-toggle"
-            class="sidebar-toggle"
-            aria-label="เปิดเมนู"
-            aria-controls="main-sidebar"
-            aria-expanded="false">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
 
-    <!-- เมนูหลัก -->
-    <aside id="main-sidebar" class="sidebar">
-        <div class="sidebar-brand">
-            <span>AssetTrack IT</span>
-        </div>
+<body data-page="home">
 
-        <nav aria-label="เมนูหลัก">
-            <a href="index.html"
-                th:href="@{/Dashboard}"
-                class="nav-link active"
-                aria-current="page">
-                    Dashboard
-            </a>
+    <!-- Header จะโหลดมาจาก fragments/site.html -->
+    <div id="site-header"></div>
 
-            <a href="../equipment/list.html"
-                th:href="@{/equipment}"
-                class="nav-link">
-                    Equipment
-            </a>
+    <main class="home-page">
 
-            <a href="../borrow/my-history.html"
-                th:href="@{/borrow/my-history}"
-                class="nav-link">
-                    My Borrowing
-            </a>
+        <!-- =====================================================
+             HERO
+             ===================================================== -->
 
-            <a href="#"
-                class="nav-link">
-                    Setting
-            </a>
-        </nav>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>
+                    <span>Borrow IT Equipment</span>
+                    Fast, Easy, Ready to Use
+                </h1>
 
-        <a href="../profile/index.html"
-            th:href="@{/profile}"
-            class="sidebar-profile">
+                <p>
+                    Request laptops, monitors, and computer gear
+                    online with 24/7 self-service pickup via our
+                    Smart Locker.
+                </p>
 
-            <div class="profile-avatar"
-                aria-hidden="true">
-                <span th:text="${currentUser != null
-                    and !#strings.isEmpty(currentUser.username)
-                    ? #strings.substring(currentUser.username, 0, 1)
-                    : 'U'}">
-                    U
-                </span>
+                <div class="hero-actions">
+                    <a class="button button-primary"
+                       href="../equipment/list.html"
+                       data-requires-login>
+
+                        <span aria-hidden="true">+</span>
+                        Borrow Equipment
+                    </a>
+
+                    <a class="button button-dark"
+                       href="../equipment/list.html">
+
+                        Browse Equipment
+                    </a>
+                </div>
             </div>
 
-            <div class="profile-information">
-                <strong class="profile-name"
-                    th:text="${currentUser != null
-                        ? currentUser.username
-                        : 'ผู้ใช้งาน'}">
-                    ผู้ใช้งาน
-                </strong>
-
-                <span class="profile-role"
-                    :text="${currentUser != null
-                        ? currentUser.role
-                        : 'USER'}">
-                    USER
-                </span>
+            <div class="hero-media">
+                <img src="../../static/images/home-hero.png"
+                     alt="Laptops and IT equipment">
             </div>
-        </a>
-    </aside>
-
-    <!-- พื้นหลังสำหรับกดปิด Sidebar บนจอเล็ก -->
-    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-
-    <main>
-        <!-- ข้อความต้อนรับอยู่นอกกรอบรูปภาพ -->
-        <div class="dashboard-intro">
-            <h1>อุปกรณ์ IT ที่พร้อมสำหรับคุณ</h1>
-            <p class="dashboard-description">
-                ค้นหาอุปกรณ์ ตรวจสอบสถานะ และเลือกอุปกรณ์ที่ต้องการยืม
-            </p>
-        </div>
-
-        <!-- แบนเนอร์เป็นภาพเต็มกรอบ ไม่มีข้อความวางทับ -->
-        <section class="dashboard-hero" aria-label="ภาพแบนเนอร์อุปกรณ์ IT">
-            <img class="dashboard-hero-image"
-                    src="../../static/banner.jpg"
-                    th:src="@{/banner.jpg}"
-                    alt="">
         </section>
 
-        <!-- ปุ่มไปหน้ารายการอุปกรณ์ อยู่ใต้ภาพด้านซ้าย -->
-        <div class="dashboard-actions">
-            <a href="../equipment/list.html"
-                th:href="@{/equipment}"
-                class="dashboard-primary-link">
-                    ดูรายการอุปกรณ์
-            </a>
+
+        <!-- =====================================================
+             FEATURES
+             ===================================================== -->
+
+        <section class="feature-grid"
+                 aria-label="LeadIT features">
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="fast-approval">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Fast Approval</h2>
+
+                <p>
+                    อนุมัติคำขอรวดเร็วและมีประสิทธิภาพ
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="time-tracking">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Time Tracking</h2>
+
+                <p>
+                    ติดตามระยะเวลาการยืมอุปกรณ์อย่างแม่นยำ
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="self-service">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Self-Service</h2>
+
+                <p>
+                    จัดการคำขอด้วยตนเองได้อย่างง่ายดายและสะดวก
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="live-inventory">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Live Inventory</h2>
+
+                <p>
+                    ตรวจสอบสถานะอุปกรณ์ได้แบบเรียลไทม์
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="automated-alerts">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Automated Alerts</h2>
+
+                <p>
+                    แจ้งเตือนผู้ใช้งานเมื่อใกล้ถึงกำหนดคืน
+                </p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon"
+                      data-icon-slot="easy-returns">
+
+                    <!-- วาง Lucide SVG ตรงนี้ภายหลัง -->
+                </span>
+
+                <h2>Easy Returns</h2>
+
+                <p>
+                    ดำเนินการคืนอุปกรณ์ได้ง่ายและรวดเร็ว
+                </p>
+            </article>
+        </section>
+
+
+        <!-- =====================================================
+             AVAILABLE EQUIPMENT
+             ===================================================== -->
+
+        <section class="equipment-preview"
+                 aria-labelledby="available-equipment-heading">
+
+            <div class="section-heading">
+                <h2 id="available-equipment-heading">
+                    Available Equipment
+                </h2>
+
+                <p>
+                    Select equipment and submit a borrow request
+                    immediately
+                </p>
+            </div>
+
+        <!-- =====================================================
+            PREVIEW STATE: แสดงข้อมูลตัวอย่าง
+            ตอนนี้เปิดส่วนนี้ไว้เพื่อดูหน้าตาการ์ด
+            ===================================================== -->
+
+        <div class="equipment-preview-state"
+            id="equipment-preview-state">
+
+            <div class="equipment-grid">
+
+                <a class="equipment-card"
+                    href="#">
+
+                    <div class="equipment-card-image">
+                        <span class="equipment-image-placeholder">
+                            LeadIT
+                        </span>
+
+                        <span class="availability-badge">
+                            Available
+                        </span>
+                    </div>
+
+                    <div class="equipment-card-body">
+                        <h3>MacBook Air 15&quot; M3</h3>
+                        <p>Laptops</p>
+                    </div>
+                </a>
+
+                <a class="equipment-card"
+                    href="#">
+
+                    <div class="equipment-card-image">
+                        <span class="equipment-image-placeholder">
+                            LeadIT
+                        </span>
+
+                        <span class="availability-badge">
+                            Available
+                        </span>
+                    </div>
+
+                    <div class="equipment-card-body">
+                        <h3>HP Victus Gaming 16</h3>
+                        <p>Laptops</p>
+                    </div>
+                </a>
+
+                <a class="equipment-card"
+                    href="#">
+
+                    <div class="equipment-card-image">
+                        <span class="equipment-image-placeholder">
+                            LeadIT
+                        </span>
+
+                        <span class="availability-badge">
+                            Available
+                        </spa>
+                    </div>
+
+                    <div class="equipment-card-body">
+                        <h3>Razer Viper V2 Pro White</h3>
+                        <p>Accessories</p>
+                    </div>
+                </a>
+
+                <a class="equipment-card"
+                    href="#">
+
+                    <div class="equipment-card-image">
+                        <span class="equipment-image-placeholder">
+                            LeadIT
+                        </span>
+
+                        <span class="availability-badge">
+                            Available
+                        </span>
+                    </div>
+
+                    <div class="equipment-card-body">
+                        <h3>Keychron V2 65%</h3>
+                        <p>Accessories</p>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="view-all-wrapper">
+                <a class="button button-dark view-all"
+                    href="../equipment/list.html">
+                    View All
+                </a>
+            </div>
         </div>
+
+
+        <!-- =====================================================
+            EMPTY STATE: ใช้ตอน Admin ยังไม่ได้เพิ่มอุปกรณ์
+            ตอนนี้ซ่อนไว้ก่อนด้วย hidden
+        ===================================================== -->
+
+        <div class="equipment-empty"
+            id="equipment-empty-state"
+            hidden>
+
+            <strong>
+                ยังไม่มีอุปกรณ์พร้อมให้ยืมในขณะนี้
+            </strong>
+
+            <p>
+                โปรดลองตรวจสอบรายการอุปกรณ์อีกครั้งภายหลัง
+            </p>
+
+            <div class="view-all-wrapper">
+                <a class="button button-dark view-all"
+                href="../equipment/list.html">
+                    View All
+                </a>
+            </div>
+        </div>
+        </section>
     </main>
 
-    <!-- ใช้ JavaScript ของ Sidebar ที่มีอยู่แล้ว -->
-    <script src="../../static/js/sidebar.js"
-            th:src="@{/js/sidebar.js}"></script>
+    <!-- =====================================================
+     EQUIPMENT DETAIL MODAL
+     ===================================================== -->
+
+    <div class="equipment-detail-backdrop"
+        id="equipment-detail-modal"
+        hidden>
+
+        <section class="equipment-detail-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="equipment-modal-name">
+
+            <button class="equipment-modal-close"
+                id="equipment-modal-close"
+                type="button"
+                aria-label="Close equipment detail">
+                ×
+            </button>
+
+            <div class="equipment-modal-image">
+                <span id="equipment-modal-image-placeholder">
+                    LeadIT
+                </span>
+
+                <span class="availability-badge"
+                    id="equipment-modal-status">
+                    Available
+                </span>
+            </div>
+
+            <div class="equipment-modal-content">
+
+                <p class="equipment-modal-category"
+                    id="equipment-modal-category">
+                        Laptops
+                </p>
+
+                <h2 id="equipment-modal-name">
+                    Equipment name
+                </h2>
+
+                <p class="equipment-modal-description">
+                    View equipment information and submit a request to borrow this equipment.
+                </p>
+
+                <div class="equipment-modal-information">
+
+                    <div>
+                        <span>Availability</span>
+
+                        <strong id="equipment-modal-availability">
+                            Ready to borrow
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Request method</span>
+
+                        <strong>Online request</strong>
+                    </div>
+
+                </div>
+
+                <button class="button button-primary equipment-borrow-button"
+                        id="equipment-borrow-button"
+                        type="button"
+                        data-requires-login>
+                    Borrow Equipment
+                </button>
+
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer จะโหลดมาจาก fragments/site.html -->
+    <div id="site-footer"></div>
+
+    <!-- Login และ Register Modal -->
+    <div id="site-modals"></div>
+
+    <script src="../../static/js/site-preview.js"></script>
+    <script src="/src/main/resources/static/js/equipment-catalog.js?v=2"></script>
+
 </body>
 </html>
