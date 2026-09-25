@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class FinestrategyResolver {
+public class FineStrategyResolver {
 
     private final List<FineStrategyService> strategies;
 
-    public FinestrategyResolver(List<FineStrategyService> strategies) {
+    public FineStrategyResolver(List<FineStrategyService> strategies) {
         this.strategies = strategies;
     }
 

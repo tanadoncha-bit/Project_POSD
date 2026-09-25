@@ -37,7 +37,6 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     private final BorrowRequestMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    // Constructor Injection ล้วน — ไม่ใช้ lombok, ไม่ใช้ field injection (@Autowired บน field)
     public BorrowRequestServiceImpl(BorrowRequestRepository borrowRequestRepository,
                                      UserRepository userRepository,
                                      EquipmentRepository equipmentRepository,
@@ -99,10 +98,9 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
         BorrowRequest request = findEntityById(id);
         stateResolver.resolve(request.getStatus()).pickUp(request);
 
-        // ผู้ยืมรับอุปกรณ์จริงแล้ว เปลี่ยนสถานะอุปกรณ์ทุกชิ้นเป็น BORROWED
         for (BorrowItem item : request.getItems()) {
             Equipment equipment = item.getEquipment();
-            equipment.setStatus(EquipmentStatus.BORROWED);
+            equipment.setStatus(EquipmentStatus.IN_USE);
             equipmentRepository.save(equipment);
         }
 
@@ -137,7 +135,6 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
             stateResolver.resolve(request.getStatus()).markOverdue(request);
             borrowRequestRepository.save(request);
 
-            // Observer Pattern: ยิง event ออกไป ไม่ต้องรู้ว่าใครฟังอยู่บ้าง
             eventPublisher.publishEvent(new OverdueEvent(this, request));
         }
     }

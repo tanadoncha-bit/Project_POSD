@@ -65,18 +65,16 @@ class BorrowRequestServiceTest {
         testEquipment.setStatus(EquipmentStatus.AVAILABLE);
     }
 
-    // ===== createBorrowRequest =====
-
     @Test
     void createBorrowRequest_success_whenEquipmentAvailable() {
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
-        BorrowRequestDto dto = new BorrowRequestDto(1L, LocalDate.now().plusDays(7), "ยืมไปประชุม", List.of(itemDto));
+        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), "ยืมไปประชุม", List.of(itemDto));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
         when(borrowRequestRepository.save(any(BorrowRequest.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-        when(mapper.toResponseDto(any(BorrowRequest.class))).thenReturn(new BorrowResponseDto());
+        when(mapper.toResponseDto(any(BorrowRequest.class))).thenReturn(BorrowResponseDto.builder().build());
 
         BorrowResponseDto result = service.createBorrowRequest(dto);
 
@@ -86,10 +84,10 @@ class BorrowRequestServiceTest {
 
     @Test
     void createBorrowRequest_throwsException_whenEquipmentNotAvailable() {
-        testEquipment.setStatus(EquipmentStatus.BORROWED); // อุปกรณ์ถูกยืมอยู่แล้ว
+        testEquipment.setStatus(EquipmentStatus.IN_USE);
 
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
-        BorrowRequestDto dto = new BorrowRequestDto(1L, LocalDate.now().plusDays(7), null, List.of(itemDto));
+        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), null, List.of(itemDto));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
@@ -98,20 +96,17 @@ class BorrowRequestServiceTest {
                 .isInstanceOf(EquipmentNotAvailableException.class)
                 .hasMessageContaining("ไม่พร้อมให้ยืม");
 
-        // ต้องไม่มีการ save เกิดขึ้นเลยเมื่ออุปกรณ์ไม่พร้อม
         verify(borrowRequestRepository, never()).save(any());
     }
 
     @Test
     void createBorrowRequest_throwsException_whenUserNotFound() {
-        BorrowRequestDto dto = new BorrowRequestDto(999L, LocalDate.now().plusDays(7), null, Collections.emptyList());
+        BorrowRequestDto dto = buildBorrowRequestDto(999L, LocalDate.now().plusDays(7), null, Collections.emptyList());
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createBorrowRequest(dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
-
-    // ===== approveBorrowRequest =====
 
     @Test
     void approveBorrowRequest_success_delegatesToStatePattern() {
@@ -120,11 +115,10 @@ class BorrowRequestServiceTest {
         when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(request));
         when(stateResolver.resolve(BorrowStatus.PENDING)).thenReturn(mockState);
         when(borrowRequestRepository.save(request)).thenReturn(request);
-        when(mapper.toResponseDto(request)).thenReturn(new BorrowResponseDto());
+        when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
 
         service.approveBorrowRequest(1L);
 
-        // ยืนยันว่า Service เรียก state.approve() จริง ไม่ได้เปลี่ยนสถานะเอง
         verify(mockState).approve(request);
     }
 
@@ -136,8 +130,6 @@ class BorrowRequestServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
-    // ===== pickUpEquipment =====
-
     @Test
     void pickUpEquipment_success_changesEquipmentStatusToBorrowed() {
         BorrowRequest request = buildBorrowRequestWithItem(BorrowStatus.APPROVED);
@@ -145,16 +137,13 @@ class BorrowRequestServiceTest {
         when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(request));
         when(stateResolver.resolve(BorrowStatus.APPROVED)).thenReturn(mockState);
         when(borrowRequestRepository.save(request)).thenReturn(request);
-        when(mapper.toResponseDto(request)).thenReturn(new BorrowResponseDto());
+        when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
 
         service.pickUpEquipment(1L);
 
-        // อุปกรณ์ทุกชิ้นในคำขอต้องถูกเปลี่ยนเป็น BORROWED และถูก save
-        assertThat(testEquipment.getStatus()).isEqualTo(EquipmentStatus.BORROWED);
+        assertThat(testEquipment.getStatus()).isEqualTo(EquipmentStatus.IN_USE);
         verify(equipmentRepository).save(testEquipment);
     }
-
-    // ===== checkAndMarkOverdue =====
 
     @Test
     void checkAndMarkOverdue_publishesEventForEachOverdueRequest() {
@@ -169,7 +158,6 @@ class BorrowRequestServiceTest {
         service.checkAndMarkOverdue();
 
         verify(mockState).markOverdue(overdueCandidate);
-        // Observer Pattern: ต้องมีการยิง event ออกไปพอดี 1 ครั้ง ตามจำนวนคำขอที่เกินกำหนด
         verify(eventPublisher, times(1)).publishEvent(any());
     }
 
@@ -183,7 +171,16 @@ class BorrowRequestServiceTest {
         verify(eventPublisher, never()).publishEvent(any());
     }
 
-    // ===== Helper methods =====
+    private BorrowRequestDto buildBorrowRequestDto(Long userId, LocalDate dueDate, String note,
+                                                    List<BorrowItemRequestDto> items) {
+        BorrowRequestDto dto = new BorrowRequestDto();
+        dto.setUserId(userId);
+        dto.setBorrowDate(LocalDate.now());
+        dto.setDueDate(dueDate);
+        dto.setNote(note);
+        dto.setItems(items);
+        return dto;
+    }
 
     private BorrowRequest buildBorrowRequest(BorrowStatus status) {
         BorrowRequest request = new BorrowRequest();
