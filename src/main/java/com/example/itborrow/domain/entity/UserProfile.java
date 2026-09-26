@@ -17,7 +17,7 @@ public class UserProfile {
     private String phone;
 
     @Column(name = "department")
-    private String  ;
+    private String department;
 
     // Default Constructor
     public UserProfile() {
