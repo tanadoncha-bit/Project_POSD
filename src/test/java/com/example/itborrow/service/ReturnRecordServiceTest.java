@@ -16,7 +16,8 @@ import com.example.itborrow.repository.BorrowRequestRepository;
 import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.repository.ReturnRecordRepository;
 import com.example.itborrow.service.impl.ReturnRecordServiceImpl;
-import com.example.itborrow.service.impl.strategy.FineStrategyResolver;
+import com.example.itborrow.service.impl.strategy.FinestrategyResolver;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ class ReturnRecordServiceTest {
     @Mock private BorrowRequestRepository borrowRequestRepository;
     @Mock private EquipmentRepository equipmentRepository;
     @Mock private BorrowStateResolver stateResolver;
-    @Mock private FineStrategyResolver fineStrategyResolver;
+    @Mock private FinestrategyResolver fineStrategyResolver;
     @Mock private BorrowState mockState;
     @Mock private FineStrategyService mockStrategy;
 

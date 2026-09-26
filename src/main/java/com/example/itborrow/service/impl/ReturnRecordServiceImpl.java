@@ -14,7 +14,7 @@ import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.repository.ReturnRecordRepository;
 import com.example.itborrow.service.FineStrategyService;
 import com.example.itborrow.service.ReturnRecordService;
-import com.example.itborrow.service.impl.strategy.FineStrategyResolver;
+import com.example.itborrow.service.impl.strategy.FinestrategyResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +27,13 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
     private final BorrowRequestRepository borrowRequestRepository;
     private final EquipmentRepository equipmentRepository;
     private final BorrowStateResolver stateResolver;
-    private final FineStrategyResolver fineStrategyResolver;
+    private final FinestrategyResolver fineStrategyResolver;
 
     public ReturnRecordServiceImpl(ReturnRecordRepository returnRecordRepository,
                                     BorrowRequestRepository borrowRequestRepository,
                                     EquipmentRepository equipmentRepository,
                                     BorrowStateResolver stateResolver,
-                                    FineStrategyResolver fineStrategyResolver) {
+                                    FinestrategyResolver fineStrategyResolver) {
         this.returnRecordRepository = returnRecordRepository;
         this.borrowRequestRepository = borrowRequestRepository;
         this.equipmentRepository = equipmentRepository;
