@@ -5,7 +5,7 @@ import com.example.itborrow.domain.enums.EquipmentStatus;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "equipments")
+@Table(name = "equipment")
 public class Equipment {
 
     @Id
