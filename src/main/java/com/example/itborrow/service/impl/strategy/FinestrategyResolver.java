@@ -21,7 +21,7 @@ public class FinestrategyResolver {
                 .findFirst()
                 // ถ้าไม่มี strategy ตรงกับ role ไหนเลย ใช้ Standard เป็นค่า default กันระบบพัง
                 .orElseGet(() -> strategies.stream()
-                        .filter(s -> s.supports(Role.STAFF))
+                        .filter(s -> s.supports(Role.USER))
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException("ไม่พบ FineStrategyService เริ่มต้น")));
     }

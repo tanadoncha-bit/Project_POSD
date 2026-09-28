@@ -5,6 +5,9 @@ public class BorrowItemResponseDto {
     private Long equipmentId;
     private String assetCode;
     private String equipmentName;
+    private String storageSlot;
+    public String getStorageSlot() { return storageSlot; }
+    public void setStorageSlot(String value) { storageSlot = value; }
     private int quantity;
 
     public BorrowItemResponseDto() {

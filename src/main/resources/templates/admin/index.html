@@ -1,308 +1,165 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LeadIT Management</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+<script defer src="/js/form-pickers.js" th:src="@{/js/form-pickers.js}"></script>
 </head>
-<body class="admin-page" data-admin-view="dashboard">
-    <aside class="admin-sidebar" aria-label="Management navigation">
-        <a class="admin-brand" href="#dashboard" aria-label="LeadIT Management home">
-            <span class="admin-brand-mark" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/></svg>
-            </span>
-            <span><strong>LeadIT</strong><small>Management</small></span>
-        </a>
-
-        <nav class="admin-navigation">
-            <a class="active" href="#dashboard" data-admin-nav="dashboard" aria-label="Dashboard">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                <span>Dashboard</span>
-            </a>
-            <a href="#inventory" data-admin-nav="inventory" aria-label="Inventory">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M5 7h14l1 4v9H4v-9z"/><path d="M9 11h6"/></svg>
-                <span>Inventory</span>
-            </a>
-            <a href="#requests" data-admin-nav="requests" aria-label="Borrow requests">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H6a2 2 0 0 0-2 2v12h16V7a2 2 0 0 0-2-2h-3"/><rect width="6" height="4" x="9" y="3" rx="1"/><path d="m9 13 2 2 4-4"/></svg>
-                <span>Requests</span>
-            </a>
-        </nav>
-
-        <button class="admin-logout" type="button" data-admin-logout>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg>
-            <span>Log out</span>
-        </button>   
-    </aside>
-
-    <div class="admin-shell">
+<body class="admin-page" data-admin-view="dashboard" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
         <header class="admin-topbar">
             <button class="admin-mobile-menu" type="button" aria-label="Open management menu" data-admin-menu>
                 <span></span><span></span><span></span>
             </button>
-            <div>
-                <strong>LeadIT Management</strong>
-                <span>Equipment Borrowing System</span>
+        <a class="admin-brand" href="#dashboard" aria-label="LeadIT Management home">
+            <span class="admin-brand-mark" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/></svg>
+            </span>
+            <span>LeadIT Management</span>
+        </a>
+            <div class="profile-dropdown admin-profile-dropdown">
+                <button class="admin-account" type="button" aria-label="Open profile menu" aria-controls="admin-profile-menu" aria-expanded="false" data-admin-profile-toggle>
+                    <img th:if="${profileImageUrl != null}" th:src="${profileImageUrl}" alt="">
+                    <span th:unless="${profileImageUrl != null}" th:text="${#strings.substring(currentUser.username,0,1)}">U</span>
+                </button>
+                <div class="profile-menu" id="admin-profile-menu" hidden>
+                    <div class="profile-menu-user"><strong th:text="${currentUser.username}">User</strong><span th:text="${currentUser.role}">STAFF</span></div>
+                    <a class="profile-menu-item" href="/profile" th:href="@{/profile}"><span class="profile-menu-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span>My Profile</a>
+                    <button class="profile-menu-item profile-logout" type="button" data-admin-logout><span class="profile-menu-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H4v14h5M14 8l4 4-4 4M8 12h10"/></svg></span>Log Out</button>
+                </div>
             </div>
-            <button class="admin-account" type="button" aria-label="Admin account">
-                <span>AD</span>
-            </button>
         </header>
+    <aside class="admin-sidebar" aria-label="Management navigation">
+
+
+        <nav class="admin-navigation">
+            <a class="active" href="#dashboard" data-admin-nav="dashboard" aria-label="Dashboard" title="Dashboard">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#inventory" data-admin-nav="inventory" aria-label="Inventory" title="Inventory">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M5 7h14l1 4v9H4v-9z"/><path d="M9 11h6"/></svg>
+                <span>Inventory</span>
+            </a>
+            <a href="#requests" data-admin-nav="requests" aria-label="Borrow requests" title="Borrow requests">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H6a2 2 0 0 0-2 2v12h16V7a2 2 0 0 0-2-2h-3"/><rect width="6" height="4" x="9" y="3" rx="1"/><path d="m9 13 2 2 4-4"/></svg>
+                <span>Requests</span>
+            </a>
+            <a href="/admin/users" data-admin-nav="users" aria-label="Users and roles" title="Users and roles" th:if="${currentUser.role.name() == 'ADMIN'}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>Users &amp; roles</span></a>
+        </nav>
+
+        <a class="admin-logout admin-back-to-catalog" href="/equipment" th:href="@{/equipment}" aria-label="Browse equipment" title="Browse equipment">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6-6 6 6 6M4 12h16"/></svg>
+            <span>Browse equipment</span>
+        </a>
+    </aside>
+
+    <div class="admin-shell">
+
 
         <main class="admin-main">
+            <p id="admin-load-error" role="alert" hidden></p>
             <section class="admin-view active" data-admin-panel="dashboard">
-        
-        <div class="admin-main-layout">
-            <!-- ==========================================
-                 ฝั่งซ้าย: ระบบชั้นวางอุปกรณ์ (Shelf Rack System)
-                 ========================================== -->
-            <div class="shelf-rack-system">
-    
-    <!-- Tier 1 Shelf: LAPTOPS -->
-    <div class="shelf-section">
-        <div class="shelf-category-badge">LAPTOPS <span>4 items</span></div>
-        <div class="shelf-items-grid">
-            
-            <!-- เพิ่ม data-open-equipment-admin และ cursor: pointer ที่การ์ด -->
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="MacBook Air 15 M3">
-                    <span class="status-pill available">Available</span>
+                <header class="admin-page-heading"><div><h1>Overview</h1><p class="management-intro">Your equipment and requests, in one place.</p></div><a class="button button-dark" href="#inventory" data-admin-nav="inventory">View inventory</a></header>
+                <div class="admin-stat-grid">
+                    <article class="admin-stat-card available"><span>Available</span><strong data-count-available>0</strong></article>
+                    <article class="admin-stat-card in-use"><span>In use</span><strong data-count-in-use>0</strong></article>
+                    <article class="admin-stat-card pending"><span>Pending</span><strong data-count-pending>0</strong></article>
+                    <article class="admin-stat-card overdue"><span>Overdue</span><strong data-count-overdue>0</strong></article>
                 </div>
-                <p class="shelf-item-name">MacBook Air 15" M3</p>
-                <span class="shelf-item-slot">Slot A-4</span>
-            </div>
-
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-victus.png" th:src="@{/images/equipment-victus.png}" alt="HP Victus Gaming">
-                    <span class="status-pill available">Available</span>
+                <div class="management-overview">
+                    <section class="management-shelves" aria-label="Equipment by category" id="management-shelves"><div class="equipment-loading" role="status" aria-label="Loading equipment"><div aria-hidden="true"><div class="equipment-skeleton-tier"><span class="equipment-skeleton equipment-skeleton-category"></span><div class="equipment-skeleton-items"><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div></div><div class="equipment-skeleton-board"></div></div><div class="equipment-skeleton-tier"><span class="equipment-skeleton equipment-skeleton-category"></span><div class="equipment-skeleton-items"><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div></div><div class="equipment-skeleton-board"></div></div><div class="equipment-skeleton-tier"><span class="equipment-skeleton equipment-skeleton-category"></span><div class="equipment-skeleton-items"><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div><div class="equipment-skeleton-card"><span class="equipment-skeleton equipment-skeleton-image"></span><span class="equipment-skeleton equipment-skeleton-name"></span><span class="equipment-skeleton equipment-skeleton-caption"></span></div></div><div class="equipment-skeleton-board"></div></div></div></div></section>
+                    <aside class="management-work-queue"><header><h2>Needs attention</h2><a href="#requests" data-admin-nav="requests">All requests</a></header><div id="admin-recent-requests"></div></aside>
                 </div>
-                <p class="shelf-item-name">HP Victus Gaming</p>
-                <span class="shelf-item-slot">Slot A-6</span>
-            </div>
-
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="MacBook Air 15 M3">
-                    <span class="status-pill in-use">In Use</span>
+            </section>
+            <section class="admin-view" data-admin-panel="inventory" hidden>
+                <header class="admin-page-heading inventory-heading"><div><h1>Equipment Inventory</h1><p>Manage your equipment, asset records and availability.</p></div><button type="button" data-open-admin-modal="add-equipment-modal"><img src="/images/admin-add.svg" width="24" height="24" alt="">Add equipment</button></header>
+                <div class="inventory-toolbar">
+                    <label class="inventory-search">Search equipment<input data-admin-inventory-search type="search" placeholder="Search by name or asset code"></label>
+                    <label>Status<select data-admin-status-filter><option value="ALL">All statuses</option><option value="AVAILABLE">Available</option><option value="IN_USE">In use</option><option value="MAINTENANCE">Maintenance</option><option value="DISPOSED">Disposed</option></select></label>
+                    <span class="inventory-result-count" id="inventory-result-count" role="status"></span>
                 </div>
-                <p class="shelf-item-name">MacBook Air 15" M3</p>
-                <span class="shelf-item-slot">Slot A-4</span>
-            </div>
-
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="MacBook Air 15 M3">
-                    <span class="status-pill available">Available</span>
-                </div>
-                <p class="shelf-item-name">MacBook Air 15" M3</p>
-                <span class="shelf-item-slot">Slot A-4</span>
-            </div>
-        </div>
-        <div class="shelf-bar">Tier 1 Shelf</div>
-    </div>
-
-    <!-- Tier 2 Shelf: ACCESSORIES -->
-    <div class="shelf-section">
-        <div class="shelf-category-badge">ACCESSORIES <span>4 items</span></div>
-        <div class="shelf-items-grid">
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-keyboard.png" th:src="@{/images/equipment-keyboard.png}" alt="Keychron V2 65%">
-                    <span class="status-pill available">Available</span>
-                </div>
-                <p class="shelf-item-name">Keychron V2 65%</p>
-                <span class="shelf-item-slot">Slot B-1</span>
-            </div>
-        </div>
-        <div class="shelf-bar">Tier 2 Shelf</div>
-    </div>
-
-    <!-- Tier 3 Shelf: DISPLAYS -->
-    <div class="shelf-section">
-        <div class="shelf-category-badge">DISPLAYS <span>4 items</span></div>
-        <div class="shelf-items-grid">
-            <div class="shelf-item-card" data-open-equipment-admin style="cursor: pointer;">
-                <div class="shelf-item-image-wrap">
-                    <img src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="Studio Display 27">
-                    <span class="status-pill available">Available</span>
-                </div>
-                <p class="shelf-item-name">Studio Display 27</p>
-                <span class="shelf-item-slot">Slot C-2</span>
-            </div>
-        </div>
-        <div class="shelf-bar">Tier 3 Shelf</div>
-    </div>
-
-</div>
-
-            <!-- ==========================================
-                 ฝั่งขวา: การ์ดคำขออนุมัติ (Requests Sidebar)
-                 ========================================== -->
-            <div class="requests-sidebar-panel">
-                
-                <!-- Request Card 1 -->
-                <div class="figma-request-card">
-                    <div class="figma-request-header">
-                        <img class="figma-request-img" src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="MacBook Air">
-                        <div class="figma-request-info">
-                            <h4>MacBook Air 15" M3</h4>
-                            <p>Laptop</p>
-                        </div>
-                        <span class="figma-request-badge">Pending</span>
-                    </div>
-                    <div class="figma-request-details">
-                        <div class="figma-detail-row">
-                            <span>Borrower:</span>
-                            <strong>Tanadon Chaisila</strong>
-                        </div>
-                        <div class="figma-detail-row">
-                            <span>Due Date:</span>
-                            <strong>19/09/2569</strong>
-                        </div>
-                    </div>
-                    <button class="btn-more-detail" type="button">More Detail</button>
-                </div>
-
-                <!-- Request Card 2 -->
-                <div class="figma-request-card">
-                    <div class="figma-request-header">
-                        <img class="figma-request-img" src="../../static/images/equipment-keyboard.png" th:src="@{/images/equipment-keyboard.png}" alt="Keychron Keyboard">
-                        <div class="figma-request-info">
-                            <h4>Keychron V2 65%</h4>
-                            <p>Accessories</p>
-                        </div>
-                        <span class="figma-request-badge">Pending</span>
-                    </div>
-                    <div class="figma-request-details">
-                        <div class="figma-detail-row">
-                            <span>Borrower:</span>
-                            <strong>Tanadon Chaisila</strong>
-                        </div>
-                        <div class="figma-detail-row">
-                            <span>Due Date:</span>
-                            <strong>19/09/2569</strong>
-                        </div>
-                    </div>
-                    <button class="btn-more-detail" type="button">More Detail</button>
-                </div>
-
-            </div>
-        </div>
-
-    </section>
-
+                <div class="admin-inventory-grid" id="admin-inventory-grid"><div class="inventory-loading" role="status" aria-label="Loading equipment"><div aria-hidden="true"><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div></div></div></div>
+                <p id="admin-inventory-empty" hidden>No equipment matches.</p>
+            </section>
             <section class="admin-view" data-admin-panel="requests" hidden>
-                <header class="admin-page-heading"><div><p>Review requests and equipment returns</p><h1>Borrow History</h1></div></header>
-                <nav class="admin-filter-tabs" aria-label="Request status filters">
-                    <button class="active" type="button" data-admin-request-filter="ALL">All</button>
-                    <button type="button" data-admin-request-filter="PENDING">Pending</button>
-                    <button type="button" data-admin-request-filter="BORROWED">In Use</button>
-                    <button type="button" data-admin-request-filter="RETURNED">Returned</button>
+                <div class="request-management-heading"><header class="admin-page-heading"><div><h1>Borrow requests</h1><p class="management-intro">Review requests, confirm pickups and manage returns.</p></div></header>
+                <nav class="admin-filter-tabs" aria-label="Request status">
+                    <button class="active" data-admin-request-filter="ALL">All</button><button data-admin-request-filter="PENDING">Pending</button>
+                    <button data-admin-request-filter="APPROVED">Approved</button><button data-admin-request-filter="BORROWED">In use</button>
+                    <button data-admin-request-filter="OVERDUE">Overdue</button><button data-admin-request-filter="RETURNED">Returned</button><button data-admin-request-filter="CANCELLED">Cancelled</button>
                 </nav>
-                <div class="admin-request-list" id="admin-request-list">
-                    <article class="admin-request-card" data-request-status="PENDING" th:remove="all"><header><div><span class="admin-user-avatar">TC</span><div><h2>Tanadon Chaisila</h2><p>Request #1001 · Due 29/09/2026</p></div></div><span class="admin-status pending">Pending</span></header><div class="admin-request-items"><span>MacBook Air 15&quot; M3</span><span>Keychron V2 65%</span></div><footer><p>Please verify availability before approval.</p><button type="button" data-admin-approve>Approve</button></footer></article>
-                    <article class="admin-request-card" data-request-status="BORROWED" th:remove="all"><header><div><span class="admin-user-avatar">KS</span><div><h2>Kanyaphak S.</h2><p>Request #1002 · Due 27/09/2026</p></div></div><span class="admin-status active">In Use</span></header><div class="admin-request-items"><span>SUPERLIGHT 2C</span></div><footer><p>Equipment is currently with the borrower.</p><button type="button" data-open-admin-modal="return-modal">Return</button></footer></article>
-                    <article class="admin-request-card" data-request-status="RETURNED" th:remove="all"><header><div><span class="admin-user-avatar">AS</span><div><h2>Alicha S.</h2><p>Request #1003 · Returned 24/09/2026</p></div></div><span class="admin-status returned">Returned</span></header><div class="admin-request-items"><span>Razer Viper V2 Pro</span></div><footer><p>Return inspection completed.</p><button class="secondary" type="button" data-open-equipment-admin>Details</button></footer></article>
                 </div>
-                <div class="admin-empty-state" id="admin-request-empty" hidden><h2>No requests in this status</h2><p>Requests will appear here when their status changes.</p></div>
+                <div class="admin-request-list" id="admin-request-list"></div><p id="admin-request-empty" hidden>No requests match.</p><nav class="management-pagination" aria-label="Request pages"><button type="button" data-request-prev>Previous</button><span data-request-page></span><button type="button" data-request-next>Next</button></nav>
+            </section>
+            <section class="admin-view" data-admin-panel="users" th:if="${currentUser.role.name() == 'ADMIN'}" hidden>
+                <div data-user-management-content>
+                    <th:block th:if="${accounts != null}"><section th:replace="~{admin/users :: content}"></section></th:block>
+                </div>
             </section>
         </main>
     </div>
-
-    <!-- Modal รายละเอียดอุปกรณ์ (ปรับแต่งตาม Figma) -->
-<div class="admin-modal-backdrop" id="equipment-admin-modal" hidden>
-    <section class="admin-modal admin-equipment-modal" role="dialog" aria-modal="true" aria-labelledby="admin-equipment-title">
-        
-        <!-- 1. ส่วนหัว Modal -->
-        <header class="admin-modal-header">
-            <div>
-                <h2 id="admin-equipment-title">MacBook Air 15" M3</h2>
-                <p>Laptop</p>
-            </div>
-            <button type="button" class="btn-modal-x" data-close-admin-modal aria-label="Close">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
-            </button>
-        </header>
-
-        <!-- 2. รูปภาพอุปกรณ์ -->
-        <div class="admin-modal-media">
-            <img src="../../static/images/equipment-macbook.png" th:src="@{/images/equipment-macbook.png}" alt="Equipment preview">
-        </div>
-
-        <!-- 3. ส่วนแสดงสเปกอุปกรณ์ (Hardware Specifications) -->
-        <section class="admin-spec-panel">
-            <h3>Hardware Specifications</h3>
-            <div class="spec-grid">
-                <p><span>CPU :</span> <strong>M3 8-core</strong></p>
-                <p><span>Storage :</span> <strong>512GB SSD</strong></p>
-                <p><span>Ram :</span> <strong>16GB Unified Memory</strong></p>
-                <p><span>Purchase Date:</span> <strong>2024-04-05</strong></p>
-            </div>
-        </section>
-
-        <!-- 4. แถบข้อมูลผู้ยืม (แสดงเมื่ออุปกรณ์ถูกยืมอยู่) -->
-        <div class="admin-borrower-strip" id="admin-borrower-strip">
-            <span class="admin-user-avatar">TC</span>
-            <div>
-                <strong>Current Borrower</strong>
-                <p>Tanadon Chaisila · Due 29/09/2026</p>
-            </div>
-        </div>
-
-        <!-- 5. แถบตำแหน่งตู้ Locker และ ป้ายสถานะ -->
-        <div class="admin-locker-status-row">
-            <div class="locker-info">
-                <span class="admin-location-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                </span>
-                <div>
-                    <small>Smart Locker Slot</small>
-                    <strong>Slot A-4</strong>
-                </div>
-            </div>
-            
-            <span class="status-pill available">Available</span>
-        </div>
-
-        <!-- 6. ส่วนท้าย Modal -->
-        <footer>
-            <button type="button" class="btn-modal-close" data-close-admin-modal>Close</button>
-        </footer>
-
-    </section>
-</div>
-    <div class="admin-modal-backdrop" id="edit-equipment-modal" hidden>
-        <section class="admin-modal admin-form-modal" role="dialog" aria-modal="true" aria-labelledby="edit-equipment-title">
-            <header><div><h2 id="edit-equipment-title">Edit Equipment</h2><p>Update equipment information and locker assignment</p></div><button type="button" data-close-admin-modal aria-label="Close"><span>×</span></button></header>
-            <form id="admin-edit-equipment-form"><label>Equipment Name<input name="name" value="MacBook Air 15 M3" required></label><label>Hardware Specifications<textarea name="specifications" rows="5">CPU: M3 8-core&#10;RAM: 16GB Unified Memory&#10;Storage: 512GB SSD</textarea></label><div class="admin-form-grid"><label>Smart Locker Slot<input name="lockerSlot" value="A-4"></label><label>Status<select name="status"><option value="AVAILABLE">Available</option><option value="IN_USE">In Use</option><option value="MAINTENANCE">Maintenance</option></select></label></div><footer><button class="secondary" type="button" data-close-admin-modal>Close</button><button type="submit">Confirm</button></footer></form>
+    <div class="admin-modal-backdrop inventory-modal-backdrop" id="add-equipment-modal" hidden>
+        <section class="admin-modal admin-form-modal" role="dialog" aria-modal="true" aria-labelledby="add-equipment-title">
+            <header class="inventory-modal-heading"><div><h2 id="add-equipment-title">Add equipment</h2><p>Add an item to your equipment inventory.</p></div><button type="button" data-close-admin-modal aria-label="Close add equipment">&times;</button></header>
+            <form id="admin-add-equipment-form">
+                <label>Asset code<input name="assetCode" maxlength="30" required></label><label>Name<input name="name" maxlength="150" required></label>
+                <label>Storage slot<input name="storageSlot" maxlength="100" placeholder="e.g. A-4 or Cabinet B / Shelf 2"></label><label class="equipment-upload">Equipment photo<input name="imageUrl" type="hidden"><input name="image" type="file" accept="image/jpeg,image/png"><span>JPG or PNG, up to 2 MB</span><img class="equipment-upload-preview" alt="Selected equipment photo" hidden></label>
+                <label>Specifications<textarea name="specifications" rows="4" maxlength="10000" placeholder="Enter specifications, one per line"></textarea></label>
+                <label>Purchase price (THB)<input name="purchasePrice" type="number" min="0" max="9999999999.99" step="0.01" required></label>
+                <label>Category<select name="categoryId" id="admin-category" required></select></label>
+                <footer><button class="secondary" type="button" data-close-admin-modal>Cancel</button><button type="submit">Save equipment</button></footer>
+            </form>
         </section>
     </div>
-
+    <div class="admin-modal-backdrop inventory-modal-backdrop" id="equipment-admin-modal" hidden>
+        <section class="admin-modal admin-equipment-modal" role="dialog" aria-modal="true" aria-labelledby="admin-equipment-title">
+            <header><div><span class="admin-detail-eyebrow">Equipment details</span><h2 id="admin-equipment-title">Equipment</h2></div><button type="button" data-close-admin-modal aria-label="Close equipment details">&times;</button></header>
+            <div class="admin-detail-layout">
+                <div class="admin-detail-image" id="admin-equipment-image"></div>
+                <div class="admin-detail-info"><span id="admin-equipment-status" class="admin-status"></span><dl><div><dt>Category</dt><dd id="admin-equipment-category"></dd></div><div><dt>Storage slot</dt><dd id="admin-equipment-slot"></dd></div><div><dt>Asset code</dt><dd id="admin-equipment-code"></dd></div><div><dt>Purchase price</dt><dd id="admin-equipment-price"></dd></div></dl></div>
+            </div>
+            <section class="admin-detail-specs"><h3>Specifications</h3><p id="admin-equipment-specs"></p></section>
+            <p id="admin-borrower-strip" hidden>Currently in use. Record a return before changing availability.</p>
+            <footer><button class="admin-danger-action" type="button" data-admin-delete th:if="${currentUser.role.name() == 'ADMIN'}">Delete equipment</button><button class="secondary" type="button" data-close-admin-modal>Close</button><button type="button" data-open-admin-modal="edit-equipment-modal">Edit equipment</button></footer>
+        </section>
+    </div>
+    <div class="admin-modal-backdrop inventory-modal-backdrop" id="edit-equipment-modal" hidden>
+        <section class="admin-modal admin-form-modal" role="dialog" aria-modal="true" aria-labelledby="edit-equipment-title">
+            <header class="inventory-modal-heading"><div><h2 id="edit-equipment-title">Edit equipment</h2><p>Update equipment information and availability.</p></div><button type="button" data-close-admin-modal aria-label="Close edit equipment">&times;</button></header>
+            <form id="admin-edit-equipment-form"><label>Name<input name="name" maxlength="150" required></label>
+                <label>Storage slot<input name="storageSlot" maxlength="100" placeholder="e.g. A-4 or Cabinet B / Shelf 2"></label><label class="equipment-upload">Equipment photo<input name="imageUrl" type="hidden"><input name="image" type="file" accept="image/jpeg,image/png"><span>JPG or PNG, up to 2 MB</span><img class="equipment-upload-preview" alt="Selected equipment photo" hidden></label>
+                <label>Specifications<textarea name="specifications" rows="4" maxlength="10000" placeholder="Enter specifications, one per line"></textarea></label>
+                <label>Purchase price (THB)<input name="purchasePrice" type="number" min="0" max="9999999999.99" step="0.01" required></label>
+                <label>Status<select name="status"><option value="AVAILABLE">Available</option><option value="IN_USE">In use</option><option value="MAINTENANCE">Maintenance</option><option value="DISPOSED">Disposed</option></select></label>
+                <footer><button class="secondary" type="button" data-close-admin-modal>Cancel</button><button type="submit">Save equipment</button></footer>
+            </form>
+        </section>
+    </div>
     <div class="admin-modal-backdrop" id="return-modal" hidden>
         <section class="admin-modal admin-return-modal" role="dialog" aria-modal="true" aria-labelledby="return-title">
-            <header><div><h2 id="return-title">Equipment Return Inspection</h2><p>Inspect equipment condition and calculate late fee rates.</p></div><button type="button" data-close-admin-modal aria-label="Close"><span>×</span></button></header>
-            <div class="admin-return-user"><span class="admin-user-avatar">KS</span><div><strong>Kanyaphak S.</strong><p>Borrowed: 2026-09-20 · Due: 2026-09-27</p></div></div>
-            <div class="admin-return-item"><img src="../../static/images/equipment-keyboard.png" th:src="@{/images/equipment-keyboard.png}" alt="Keychron keyboard"><div><label>Late Fee Calculation Rate<select><option>Standard Rate</option><option>VIP Member Rate</option></select></label><label>Inspected Condition<select><option>Normal</option><option>Minor Scratches</option><option>Damaged</option></select></label></div></div>
-            <section class="admin-fee-summary"><p><span>Estimated fine</span><strong>100 THB</strong></p><p><span>Total Estimated Fee</span><strong>100 THB</strong></p></section>
-            <footer><button class="secondary" type="button" data-close-admin-modal>Close</button><button type="button" data-confirm-return>Confirm</button></footer>
+            <header><h2 id="return-title">Return inspection</h2></header><p id="return-request-summary"></p>
+            <p>Inspect each item. Damage charges are added to the late fee.</p>
+            <form id="admin-return-form">
+                <div id="return-inspections"></div>
+                <p class="fee-summary" id="return-damage-estimate" role="status"></p>
+                <p class="field-help">Late fees are calculated on confirmation: standard 50 THB/day; VIP 30 THB/day after 2 grace days.</p>
+                <label>Return note<textarea id="return-remark" maxlength="500"></textarea></label>
+                <footer><button class="secondary" type="button" data-close-admin-modal>Cancel</button><button type="submit" data-confirm-return>Confirm return</button></footer>
+            </form>
         </section>
     </div>
 
-    <div class="admin-modal-backdrop" id="admin-success-modal" hidden>
-        <section class="admin-modal admin-success-modal" role="dialog" aria-modal="true"><button class="admin-success-close" type="button" data-close-admin-modal aria-label="Close">×</button><span class="admin-success-icon">✓</span><h2>Success</h2><p id="admin-success-message">The information was updated successfully.</p><button type="button" data-close-admin-modal>Continue</button></section>
-    </div>
 
     <script src="../../static/js/admin.js" th:src="@{/js/admin.js}"></script>
+<script src="../../static/js/return-receipt.js" th:src="@{/js/return-receipt.js}"></script>
 </body>
 </html>

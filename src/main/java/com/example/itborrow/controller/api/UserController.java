@@ -14,9 +14,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final com.example.itborrow.service.AccountService accounts;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, com.example.itborrow.service.AccountService accounts) {
         this.userService = userService;
+        this.accounts = accounts;
     }
 
     // Read: ดึงข้อมูลผู้ใช้งานทั้งหมด
@@ -35,8 +37,8 @@ public class UserController {
 
     // Create: สร้างผู้ใช้งานใหม่
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<User> createUser(@jakarta.validation.Valid @RequestBody com.example.itborrow.dto.request.RegistrationDto user) {
+        User createdUser = accounts.register(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 }

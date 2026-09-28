@@ -41,6 +41,7 @@ class ReturnRecordServiceTest {
     @Mock private BorrowRequestRepository borrowRequestRepository;
     @Mock private EquipmentRepository equipmentRepository;
     @Mock private BorrowStateResolver stateResolver;
+    @Mock private com.example.itborrow.service.CurrentUser current;
     @Mock private FinestrategyResolver fineStrategyResolver;
     @Mock private BorrowState mockState;
     @Mock private FineStrategyService mockStrategy;
@@ -55,7 +56,7 @@ class ReturnRecordServiceTest {
     void setUp() {
         User user = new User();
         user.setId(1L);
-        user.setRole(Role.STAFF);
+        user.setRole(Role.USER);
 
         equipment = new Equipment();
         equipment.setId(10L);
@@ -79,14 +80,15 @@ class ReturnRecordServiceTest {
         dto.setReturnDate(LocalDate.now());
         dto.setCondition("GOOD");
 
-        when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(borrowRequest));
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(borrowRequest));
         when(stateResolver.resolve(BorrowStatus.OVERDUE)).thenReturn(mockState);
-        when(fineStrategyResolver.resolve(Role.STAFF)).thenReturn(mockStrategy);
+        when(fineStrategyResolver.resolve(Role.USER)).thenReturn(mockStrategy);
         when(mockStrategy.calculate(eq(borrowRequest), any(LocalDate.class)))
                 .thenReturn(BigDecimal.valueOf(100)); // สมมติค่าปรับ 100 บาท
         when(returnRecordRepository.save(any(ReturnRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(equipment));
         var result = service.returnEquipment(1L, dto);
 
         verify(mockState).returnEquipment(borrowRequest);
@@ -101,7 +103,7 @@ class ReturnRecordServiceTest {
         ReturnRequestDto dto = new ReturnRequestDto();
         dto.setReturnDate(LocalDate.now());
 
-        when(borrowRequestRepository.findById(99L)).thenReturn(Optional.empty());
+        when(borrowRequestRepository.findLockedById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.returnEquipment(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -118,14 +120,15 @@ class ReturnRecordServiceTest {
         dto.setReturnDate(LocalDate.now());
         dto.setCondition("GOOD");
 
-        when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(borrowRequest));
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(borrowRequest));
         when(stateResolver.resolve(BorrowStatus.BORROWED)).thenReturn(mockState);
-        when(fineStrategyResolver.resolve(Role.STAFF)).thenReturn(mockStrategy);
+        when(fineStrategyResolver.resolve(Role.USER)).thenReturn(mockStrategy);
         when(mockStrategy.calculate(eq(borrowRequest), any(LocalDate.class)))
                 .thenReturn(BigDecimal.ZERO);
         when(returnRecordRepository.save(any(ReturnRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(equipment));
         var result = service.returnEquipment(1L, dto);
 
         assertThat(result.getFineAmount()).isEqualByComparingTo(BigDecimal.ZERO);
@@ -133,6 +136,7 @@ class ReturnRecordServiceTest {
 
     @Test
     void getByBorrowRequestId_throwsException_whenNotReturnedYet() {
+        when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(borrowRequest));
         when(returnRecordRepository.findByBorrowRequestId(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getByBorrowRequestId(1L))

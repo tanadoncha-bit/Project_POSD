@@ -219,17 +219,9 @@ registerModal
     ?.querySelector(".modal-close")
     ?.addEventListener("click", closeRegisterModal);
 
-loginModal?.addEventListener("click", (event) => {
-    if (event.target === loginModal) {
-        closeLoginModal();
-    }
-});
 
-registerModal?.addEventListener("click", (event) => {
-    if (event.target === registerModal) {
-        closeRegisterModal();
-    }
-});
+
+
 
 document.querySelectorAll(".open-register").forEach((button) => {
     button.addEventListener("click", openRegisterModal);

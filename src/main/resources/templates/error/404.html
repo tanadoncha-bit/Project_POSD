@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -17,16 +19,17 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
 <body class="error-page"
-      data-page="error">
+      data-page="error" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
 
     <header class="error-header">
         <a class="error-brand"

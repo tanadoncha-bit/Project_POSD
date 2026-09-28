@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -17,16 +19,20 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <!-- Live Server + Spring Boot -->
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
-<body data-page="home">
+<body data-page="home" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
+    <p data-toast="error" role="alert" th:if="${accountError != null}" th:text="${accountError}"></p>
+    <p data-toast="success" role="status" th:if="${accountMessage != null}" th:text="${accountMessage}"></p>
 
     <!-- Header โหลดจาก fragments/site.html -->
     <div id="site-header"
@@ -57,20 +63,13 @@
                 <div class="hero-actions">
 
                     <!-- ปุ่มเปิด Borrow Equipment Modal -->
-                    <button type="button" 
-                            class="button button-primary"
-                            id="open-borrow-modal-btn">
-
-                        <span aria-hidden="true">+</span>
-
-                        Borrow Equipment
-                    </button>
+                    <a class="button button-primary" href="/equipment" th:href="@{/equipment}">Choose Equipment</a>
 
                     <a class="button button-dark"
-                       href="../equipment/list.html"
-                       th:href="@{/equipment}">
+                       href="/my-requests"
+                       th:href="@{/my-requests}" data-requires-login>
 
-                        Browse Equipment
+                        My Requests
                     </a>
 
                 </div>
@@ -394,14 +393,12 @@
 
                     <div class="equipment-card-image">
 
-                        <img th:if="${equipmentImageUrls != null
-                                    and equipmentImageUrls[equipment.id] != null}"
-                             th:src="${equipmentImageUrls[equipment.id]}"
+                        <img th:if="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}"
+                             th:src="${equipment.imageUrl}"
                              th:alt="${equipment.name}">
 
                         <span class="equipment-image-placeholder"
-                              th:unless="${equipmentImageUrls != null
-                                         and equipmentImageUrls[equipment.id] != null}">
+                              th:unless="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}">
 
                             LeadIT
                         </span>
@@ -427,7 +424,7 @@
                             Equipment name
                         </h3>
 
-                        <p th:text="${equipment.assetCode}">
+                        <p th:text="${categoryNames[equipment.categoryId] != null ? categoryNames[equipment.categoryId] : 'IT Equipment'}">
                             Asset code
                         </p>
 
@@ -599,96 +596,6 @@
     <!-- =====================================================
          BORROW EQUIPMENT FORM POPUP MODAL
          ===================================================== -->
-    <div class="equipment-detail-backdrop" id="borrow-form-modal" hidden>
-        <div class="borrow-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="borrow-modal-title">
-            
-            <header class="borrow-modal-header">
-                <div class="equipment-modal-title">
-                    <h2 id="borrow-modal-title" class="borrow-modal-heading">Borrow Equipment Form</h2>
-                    <p class="borrow-modal-subheading">Specify the borrower, return due date, and select equipment to borrow</p>
-                </div>
-                <button class="equipment-modal-close" id="borrow-modal-close" type="button" aria-label="Close form">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
-                    </svg>
-                </button>
-            </header>
-
-            <form th:action="@{/borrow}" method="post" id="borrowForm">
-                
-                <!-- 1. User Info Section -->
-                <div class="borrow-form-group">
-                    <div class="borrow-form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <span>User</span>
-                    </div>
-                    <div class="borrow-user-info">
-                        Name: <span th:text="${user != null ? user.name : 'Tanadon Chaisila'}">Tanadon Chaisila</span> &nbsp;|&nbsp; 
-                        Faculty: <span th:text="${user != null ? user.faculty : 'College of Computing'}">College of Computing</span> &nbsp;|&nbsp; 
-                        Role: <span th:text="${user != null ? user.role : 'Student'}">Student</span>
-                    </div>
-                </div>
-
-                <!-- 2. Select Equipment Section -->
-                <div class="borrow-form-group">
-                    <div class="borrow-form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
-                        <span>Select Equipment</span>
-                    </div>
-                    <div class="equipment-chip-group">
-                        <label class="equipment-chip">
-                            <input type="checkbox" name="equipmentIds" value="1" checked> Keychron
-                        </label>
-                        <label class="equipment-chip">
-                            <input type="checkbox" name="equipmentIds" value="2"> MacBook
-                        </label>
-                        <label class="equipment-chip">
-                            <input type="checkbox" name="equipmentIds" value="3"> Viper V2..
-                        </label>
-                        <label class="equipment-chip">
-                            <input type="checkbox" name="equipmentIds" value="4"> HP Victus
-                        </label>
-                        <label class="equipment-chip">
-                            <input type="checkbox" name="equipmentIds" value="5"> Logi G733
-                        </label>
-                    </div>
-                </div>
-
-                <!-- 3. Due Date Section -->
-                <div class="borrow-form-group">
-                    <div class="borrow-form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                        <span>Due Date</span>
-                    </div>
-                    <input type="date" class="borrow-input" name="returnDate" required placeholder="Select Return Date">
-                </div>
-
-                <!-- 4. Note Section -->
-                <div class="borrow-form-group">
-                    <div class="borrow-form-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5722" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                        <span>Note</span>
-                    </div>
-                    <textarea class="borrow-input" name="note" rows="3" placeholder="Enter your note here"></textarea>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="borrow-modal-actions">
-                    <button type="button" class="equipment-modal-cancel" id="borrow-modal-cancel-btn">Close</button>
-                    <button type="submit" class="btn-submit-borrow">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Submit
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
-    </div>
-
-
-    <!-- Footer โหลดจาก fragments/site.html -->
     <div id="site-footer"
          th:replace="~{fragments/site :: siteFooter}"></div>
 
@@ -708,88 +615,9 @@
             th:src="@{/js/equipment-catalog.js}"></script>
 
     <!-- Script ควบคุมการเปิด-ปิด และ Submit ของ Borrow Modal Form -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const openBtn = document.getElementById("open-borrow-modal-btn");
-        const borrowModal = document.getElementById("borrow-form-modal");
-        const closeBtn = document.getElementById("borrow-modal-close");
-        const cancelBtn = document.getElementById("borrow-modal-cancel-btn");
-        const borrowForm = document.getElementById("borrowForm");
+    <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+    <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
 
-        const successModal = document.getElementById("success-request-modal");
-        const successCloseBtn = document.getElementById("success-modal-close-btn");
-        const successStayBtn = document.getElementById("success-stay-btn");
-
-        // ฟังก์ชันเปิด Borrow Modal พร้อมติ๊กเลือกอุปกรณ์
-        window.openBorrowModal = function (equipmentId) {
-            if (borrowModal) {
-                // ลบการเลือกทั้งหมดก่อน
-                const checkboxes = borrowModal.querySelectorAll('input[name="equipmentIds"]');
-                checkboxes.forEach(cb => cb.checked = false);
-
-                // ติ๊กเลือกชิ้นที่ตรงกับ ID ที่คลิก
-                if (equipmentId) {
-                    const targetCheckbox = borrowModal.querySelector(`input[name="equipmentIds"][value="${equipmentId}"]`);
-                    if (targetCheckbox) targetCheckbox.checked = true;
-                }
-
-                borrowModal.removeAttribute("hidden");
-            }
-        };
-
-
-        // ปุ่ม + Borrow Equipment บน Hero
-        if (openBtn) {
-            openBtn.addEventListener("click", function (e) {
-                e.preventDefault();
-                openBorrowModal();
-            });
-        }
-
-        function closeFormModal() {
-    if (borrowModal) {
-        borrowModal.setAttribute("hidden", "true");
-    }
-    document.body.classList.remove("modal-open");
-}
-
-function closeSuccessModal() {
-    if (successModal) {
-        successModal.setAttribute("hidden", "true");
-    }
-    document.body.classList.remove("modal-open");
-}
-
-        if (closeBtn) closeBtn.addEventListener("click", closeFormModal);
-        if (cancelBtn) cancelBtn.addEventListener("click", closeFormModal);
-        if (successCloseBtn) successCloseBtn.addEventListener("click", closeSuccessModal);
-        if (successStayBtn) successStayBtn.addEventListener("click", closeSuccessModal);
-
-        if (borrowModal) {
-            borrowModal.addEventListener("click", function (e) {
-                if (e.target === borrowModal) closeFormModal();
-            });
-        }
-
-        if (successModal) {
-            successModal.addEventListener("click", function (e) {
-                if (e.target === successModal) closeSuccessModal();
-            });
-        }
-
-        // ดักจับการ Submit ฟอร์ม
-        if (borrowForm) {
-            borrowForm.addEventListener("submit", function (e) {
-                if (window.location.port === "5500" || window.location.protocol === "file:") {
-                    e.preventDefault();
-                    closeFormModal();
-                    if (successModal) successModal.removeAttribute("hidden");
-                    borrowForm.reset();
-                }
-            });
-        }
-    });
-</script>
-
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

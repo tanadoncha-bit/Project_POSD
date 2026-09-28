@@ -8,10 +8,14 @@ import java.time.LocalDate;
 
 public class ReturnRequestDto {
 
-    @NotNull(message = "returnDate ห้ามว่าง")
     private LocalDate returnDate;
+    @Size(max = 100)
+    private java.util.List<@NotNull @jakarta.validation.Valid Inspection> items;
+    public record Inspection(@NotNull Long equipmentId, @NotBlank String condition, @Size(max = 500) String remark) {}
+    public java.util.List<Inspection> getItems() { return items; }
+    public void setItems(java.util.List<Inspection> items) { this.items = items; }
 
-    @NotBlank(message = "condition ห้ามว่าง")
+
     private String condition;
 
     @Size(max = 500)

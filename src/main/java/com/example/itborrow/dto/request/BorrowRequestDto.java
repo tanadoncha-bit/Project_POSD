@@ -11,7 +11,6 @@ import java.util.List;
 
 public class BorrowRequestDto {
 
-    @NotNull(message = "userId ห้ามว่าง")
     private Long userId;
 
     @NotNull(message = "borrowDate ห้ามว่าง")
@@ -25,8 +24,7 @@ public class BorrowRequestDto {
     private String note;
 
     @NotEmpty(message = "ต้องมีอุปกรณ์อย่างน้อย 1 ชิ้นในคำขอ")
-    @Valid
-    private List<BorrowItemRequestDto> items;
+    private List<@NotNull @Valid BorrowItemRequestDto> items;
 
     public BorrowRequestDto() {
     }

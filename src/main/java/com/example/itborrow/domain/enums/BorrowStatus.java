@@ -5,6 +5,7 @@ package com.example.itborrow.domain.enums;
  * ใช้คู่กับ State Pattern (domain.state.BorrowState และ implementation ทั้ง 5 ตัว)
  */
 public enum BorrowStatus {
+    CANCELLED,
     PENDING,    // รอการอนุมัติจาก Admin
     APPROVED,   // อนุมัติแล้ว รอผู้ยืมมารับอุปกรณ์
     BORROWED,   // รับอุปกรณ์ไปแล้ว กำลังอยู่ในความครอบครอง

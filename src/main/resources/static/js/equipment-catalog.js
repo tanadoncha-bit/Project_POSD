@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openEquipmentModal(card) {
+        if (window.borrowList && card.dataset.equipmentId) { window.borrowList.showDetails(card.dataset.equipmentId); return; }
         selectedEquipmentId = card.dataset.equipmentId || "";
 
         const equipmentName = card.dataset.name || card.querySelector(".equipment-card-body h2")?.textContent.trim() || "Equipment";
@@ -129,6 +130,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openBorrowForm(event) {
+        if (!window.location.pathname.includes('/src/main/resources/templates/') && !borrowButton?.disabled) {
+            event.preventDefault();
+            if (document.body.dataset.authenticated !== "true") {
+                closeEquipmentModal({ restoreFocus: false, keepBodyLocked: true });
+                setModalOpen("login-modal", true);
+                return;
+            }
+            closeEquipmentModal({ restoreFocus: true });
+            window.openBorrowModal(selectedEquipmentId);
+            return;
+        }
         if (!borrowButton || borrowButton.disabled) {
             event.preventDefault();
             return;
@@ -195,9 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cancelButton?.addEventListener("click", () => closeEquipmentModal());
     borrowButton?.addEventListener("click", openBorrowForm);
 
-    modal.addEventListener("click", (event) => {
-        if (event.target === modal) closeEquipmentModal();
-    });
 
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !modal.hidden) {

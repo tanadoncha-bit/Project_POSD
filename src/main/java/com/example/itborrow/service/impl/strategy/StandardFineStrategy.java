@@ -26,6 +26,6 @@ public class StandardFineStrategy implements FineStrategyService {
 
     @Override
     public boolean supports(Role role) {
-        return role == Role.STAFF;
+        return role == Role.USER;
     }
 }

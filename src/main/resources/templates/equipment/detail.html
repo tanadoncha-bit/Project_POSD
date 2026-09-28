@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -21,15 +23,17 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
-<body data-page="equipment">
+<body data-page="equipment" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
 
     <div id="site-header"
          th:replace="~{fragments/site :: siteHeader}"></div>
@@ -73,17 +77,17 @@
                     <img src=""
                          alt="Equipment"
                          hidden
-                         th:if="${equipmentImageUrl != null
-                                and !equipmentImageUrl.isBlank()}"
-                         th:src="${equipmentImageUrl}"
+                         th:if="${equipment.imageUrl != null
+                                and !equipment.imageUrl.isBlank()}"
+                         th:src="${equipment.imageUrl}"
                          th:alt="${equipment != null
                                   ? equipment.name
                                   : 'Equipment'}"
-                         th:attr="hidden=${false}">
+                         th:attr="hidden=${null}">
 
                     <div class="equipment-detail-placeholder"
-                         th:unless="${equipmentImageUrl != null
-                                    and !equipmentImageUrl.isBlank()}">
+                         th:unless="${equipment.imageUrl != null
+                                    and !equipment.imageUrl.isBlank()}">
 
                         <span>LeadIT</span>
                     </div>
@@ -110,9 +114,7 @@
             <div class="equipment-detail-information">
 
                 <p class="equipment-detail-category"
-                   th:text="${categoryName != null
-                            ? categoryName
-                            : 'Laptops'}">
+                   th:text="${categoryNames[equipment.categoryId] != null ? categoryNames[equipment.categoryId] : 'IT Equipment'}">
                     Laptops
                 </p>
 
@@ -201,48 +203,7 @@
 
             <h2>Hardware Specifications</h2>
 
-            <div class="equipment-specification-list">
-
-                <div class="equipment-specification-item">
-                    <span>CPU</span>
-
-                    <strong th:text="${processor != null
-                                     ? processor
-                                     : 'Apple M3'}">
-                        Apple M3
-                    </strong>
-                </div>
-
-                <div class="equipment-specification-item">
-                    <span>RAM</span>
-
-                    <strong th:text="${memory != null
-                                     ? memory
-                                     : '16 GB'}">
-                        16 GB
-                    </strong>
-                </div>
-
-                <div class="equipment-specification-item">
-                    <span>Storage</span>
-
-                    <strong th:text="${storage != null
-                                     ? storage
-                                     : '512 GB SSD'}">
-                        512 GB SSD
-                    </strong>
-                </div>
-
-                <div class="equipment-specification-item">
-                    <span>Purchase Date</span>
-
-                    <strong th:text="${purchaseDate != null
-                                     ? purchaseDate
-                                     : '-'}">
-                        -
-                    </strong>
-                </div>
-            </div>
+            <p class="equipment-specification-text" th:text="${equipment.specifications != null and !equipment.specifications.isBlank() ? equipment.specifications : 'Specifications have not been added yet.'}"></p>
         </section>
 
         <!-- =====================================================
@@ -295,5 +256,8 @@
 
     <script src="../../static/js/site-preview.js"
             th:src="@{/js/site-preview.js}"></script>
+    <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+    <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

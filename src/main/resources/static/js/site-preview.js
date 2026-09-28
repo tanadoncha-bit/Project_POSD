@@ -79,7 +79,7 @@ function getFragmentUrl() {
 
 async function loadSiteTemplates() {
     const headerAlreadyRendered =
-        document.querySelector("#site-header .site-header");
+        document.querySelector(".site-header");
 
     if (headerAlreadyRendered) {
         return;
@@ -295,6 +295,15 @@ function initializeProfileMenu() {
         );
     }
 
+    profileDropdown?.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !profileMenu.hidden) {
+            setProfileMenuOpen(false); profileTrigger.focus(); event.stopPropagation();
+        }
+    });
+    profileDropdown?.addEventListener("focusout", event => {
+        if (!profileDropdown.contains(event.relatedTarget)) setProfileMenuOpen(false);
+    });
+
     profileTrigger?.addEventListener(
         "click",
         (event) => {
@@ -446,22 +455,6 @@ function initializeAuthenticationModals() {
         }
     );
 
-    document
-        .querySelectorAll(".modal-backdrop")
-        .forEach((modal) => {
-            modal.addEventListener(
-                "click",
-                (event) => {
-                    if (event.target === modal) {
-                        setModalOpen(
-                            modal.id,
-                            false
-                        );
-                    }
-                }
-            );
-        });
-
     const loginForm =
         document.getElementById(
             "preview-login-form"
@@ -499,54 +492,51 @@ function initializeAuthenticationModals() {
             "preview-register-form"
         );
 
-    registerForm?.addEventListener(
-        "submit",
-        (event) => {
-            if (!isStaticPreview) {
-                return;
-            }
+    const registrationError = document.getElementById("registration-error");
+    function showRegistrationError(message, field) {
+        registrationError.textContent = message;
+        registrationError.hidden = true;
+        toast.error(message);
+        if (field) { field.setAttribute("aria-invalid", "true"); field.focus(); }
 
-            event.preventDefault();
-
-            const password =
-                document
-                    .getElementById(
-                        "register-password"
-                    )
-                    ?.value;
-
-            const confirmPassword =
-                document
-                    .getElementById(
-                        "register-confirm-password"
-                    )
-                    ?.value;
-
-            if (password !== confirmPassword) {
-                window.alert(
-                    "Password and Confirm Password must match."
-                );
-
-                return;
-            }
-
-            const name =
-                document
-                    .getElementById(
-                        "register-name"
-                    )
-                    ?.value.trim();
-
-            savePreviewLogin(name);
-
-            setModalOpen(
-                "register-modal",
-                false
-            );
-
-            updateAuthenticationView();
+    }
+    registerForm?.addEventListener("invalid", event => {
+        event.preventDefault();
+        showRegistrationError(event.target.validationMessage, event.target);
+    }, true);
+    registerForm?.addEventListener("input", event => event.target.removeAttribute("aria-invalid"));
+    registerForm?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const data = new FormData(registerForm);
+        const password = data.get("password");
+        if (password !== data.get("confirmPassword")) {
+            showRegistrationError("Passwords do not match.", registerForm.elements.confirmPassword); return;
         }
-    );
+        if (new TextEncoder().encode(password).length > 72) {
+            showRegistrationError("Password must not exceed 72 UTF-8 bytes.", registerForm.elements.password); return;
+        }
+        if (isStaticPreview) {
+            savePreviewLogin(data.get("fullName")); setModalOpen("register-modal", false); updateAuthenticationView(); return;
+        }
+        const button = registerForm.querySelector('[type="submit"]');
+        button.disabled = true; registrationError.hidden = true;
+        try {
+            const response = await fetch("/api/v1/users", {
+                method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": data.get("_csrf") },
+                body: JSON.stringify(Object.fromEntries(data))
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(result.details?.join(" ") || result.message || "Unable to register. Check your details and try again.");
+            registerForm.reset(); setModalOpen("register-modal", false); setModalOpen("login-modal", true);
+            document.getElementById("login-username").value = data.get("username");
+            toast.success("Account created. Sign in to continue.");
+            document.getElementById("login-password").focus();
+        } catch (error) { showRegistrationError(error.message); }
+        finally { button.disabled = false; }
+    });
+    if (registrationError?.textContent.trim()) {
+        setModalOpen("register-modal", true);
+    }
 
     document
         .querySelectorAll(
@@ -587,32 +577,112 @@ function initializeAuthenticationModals() {
                     return;
                 }
 
-                window.location.href = "/logout";
+                const form = document.createElement("form");
+                form.method = "POST"; form.action = "/logout";
+                const token = document.createElement("input"); token.type = "hidden"; token.name = "_csrf";
+                token.value = document.querySelector('meta[name="_csrf"]')?.content || "";
+                form.append(token); document.body.append(form); form.submit();
             }
         );
 }
 
 
 function initializeSearchOverlay() {
-    const searchOverlay = document.getElementById("search-overlay");
-    const searchInput = document.getElementById("global-search-input");
-
-    // เลือกแท็กคำค้นหายอดนิยม (Laptop, MacBook, ฯลฯ)
-    document.addEventListener("click", (event) => {
-        const keywordButton = event.target.closest("[data-search-keyword]");
-
-        if (keywordButton && searchInput) {
-            searchInput.value = keywordButton.dataset.searchKeyword;
-            searchInput.focus();
-        }
-    });
-
-    // ปิด Overlay เมื่อคลิกพื้นที่ว่างภายนอก Panel
-    searchOverlay?.addEventListener("click", (event) => {
-        if (event.target === searchOverlay) {
-            if (typeof setSearchOpen === "function") {
-                setSearchOpen(false);
+    const overlay = document.getElementById("search-overlay");
+    if (!overlay) return;
+    const input = overlay.querySelector("input[type=search]");
+    const grid = overlay.querySelector(".search-results-grid");
+    const message = overlay.querySelector(".search-empty-message");
+    const more = overlay.querySelector(".search-load-more");
+    const title = overlay.querySelector(".search-result-preview h2");
+    let controller, timer, page = 0, trigger;
+    const statusNames = { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Unavailable" };
+    function element(tag, className, text) {
+        const node = document.createElement(tag); node.className = className;
+        if (text) node.textContent = text; return node;
+    }
+    async function search(append = false) {
+        controller?.abort(); controller = new AbortController();
+        const current = controller;
+        if (!append) { page = 0; grid.replaceChildren(); }
+        more.hidden = true; message.hidden = false; message.textContent = "Loading equipment...";
+        title.textContent = input.value.trim() ? "Search results" : "Equipment";
+        try {
+            const url = new URL("/api/v1/equipment", location.origin);
+            url.search = new URLSearchParams({ keyword: input.value.trim(), size: "8", page: String(page), sort: "id,asc" });
+            const response = await fetch(url, { signal: current.signal });
+            if (!response.ok) throw new Error("Unable to load equipment. Please search again.");
+            const data = await response.json();
+            const categories = await fetch("/api/v1/categories", { signal: current.signal }).then(r => r.ok ? r.json() : []);
+            for (const equipment of data.content) {
+                const card = element("a", "search-equipment-card"); card.href = `/equipment/${equipment.id}`;
+                const media = element("div", "search-equipment-media");
+                // Equipment has no image field yet: use an explicit neutral placeholder.
+                if (equipment.imageUrl && (equipment.imageUrl.startsWith("https://") || equipment.imageUrl.startsWith("/images/"))) {
+                    const image = document.createElement("img"); image.src = equipment.imageUrl; image.alt = equipment.name;
+                    image.onerror = () => media.replaceChildren(element("span", "search-equipment-placeholder", "No image")); media.append(image);
+                } else media.append(element("span", "search-equipment-placeholder", "No image"));
+                const badge = element("span", "search-equipment-status", statusNames[equipment.status] || "Unavailable");
+                badge.dataset.available = String(equipment.status === "AVAILABLE");
+                if (equipment.status === "AVAILABLE") { const dot = document.createElement("img"); dot.src = "/images/search/status.svg"; dot.alt = ""; badge.prepend(dot); }
+                card.append(media, badge, element("h3", "", equipment.name), element("p", "", categories.find(category => category.id === equipment.categoryId)?.name || "IT Equipment")); grid.append(card);
             }
+            message.hidden = grid.children.length > 0; message.textContent = "No equipment found.";
+            more.hidden = data.last !== false;
+        } catch (error) { if (error.name !== "AbortError") { message.hidden = false; message.textContent = error.message; } }
+    }
+    let closingTimer, openingFrame, opening = false;
+    function finishSearchClose() {
+        if (opening) return;
+        clearTimeout(closingTimer);
+        setModalOpen("search-overlay", false);
+        trigger?.focus({ preventScroll: true });
+    }
+    overlay.addEventListener("transitionend", event => {
+        if (event.target === overlay && event.propertyName === "transform" && !opening) finishSearchClose();
+    });
+    function setSearchOpen(open) {
+        if (open === opening && (open || overlay.hidden)) return;
+        clearTimeout(closingTimer);
+        cancelAnimationFrame(openingFrame);
+        opening = open;
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.querySelectorAll("[data-open-search]").forEach(button => button.setAttribute("aria-expanded", String(open)));
+        if (open) {
+            if (overlay.hidden) trigger = document.activeElement;
+            setModalOpen("search-overlay", true);
+            // Establish the off-screen position before starting the transition.
+            void overlay.offsetHeight;
+            openingFrame = requestAnimationFrame(() => {
+                if (!opening) return;
+                overlay.classList.add("is-open");
+                input.focus({ preventScroll: true });
+            });
+            search();
+        } else {
+            clearTimeout(timer); controller?.abort();
+            overlay.classList.remove("is-open");
+            if (reducedMotion) finishSearchClose();
+            else closingTimer = setTimeout(finishSearchClose, 750);
+        }
+    }
+    input.addEventListener("input", () => { controller?.abort(); clearTimeout(timer); timer = setTimeout(() => search(), 250); });
+    overlay.querySelector("form").addEventListener("submit", event => { event.preventDefault(); clearTimeout(timer); search(); });
+    more.addEventListener("click", () => { page++; search(true); });
+    document.addEventListener("click", event => {
+        if (event.target.closest("[data-open-search]")) { event.preventDefault(); setSearchOpen(true); }
+        if (event.target.closest("[data-close-search]")) { event.preventDefault(); setSearchOpen(false); }
+        const keyword = event.target.closest("[data-search-keyword]");
+        if (keyword) { input.value = keyword.dataset.searchKeyword; clearTimeout(timer); search(); input.focus(); }
+    });
+    document.addEventListener("keydown", event => {
+        if (overlay.hidden || document.querySelector("dialog[open]")) return;
+        if (event.key === "Escape") setSearchOpen(false);
+        if (event.key === "Tab") {
+            const items = [...overlay.querySelectorAll('a[href],button,input')].filter(node => !node.disabled && node.getClientRects().length);
+            const first = items[0], last = items[items.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
         }
     });
 }
@@ -715,6 +785,9 @@ async function initializeSite() {
     initializeSearchOverlay();
     initializeEscapeKey();
     updateAuthenticationView();
+    if (!isStaticPreview && new URLSearchParams(window.location.search).has("loginError")) {
+        setModalOpen("login-modal", true);
+    }
 
     document.dispatchEvent(
         new CustomEvent(

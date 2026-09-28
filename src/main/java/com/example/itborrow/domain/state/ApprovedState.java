@@ -27,7 +27,7 @@ public class ApprovedState implements BorrowState {
 
     @Override
     public void cancel(BorrowRequest request) {
-        request.setStatus(BorrowStatus.RETURNED);
+        request.setStatus(BorrowStatus.CANCELLED);
     }
 
     @Override

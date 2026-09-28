@@ -22,6 +22,30 @@ public class Equipment {
     @Column(nullable = false)
     private EquipmentStatus status;
 
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
+    @Column(name = "purchase_price", precision = 12, scale = 2)
+    private java.math.BigDecimal purchasePrice;
+    public java.math.BigDecimal getPurchasePrice() { return purchasePrice; }
+    public void setPurchasePrice(java.math.BigDecimal purchasePrice) { this.purchasePrice = purchasePrice; }
+
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+    @Column(name = "specifications", columnDefinition = "TEXT")
+    private String specifications;
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String value) { imageUrl = value; }
+    public String getSpecifications() { return specifications; }
+    public void setSpecifications(String value) { specifications = value; }
+
+    @Column(name = "storage_slot", length = 100)
+    private String storageSlot;
+    public String getStorageSlot() { return storageSlot; }
+    public void setStorageSlot(String value) { storageSlot = value; }
+
     public Equipment() {
     }
 

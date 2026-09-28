@@ -207,7 +207,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 "ALL",
                 "ACTIVE",
                 "PENDING",
-                "RETURNED"
+                "RETURNED",
+                "CANCELLED"
             ];
 
         currentFilter =
@@ -297,5 +298,23 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
+    filterButtons.forEach(button => {
+        const filter = button.dataset.requestFilter;
+        const count = requestCards.filter(card => filter === "ALL" || normalizeStatus(card.dataset.requestStatus) === filter).length;
+        const badge = document.createElement("span"); badge.className = "request-filter-count"; badge.textContent = count;
+        button.append(badge);
+    });
     initializeFilterFromUrl();
+});
+document.addEventListener("click", async event => {
+    const button = event.target.closest("[data-cancel-request]");
+    if (!button) return;
+    button.disabled = true;
+    try {
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const response = await fetch(`/api/v1/borrow-requests/${button.dataset.cancelRequest}/cancel`, {method:"PATCH", headers:{[header]:token}});
+        if (!response.ok) throw new Error("Unable to cancel this request. Refresh and retry.");
+        window.location.reload();
+    } catch (error) { toast.error(error.message); button.disabled=false; }
 });

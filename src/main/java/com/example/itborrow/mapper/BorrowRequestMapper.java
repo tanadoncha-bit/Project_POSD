@@ -29,11 +29,13 @@ public class BorrowRequestMapper {
     }
 
     private BorrowItemResponseDto toItemResponseDto(BorrowItem item) {
-        return new BorrowItemResponseDto(
+        var result = new BorrowItemResponseDto(
                 item.getEquipment().getId(),
                 item.getEquipment().getAssetCode(),
                 item.getEquipment().getName(),
                 item.getQuantity()
         );
+        result.setStorageSlot(item.getEquipment().getStorageSlot());
+        return result;
     }
 }

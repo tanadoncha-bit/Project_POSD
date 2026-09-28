@@ -1,8 +1,6 @@
 package com.example.itborrow.common.event;
 
 import com.example.itborrow.service.NotificationService;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,8 +12,7 @@ public class OverdueEventListener {
         this.notificationService = notificationService;
     }
 
-    @Async
-    @EventListener
+    @org.springframework.transaction.event.TransactionalEventListener(phase = org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT)
     public void handleOverdueEvent(OverdueEvent event) {
         var request = event.getBorrowRequest();
 

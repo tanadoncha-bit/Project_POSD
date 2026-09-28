@@ -33,6 +33,7 @@ public class BorrowStateResolver {
             case BORROWED:
                 return borrowedState;
 
+            case CANCELLED:
             case RETURNED:
                 return returnedState;
 

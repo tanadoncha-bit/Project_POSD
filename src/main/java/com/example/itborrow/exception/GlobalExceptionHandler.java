@@ -58,7 +58,33 @@ public class GlobalExceptionHandler {
     // ทุก exception ที่ไม่ได้ดักไว้เฉพาะเจาะจง -> 500 (กันไม่ให้ stack trace หลุดออกไปหา client)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleUnexpected(Exception ex, HttpServletRequest req) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "เกิดข้อผิดพลาดที่ไม่คาดคิด: " + ex.getMessage(), req);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", req);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDto> denied(Exception ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Access denied", req);
+    }
+    @ExceptionHandler(com.example.itborrow.service.avatar.StorageException.class)
+    public ResponseEntity<ErrorResponseDto> storageUnavailable(Exception ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req);
+    }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponseDto> invalidInput(IllegalArgumentException ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDto> badRequest(Exception ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid request data", req);
+    }
+    @ExceptionHandler({org.springframework.dao.DataIntegrityViolationException.class, org.springframework.dao.PessimisticLockingFailureException.class})
+    public ResponseEntity<ErrorResponseDto> conflict(Exception ex, HttpServletRequest req) {
+        return buildResponse(HttpStatus.CONFLICT, "Data conflicts with an existing record. Refresh and retry.", req);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public org.springframework.web.servlet.ModelAndView uploadTooLarge() {
+        return new org.springframework.web.servlet.ModelAndView("redirect:/profile?uploadError=size");
     }
 
     private ResponseEntity<ErrorResponseDto> buildResponse(HttpStatus status, String message, HttpServletRequest req) {

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>User management - LeadIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Noto+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/style.css}">    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+</head>
+<body><section class="user-management" th:fragment="content">
+<h1>User management</h1>
+<p>Users register as USER. Assign STAFF for equipment operations or ADMIN for user management. VIP retains the discounted late-fee policy.</p>
+<p data-toast="success" class="form-feedback success" role="status" th:if="${message}" th:text="${message}"></p>
+<p data-toast="error" class="form-feedback" role="alert" th:if="${error}" th:text="${error}"></p>
+<div class="user-table-scroll"><table><thead><tr><th>Username</th><th>Email</th><th>Current role</th><th>Change role</th></tr></thead>
+<tbody><tr th:each="account : ${accounts.content}"><td th:text="${account.username}"></td><td th:text="${account.email}"></td><td th:text="${account.role}"></td>
+<td><form method="post" th:action="@{/admin/users/{id}/role(id=${account.id})}">
+<label><span class="visually-hidden" th:text="|Role for ${account.username}|"></span><select name="role"><option th:each="role : ${roles}" th:value="${role}" th:text="${role}" th:selected="${role == account.role}"></option></select></label>
+<button type="submit">Save role</button></form></td></tr></tbody></table></div>
+<nav aria-label="User pages"><a th:if="${accounts.hasPrevious()}" th:href="@{/admin/users(page=${accounts.number - 1})}">Previous</a><span th:text="|Page ${accounts.number + 1}|"></span><a th:if="${accounts.hasNext()}" th:href="@{/admin/users(page=${accounts.number + 1})}">Next</a></nav>
+<h2>Recent role changes</h2><p>Latest 100 changes, recorded using server time.</p>
+<div class="user-table-scroll"><table><thead><tr><th>Time</th><th>Changed by</th><th>Account</th><th>From</th><th>To</th></tr></thead><tbody>
+<tr th:each="entry : ${history}"><td th:text="${entry['changed_at']}"></td><td th:text="${entry['actor_username']}"></td><td th:text="${entry['target_username']}"></td><td th:text="${entry['old_role']}"></td><td th:text="${entry['new_role']}"></td></tr>
+</tbody></table></div>
+</section></body></html>

@@ -22,9 +22,9 @@ public class EquipmentController {
 
     // Read: ดึงข้อมูลทั้งหมดแบบแบ่งหน้าและเรียงลำดับ (Pagination/Sorting)
     @GetMapping
-    public ResponseEntity<Page<Equipment>> getAllEquipment(Pageable pageable) {
+    public ResponseEntity<Page<Equipment>> getAllEquipment(@RequestParam(defaultValue="") String keyword, Pageable pageable) {
         // หมายเหตุ: ต้องไปเพิ่มเมธอด getAllEquipments(Pageable pageable) ใน EquipmentService ด้วย
-        Page<Equipment> equipments = equipmentService.getAllEquipments(pageable);
+        Page<Equipment> equipments = equipmentService.searchEquipments(keyword, pageable);
         return ResponseEntity.ok(equipments);
     }
 

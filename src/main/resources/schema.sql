@@ -1,3 +1,8 @@
+DROP TABLE IF EXISTS user_avatars;
+DROP TABLE IF EXISTS role_audit;
+DROP TABLE IF EXISTS role_management_lock;
+DROP TABLE IF EXISTS app_migrations;
+DROP TABLE IF EXISTS return_inspections;
 DROP TABLE IF EXISTS return_records;
 DROP TABLE IF EXISTS borrow_items;
 DROP TABLE IF EXISTS borrow_requests;
@@ -12,7 +17,7 @@ CREATE TABLE users (
     username    VARCHAR(50)  NOT NULL UNIQUE,
     email       VARCHAR(100) NOT NULL UNIQUE,
     password    VARCHAR(255) NOT NULL,
-    role        VARCHAR(20)  NOT NULL DEFAULT 'STAFF',
+    role        VARCHAR(20)  NOT NULL DEFAULT 'USER',
     created_at  TIMESTAMP    NOT NULL DEFAULT now()
 );
 
@@ -22,6 +27,7 @@ CREATE TABLE user_profiles (
     user_id     BIGINT       NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     full_name   VARCHAR(150) NOT NULL,
     phone       VARCHAR(20),
+    avatar_path VARCHAR(300),
     department  VARCHAR(100)
 );
 
@@ -39,6 +45,7 @@ CREATE TABLE equipment (
     name            VARCHAR(150) NOT NULL,
     category_id     BIGINT       NOT NULL REFERENCES equipment_categories(id),
     status          VARCHAR(20)  NOT NULL DEFAULT 'AVAILABLE',
+    purchase_price NUMERIC(12,2) CHECK (purchase_price >= 0),
     purchase_date   DATE
 );
 CREATE INDEX idx_equipment_status ON equipment(status);
@@ -72,5 +79,39 @@ CREATE TABLE return_records (
     return_date         DATE           NOT NULL,
     condition           VARCHAR(50)    NOT NULL,
     fine_amount         NUMERIC(10,2)  DEFAULT 0,
+    damage_amount       NUMERIC(14,2) NOT NULL DEFAULT 0,
     remark              VARCHAR(500)
 );
+
+CREATE TABLE IF NOT EXISTS return_inspections (
+    return_record_id BIGINT NOT NULL REFERENCES return_records(id) ON DELETE CASCADE,
+    item_order INTEGER NOT NULL,
+    equipment_id BIGINT NOT NULL,
+    equipment_name VARCHAR(150) NOT NULL,
+    condition VARCHAR(50) NOT NULL,
+    purchase_price NUMERIC(12,2),
+    damage_rate NUMERIC(3,2) NOT NULL,
+    damage_amount NUMERIC(14,2) NOT NULL,
+    remark VARCHAR(500),
+    PRIMARY KEY (return_record_id, item_order)
+);
+
+CREATE TABLE IF NOT EXISTS app_migrations (version VARCHAR(100) PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS role_management_lock (id BIGINT PRIMARY KEY);
+INSERT INTO role_management_lock(id) SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM role_management_lock WHERE id=1);
+CREATE TABLE IF NOT EXISTS role_audit (
+ id BIGSERIAL PRIMARY KEY, actor_username VARCHAR(50) NOT NULL,
+ target_username VARCHAR(50) NOT NULL, old_role VARCHAR(20), new_role VARCHAR(20) NOT NULL,
+ changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO app_migrations(version) VALUES ('user_roles_v2');
+
+CREATE TABLE IF NOT EXISTS user_avatars (
+    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    image_data BYTEA NOT NULL
+);
+
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS image_url VARCHAR(1000);
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS specifications TEXT;
+
+ALTER TABLE equipment ADD COLUMN IF NOT EXISTS storage_slot VARCHAR(100);

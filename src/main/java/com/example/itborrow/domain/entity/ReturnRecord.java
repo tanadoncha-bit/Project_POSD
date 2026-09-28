@@ -34,6 +34,16 @@ public class ReturnRecord {
     private String remark;
 
 
+    @Column(name = "damage_amount", precision = 14, scale = 2, nullable = false)
+    private BigDecimal damageAmount = BigDecimal.ZERO;
+    @ElementCollection
+    @CollectionTable(name = "return_inspections", joinColumns = @JoinColumn(name = "return_record_id"))
+    @OrderColumn(name = "item_order")
+    private java.util.List<ReturnInspection> inspections = new java.util.ArrayList<>();
+    public BigDecimal getDamageAmount() { return damageAmount; }
+    public void setDamageAmount(BigDecimal value) { damageAmount = value; }
+    public java.util.List<ReturnInspection> getInspections() { return inspections; }
+
     // NoArgsConstructor
     public ReturnRecord() {
     }

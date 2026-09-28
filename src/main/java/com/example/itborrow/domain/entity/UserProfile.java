@@ -19,6 +19,13 @@ public class UserProfile {
     @Column(name = "department")
     private String department;
 
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
     // Default Constructor
     public UserProfile() {
     }

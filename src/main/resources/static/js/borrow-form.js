@@ -1,27 +1,29 @@
-document.addEventListener("DOMContentLoaded", () => {
+function initializeBorrowForm() {
     const borrowForm =
-        document.getElementById("borrow-request-form");
+        document.querySelector(".borrow-dialog #borrow-request-form") || document.getElementById("borrow-request-form");
+    if (!borrowForm || borrowForm.dataset.initialized) return;
+    borrowForm.dataset.initialized = "true";
 
     const userIdInput =
-        document.getElementById("current-user-id");
+        borrowForm.querySelector("#current-user-id");
 
     const borrowDateInput =
-        document.getElementById("borrow-date");
+        borrowForm.querySelector("#borrow-date");
 
     const dueDateInput =
-        document.getElementById("borrow-due-date");
+        borrowForm.querySelector("#borrow-due-date");
 
     const noteInput =
-        document.getElementById("borrow-note");
+        borrowForm.querySelector("#borrow-note");
 
     const noteCount =
-        document.getElementById("borrow-note-count");
+        borrowForm.querySelector("#borrow-note-count");
 
     const submitButton =
-        document.getElementById("borrow-submit-button");
+        borrowForm.querySelector("#borrow-submit-button");
 
     const submitLabel =
-        document.getElementById("borrow-submit-label");
+        borrowForm.querySelector("#borrow-submit-label");
 
     const selectedCount =
         document.getElementById(
@@ -29,13 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
     const formMessage =
-        document.getElementById("borrow-form-message");
+        borrowForm.querySelector("#borrow-form-message");
 
     const closeButton =
-        document.getElementById("borrow-form-close");
+        borrowForm.querySelector("#borrow-form-close");
 
     const cancelButton =
-        document.getElementById("borrow-form-cancel");
+        borrowForm.querySelector("#borrow-form-cancel");
 
     const successModal =
         document.getElementById("borrow-success-modal");
@@ -80,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getEquipmentInputs() {
         return Array.from(
-            document.querySelectorAll(
+            borrowForm.querySelectorAll(
                 'input[name="equipmentIds"]'
             )
         );
@@ -121,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function initializeSelectedEquipment() {
+        if (borrowForm.dataset.borrowList) { updateSelectedEquipment(); return; }
         const parameters =
             new URLSearchParams(
                 window.location.search
@@ -189,22 +192,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function showMessage(message, type = "error") {
-        if (!formMessage) {
-            return;
-        }
-
-        formMessage.textContent = message;
-        formMessage.hidden = !message;
-
-        formMessage.classList.toggle(
-            "message-error",
-            type === "error"
-        );
-
-        formMessage.classList.toggle(
-            "message-success",
-            type === "success"
-        );
+        if (formMessage) formMessage.hidden = true;
+        if (message) toast[type === "success" ? "success" : "error"](message);
     }
 
 
@@ -414,6 +403,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function goBackToEquipment() {
+        const dialog = borrowForm.closest("dialog");
+        if (dialog) { dialog.close(); return; }
+
         if (isStaticPreview()) {
             window.location.href =
                 "../equipment/list.html";
@@ -475,7 +467,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
 
-                setSuccessModalOpen(true);
+                if (borrowForm.dataset.borrowList) window.borrowList?.removeMany(getSelectedEquipmentIds());
+                borrowForm.closest("dialog")?.close();
+                toast.success("Borrow request submitted. You can track it in My Request.");
 
             } catch (error) {
                 showMessage(
@@ -518,17 +512,10 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
 
-    successModal?.addEventListener(
-        "click",
-        (event) => {
-            if (event.target === successModal) {
-                setSuccessModalOpen(false);
-            }
-        }
-    );
 
 
-    document.addEventListener(
+
+    borrowForm.addEventListener(
         "keydown",
         (event) => {
             if (
@@ -545,4 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeDates();
     initializeSelectedEquipment();
     updateNoteCount();
-});
+ }
+document.addEventListener("DOMContentLoaded", initializeBorrowForm);
+document.addEventListener("borrow-form-loaded", initializeBorrowForm);

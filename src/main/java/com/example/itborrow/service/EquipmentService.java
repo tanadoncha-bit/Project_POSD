@@ -7,6 +7,7 @@ import com.example.itborrow.domain.entity.Equipment;
 
 public interface EquipmentService {
     Page<Equipment> getAllEquipments(Pageable pageable);
+    Page<Equipment> searchEquipments(String keyword, Pageable pageable);
     Equipment getEquipmentById(Long id);
     Equipment createEquipment(Equipment equipment);
     Equipment updateEquipment(Long id, Equipment equipmentDetails);

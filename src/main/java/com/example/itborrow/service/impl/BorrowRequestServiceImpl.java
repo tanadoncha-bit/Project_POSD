@@ -16,7 +16,6 @@ import com.example.itborrow.exception.ResourceNotFoundException;
 import com.example.itborrow.mapper.BorrowRequestMapper;
 import com.example.itborrow.repository.BorrowRequestRepository;
 import com.example.itborrow.repository.EquipmentRepository;
-import com.example.itborrow.repository.UserRepository;
 import com.example.itborrow.service.BorrowRequestService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -30,21 +29,20 @@ import java.util.List;
 @Service
 public class BorrowRequestServiceImpl implements BorrowRequestService {
 
+    private final com.example.itborrow.service.CurrentUser current;
     private final BorrowRequestRepository borrowRequestRepository;
-    private final UserRepository userRepository;
     private final EquipmentRepository equipmentRepository;
     private final BorrowStateResolver stateResolver;
     private final BorrowRequestMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
 
     public BorrowRequestServiceImpl(BorrowRequestRepository borrowRequestRepository,
-                                     UserRepository userRepository,
                                      EquipmentRepository equipmentRepository,
                                      BorrowStateResolver stateResolver,
                                      BorrowRequestMapper mapper,
-                                     ApplicationEventPublisher eventPublisher) {
+                                     ApplicationEventPublisher eventPublisher, com.example.itborrow.service.CurrentUser current) {
+        this.current = current;
         this.borrowRequestRepository = borrowRequestRepository;
-        this.userRepository = userRepository;
         this.equipmentRepository = equipmentRepository;
         this.stateResolver = stateResolver;
         this.mapper = mapper;
@@ -54,8 +52,15 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public BorrowResponseDto createBorrowRequest(BorrowRequestDto dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> ResourceNotFoundException.of("User", dto.getUserId()));
+        User user = current.require();
+        if (dto.getBorrowDate() == null || dto.getDueDate() == null || dto.getBorrowDate().isBefore(LocalDate.now()) || dto.getDueDate().isBefore(dto.getBorrowDate()))
+            throw new IllegalArgumentException("Invalid borrow/due dates.");
+        if (dto.getItems() == null || dto.getItems().isEmpty()) throw new IllegalArgumentException("Select equipment.");
+        var equipmentIds = new java.util.HashSet<Long>();
+        for (var item : dto.getItems()) {
+            if (item == null || item.getEquipmentId() == null || item.getQuantity() != 1 || !equipmentIds.add(item.getEquipmentId()))
+                throw new IllegalArgumentException("Each asset can appear once, with quantity 1.");
+        }
 
         BorrowRequest request = new BorrowRequest();
         request.setUser(user);
@@ -87,7 +92,15 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public BorrowResponseDto approveBorrowRequest(Long id) {
-        BorrowRequest request = findEntityById(id);
+        current.requireOperator();
+        BorrowRequest request = findLockedById(id);
+        current.requireIndependentOperator(request);
+        if (request.getDueDate().isBefore(LocalDate.now())) throw new IllegalArgumentException("This borrowing period has expired.");
+        for (var item : request.getItems().stream().sorted(java.util.Comparator.comparing(i -> i.getEquipment().getId())).toList()) {
+            var asset = equipmentRepository.findLockedById(item.getEquipment().getId()).orElseThrow();
+            if (asset.getStatus() != EquipmentStatus.AVAILABLE || borrowRequestRepository.countConflicts(asset.getId(), request.getId(), request.getBorrowDate(), request.getDueDate(), java.util.List.of(BorrowStatus.APPROVED, BorrowStatus.BORROWED, BorrowStatus.OVERDUE)) > 0)
+                throw new EquipmentNotAvailableException("Equipment is unavailable or reserved during this period: " + asset.getAssetCode());
+        }
         stateResolver.resolve(request.getStatus()).approve(request);
         return mapper.toResponseDto(borrowRequestRepository.save(request));
     }
@@ -95,13 +108,18 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public BorrowResponseDto pickUpEquipment(Long id) {
-        BorrowRequest request = findEntityById(id);
+        current.requireOperator();
+        BorrowRequest request = findLockedById(id);
+        current.requireIndependentOperator(request);
+        if (LocalDate.now().isBefore(request.getBorrowDate()) || LocalDate.now().isAfter(request.getDueDate()))
+            throw new IllegalArgumentException("Pickup must be within the requested borrowing period.");
         stateResolver.resolve(request.getStatus()).pickUp(request);
 
-        for (BorrowItem item : request.getItems()) {
+        for (BorrowItem item : request.getItems().stream().sorted(java.util.Comparator.comparing(i -> i.getEquipment().getId())).toList()) {
             Equipment equipment = item.getEquipment();
+            if (equipmentRepository.transition(equipment.getId(), EquipmentStatus.AVAILABLE, EquipmentStatus.IN_USE) != 1)
+                throw new EquipmentNotAvailableException("Equipment is no longer available: " + equipment.getAssetCode());
             equipment.setStatus(EquipmentStatus.IN_USE);
-            equipmentRepository.save(equipment);
         }
 
         return mapper.toResponseDto(borrowRequestRepository.save(request));
@@ -110,26 +128,32 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public BorrowResponseDto cancelBorrowRequest(Long id) {
-        BorrowRequest request = findEntityById(id);
+        BorrowRequest request = findLockedById(id);
+        current.requireOwnerOrOperator(request);
         stateResolver.resolve(request.getStatus()).cancel(request);
         return mapper.toResponseDto(borrowRequestRepository.save(request));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BorrowResponseDto getById(Long id) {
-        return mapper.toResponseDto(findEntityById(id));
+        var request = findEntityById(id);
+        current.requireOwnerOrOperator(request);
+        return mapper.toResponseDto(request);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BorrowResponseDto> findAll(Pageable pageable) {
-        return borrowRequestRepository.findAll(pageable).map(mapper::toResponseDto);
+        var user=current.require();
+        return (current.isOperator(user) ? borrowRequestRepository.findAll(pageable) : borrowRequestRepository.findByUserId(user.getId(),pageable)).map(mapper::toResponseDto);
     }
 
     @Override
     @Transactional
     public void checkAndMarkOverdue() {
         List<BorrowRequest> overdueCandidates = borrowRequestRepository
-                .findByStatusAndDueDateBefore(BorrowStatus.BORROWED, LocalDate.now());
+                .findOverdueForUpdate(BorrowStatus.BORROWED, LocalDate.now());
 
         for (BorrowRequest request : overdueCandidates) {
             stateResolver.resolve(request.getStatus()).markOverdue(request);
@@ -137,6 +161,10 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
 
             eventPublisher.publishEvent(new OverdueEvent(this, request));
         }
+    }
+
+    private BorrowRequest findLockedById(Long id) {
+        return borrowRequestRepository.findLockedById(id).orElseThrow(() -> ResourceNotFoundException.of("BorrowRequest", id));
     }
 
     private BorrowRequest findEntityById(Long id) {

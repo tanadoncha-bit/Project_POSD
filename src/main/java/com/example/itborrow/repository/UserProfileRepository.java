@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.itborrow.domain.entity.UserProfile;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
+    java.util.Optional<UserProfile> findByUserId(Long userId);
 }

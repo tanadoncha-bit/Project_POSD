@@ -11,6 +11,11 @@ public class ReturnResponseDto {
     private String condition;
     private BigDecimal fineAmount;
     private String remark;
+    private BigDecimal damageAmount;
+    private java.util.List<com.example.itborrow.domain.entity.ReturnInspection> items;
+    public BigDecimal getDamageAmount() { return damageAmount; }
+    public BigDecimal getTotalAmount() { return fineAmount.add(damageAmount); }
+    public java.util.List<com.example.itborrow.domain.entity.ReturnInspection> getItems() { return items; }
 
     private ReturnResponseDto() {
     }
@@ -41,6 +46,8 @@ public class ReturnResponseDto {
             dto.remark = remark; return this;
         }
 
+        public Builder damageAmount(BigDecimal amount) { dto.damageAmount = amount; return this; }
+        public Builder items(java.util.List<com.example.itborrow.domain.entity.ReturnInspection> items) { dto.items = items; return this; }
         public ReturnResponseDto build() {
             return dto;
         }

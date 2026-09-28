@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -17,15 +19,17 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
-<body data-page="equipment">
+<body data-page="equipment" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
 
     <!-- Header จาก fragments/site.html -->
     <div id="site-header"
@@ -414,7 +418,7 @@
                               data-name=${equipment.name},
                               data-code=${equipment.assetCode},
                               data-status=${equipment.status},
-                              data-category='IT Equipment',
+                              data-category=${categoryNames[equipment.categoryId]},
                               data-processor='-',
                               data-memory='-',
                               data-storage='-',
@@ -425,16 +429,14 @@
 
                     <!-- แสดงรูปเมื่อ Backend ส่ง equipmentImageUrls มา -->
 
-                    <img th:if="${equipmentImageUrls != null
-                                and equipmentImageUrls[equipment.id] != null}"
-                         th:src="${equipmentImageUrls[equipment.id]}"
+                    <img th:if="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}"
+                         th:src="${equipment.imageUrl}"
                          th:alt="${equipment.name}">
 
                     <!-- แสดง Placeholder เมื่อยังไม่มีรูป -->
 
                     <span class="equipment-image-placeholder"
-                          th:unless="${equipmentImageUrls != null
-                                     and equipmentImageUrls[equipment.id] != null}">
+                          th:unless="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}">
 
                         LeadIT
                     </span>
@@ -460,7 +462,7 @@
                         Equipment name
                     </h2>
 
-                    <p th:text="${equipment.assetCode}">
+                    <p th:text="${categoryNames[equipment.categoryId] != null ? categoryNames[equipment.categoryId] : 'IT Equipment'}">
                         Asset code
                     </p>
 
@@ -676,7 +678,7 @@
     <!-- =========================================================
          BORROW FORM MODAL (ดึงจาก templates/borrow/form.html)
          ========================================================= -->
-    <div th:replace="~{borrow/form :: borrowFormModal}"></div>
+
 
 
     <!-- Footer จาก fragments/site.html -->
@@ -702,103 +704,8 @@
             th:src="@{/js/borrow-form.js}"></script>
 
 
-            <!-- แปะไว้ก่อนปิดแท็ก </body> ในไฟล์ equipment/list.html -->
-<div class="equipment-detail-backdrop" id="borrow-form-modal" hidden>
-    <div class="borrow-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="borrow-modal-title">
-        <header class="borrow-modal-header">
-            <div class="equipment-modal-title">
-                <h2 id="borrow-modal-title" class="borrow-modal-heading">Borrow Equipment Form</h2>
-                <p class="borrow-modal-subheading">Specify the borrower, return due date, and select equipment to borrow</p>
-            </div>
-            <button class="equipment-modal-close" id="borrow-modal-close" type="button" aria-label="Close form">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"></path>
-                    <path d="m6 6 12 12"></path>
-                </svg>
-            </button>
-        </header>
 
-        <form th:action="@{/borrow}" method="post" id="borrowForm">
-            <div class="borrow-form-group">
-                <div class="borrow-form-label">
-                    <span>User</span>
-                </div>
-                <div class="borrow-user-info">
-                    Name: Tanadon Chaisila | Faculty: College of Computing | Role: Student
-                </div>
-            </div>
-
-            <div class="borrow-form-group">
-                <div class="borrow-form-label">
-                    <span>Select Equipment</span>
-                </div>
-                <div class="equipment-chip-group">
-                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="1" checked> Keychron</label>
-                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="2"> MacBook</label>
-                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="3"> Viper V2..</label>
-                    <label class="equipment-chip"><input type="checkbox" name="equipmentIds" value="4"> HP Victus</label>
-                </div>
-            </div>
-
-            <div class="borrow-form-group">
-                <div class="borrow-form-label">
-                    <span>Due Date</span>
-                </div>
-                <input type="date" class="borrow-input" name="returnDate" required>
-            </div>
-
-            <div class="borrow-form-group">
-                <div class="borrow-form-label">
-                    <span>Note</span>
-                </div>
-                <textarea class="borrow-input" name="note" rows="3" placeholder="Enter your note here"></textarea>
-            </div>
-
-            <div class="borrow-modal-actions">
-                <button type="button" class="equipment-modal-cancel" id="borrow-modal-cancel-btn">Close</button>
-                <button type="submit" class="btn-submit-borrow">Submit</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const detailBorrowBtn = document.getElementById("equipment-borrow-button");
-        const detailModal = document.getElementById("equipment-detail-modal");
-        const borrowModal = document.getElementById("borrow-form-modal");
-        const closeBtn = document.getElementById("borrow-modal-close");
-        const cancelBtn = document.getElementById("borrow-modal-cancel-btn");
-
-        // เมื่อกดปุ่ม + Borrow ใน Detail Modal
-        if (detailBorrowBtn) {
-            detailBorrowBtn.addEventListener("click", function (e) {
-                e.preventDefault();
-                // 1. ปิด Detail Modal
-                if (detailModal) detailModal.setAttribute("hidden", "true");
-                
-                // 2. แสดง Borrow Form Modal
-                if (borrowModal) borrowModal.removeAttribute("hidden");
-            });
-        }
-
-        // ฟังก์ชันซ่อน Borrow Modal
-        function hideBorrowModal() {
-            if (borrowModal) borrowModal.setAttribute("hidden", "true");
-        }
-
-        if (closeBtn) closeBtn.addEventListener("click", hideBorrowModal);
-        if (cancelBtn) cancelBtn.addEventListener("click", hideBorrowModal);
-        
-        if (borrowModal) {
-            borrowModal.addEventListener("click", function (e) {
-                if (e.target === borrowModal) hideBorrowModal();
-            });
-        }
-    });
-</script>
-
-
+<script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

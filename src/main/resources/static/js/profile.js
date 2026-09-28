@@ -60,13 +60,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setFormMessage(message, type = "success") {
-        if (!formMessage) {
-            return;
-        }
-
-        formMessage.textContent = message;
-        formMessage.dataset.type = type;
-        formMessage.hidden = !message;
+        if (formMessage) formMessage.hidden = true;
+        if (message) toast[type === "error" ? "error" : type === "success" ? "success" : "info"](message);
     }
 
     function clearFormMessage() {
@@ -109,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (editing && editableInputs.length > 0) {
-            editableInputs[0].focus();
+            editableInputs[0].focus({ preventScroll: true });
         }
     }
 
@@ -230,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
             restoreOriginalValues();
             clearFormMessage();
             setEditingState(false);
+            editButton?.focus({ preventScroll: true });
         });
     }
 
@@ -308,4 +304,24 @@ document.addEventListener("DOMContentLoaded", () => {
     restorePreviewProfile();
     rememberOriginalValues();
     setEditingState(false);
+});
+// Clicking the portrait opens the picker; selecting a valid image submits the existing upload form.
+const avatarButton = document.getElementById("change-avatar-button");
+const avatarInput = document.getElementById("avatar-image");
+const avatarForm = document.querySelector(".avatar-upload-form");
+const avatarMessage = document.getElementById("avatar-upload-message");
+avatarButton?.addEventListener("click", () => avatarInput.click());
+avatarInput?.addEventListener("change", () => {
+    const file = avatarInput.files[0];
+    if (!file) return;
+    let error = "";
+    if (file.size > 2 * 1024 * 1024) error = "Choose an image up to 2 MB.";
+    else if (!["image/jpeg", "image/png"].includes(file.type)) error = "Choose a JPG or PNG image.";
+    avatarMessage.hidden = Boolean(error);
+    avatarMessage.textContent = error || "Saving profile picture...";
+    avatarMessage.classList.toggle("form-feedback", Boolean(error));
+    if (error) { toast.error(error); avatarInput.value = ""; avatarButton.focus(); return; }
+    avatarButton.disabled = true;
+    avatarButton.setAttribute("aria-busy", "true");
+    avatarForm.requestSubmit();
 });

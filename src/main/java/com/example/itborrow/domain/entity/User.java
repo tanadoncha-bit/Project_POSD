@@ -21,6 +21,13 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
     public User() {
     }
 

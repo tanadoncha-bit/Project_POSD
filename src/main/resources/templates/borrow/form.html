@@ -26,22 +26,28 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+<script defer src="/js/form-pickers.js" th:src="@{/js/form-pickers.js}"></script>
 </head>
 
-<body class="borrow-form-preview-page"
-      data-page="borrow">
+<body class="borrow-page"
+      data-page="borrow" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
 
+
+    <div id="site-header" th:replace="~{fragments/site :: siteHeader}"></div>
 
     <main class="borrow-form-preview">
 
         <form class="borrow-form-modal"
               id="borrow-request-form"
+              th:fragment="borrowForm"
               novalidate>
 
             <!-- =================================================
@@ -66,12 +72,7 @@
                         type="button"
                         aria-label="Close borrow form">
 
-                    <span data-icon-slot="close"
-                          aria-hidden="true">
-
-                        <!-- ใส่ Lucide X SVG ตรงนี้ -->
-
-                    </span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
 
                 </button>
 
@@ -331,7 +332,7 @@
 
                             <input type="checkbox"
                                    name="equipmentIds"
-                                   th:value="${equipment.id}">
+                                   th:value="${equipment.id}" th:checked="${selectedEquipmentId != null and selectedEquipmentId == equipment.id}">
 
                             <span class="equipment-choice-check"
                                   aria-hidden="true">
@@ -428,7 +429,7 @@
 
                     <textarea id="borrow-note"
                               name="note"
-                              rows="5"
+                              rows="3"
                               maxlength="500"
                               placeholder="Enter your note here"></textarea>
 
@@ -562,8 +563,17 @@
     </div>
 
 
+    <div id="site-footer" th:replace="~{fragments/site :: siteFooter}"></div>
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+    <script src="../../static/js/site-preview.js" th:src="@{/js/site-preview.js}"></script>
     <script src="../../static/js/borrow-form.js"
             th:src="@{/js/borrow-form.js}"></script>
 
+<script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

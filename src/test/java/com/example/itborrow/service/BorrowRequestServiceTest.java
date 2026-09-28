@@ -43,6 +43,7 @@ class BorrowRequestServiceTest {
     @Mock private EquipmentRepository equipmentRepository;
     @Mock private BorrowStateResolver stateResolver;
     @Mock private BorrowRequestMapper mapper;
+    @Mock private com.example.itborrow.service.CurrentUser current;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private BorrowState mockState;
 
@@ -70,7 +71,7 @@ class BorrowRequestServiceTest {
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
         BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), "ยืมไปประชุม", List.of(itemDto));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(current.require()).thenReturn(testUser);
         when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
         when(borrowRequestRepository.save(any(BorrowRequest.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -89,7 +90,7 @@ class BorrowRequestServiceTest {
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
         BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), null, List.of(itemDto));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(current.require()).thenReturn(testUser);
         when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
 
         assertThatThrownBy(() -> service.createBorrowRequest(dto))
@@ -100,19 +101,19 @@ class BorrowRequestServiceTest {
     }
 
     @Test
-    void createBorrowRequest_throwsException_whenUserNotFound() {
+    void createBorrowRequest_throwsException_whenUnauthenticated() {
         BorrowRequestDto dto = buildBorrowRequestDto(999L, LocalDate.now().plusDays(7), null, Collections.emptyList());
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(current.require()).thenThrow(new org.springframework.security.access.AccessDeniedException("Sign in"));
 
         assertThatThrownBy(() -> service.createBorrowRequest(dto))
-                .isInstanceOf(ResourceNotFoundException.class);
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
     }
 
     @Test
     void approveBorrowRequest_success_delegatesToStatePattern() {
         BorrowRequest request = buildBorrowRequest(BorrowStatus.PENDING);
 
-        when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(request));
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(request));
         when(stateResolver.resolve(BorrowStatus.PENDING)).thenReturn(mockState);
         when(borrowRequestRepository.save(request)).thenReturn(request);
         when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
@@ -124,7 +125,7 @@ class BorrowRequestServiceTest {
 
     @Test
     void approveBorrowRequest_throwsException_whenRequestNotFound() {
-        when(borrowRequestRepository.findById(99L)).thenReturn(Optional.empty());
+        when(borrowRequestRepository.findLockedById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.approveBorrowRequest(99L))
                 .isInstanceOf(ResourceNotFoundException.class);
@@ -134,15 +135,16 @@ class BorrowRequestServiceTest {
     void pickUpEquipment_success_changesEquipmentStatusToBorrowed() {
         BorrowRequest request = buildBorrowRequestWithItem(BorrowStatus.APPROVED);
 
-        when(borrowRequestRepository.findById(1L)).thenReturn(Optional.of(request));
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(request));
         when(stateResolver.resolve(BorrowStatus.APPROVED)).thenReturn(mockState);
         when(borrowRequestRepository.save(request)).thenReturn(request);
         when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
 
+        when(equipmentRepository.transition(10L, EquipmentStatus.AVAILABLE, EquipmentStatus.IN_USE)).thenReturn(1);
         service.pickUpEquipment(1L);
 
         assertThat(testEquipment.getStatus()).isEqualTo(EquipmentStatus.IN_USE);
-        verify(equipmentRepository).save(testEquipment);
+        verify(equipmentRepository).transition(10L, EquipmentStatus.AVAILABLE, EquipmentStatus.IN_USE);
     }
 
     @Test
@@ -150,7 +152,7 @@ class BorrowRequestServiceTest {
         BorrowRequest overdueCandidate = buildBorrowRequest(BorrowStatus.BORROWED);
         overdueCandidate.setDueDate(LocalDate.now().minusDays(3));
 
-        when(borrowRequestRepository.findByStatusAndDueDateBefore(eq(BorrowStatus.BORROWED), any(LocalDate.class)))
+        when(borrowRequestRepository.findOverdueForUpdate(eq(BorrowStatus.BORROWED), any(LocalDate.class)))
                 .thenReturn(List.of(overdueCandidate));
         when(stateResolver.resolve(BorrowStatus.BORROWED)).thenReturn(mockState);
         when(borrowRequestRepository.save(overdueCandidate)).thenReturn(overdueCandidate);
@@ -163,7 +165,7 @@ class BorrowRequestServiceTest {
 
     @Test
     void checkAndMarkOverdue_doesNothing_whenNoOverdueRequests() {
-        when(borrowRequestRepository.findByStatusAndDueDateBefore(eq(BorrowStatus.BORROWED), any(LocalDate.class)))
+        when(borrowRequestRepository.findOverdueForUpdate(eq(BorrowStatus.BORROWED), any(LocalDate.class)))
                 .thenReturn(Collections.emptyList());
 
         service.checkAndMarkOverdue();

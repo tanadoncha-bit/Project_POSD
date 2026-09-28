@@ -14,7 +14,7 @@
 
 <template id="site-header-template">
     <header class="site-header"
-            th:fragment="siteHeader">
+            th:fragment="siteHeader"><script defer src="/js/form-pickers.js" th:src="@{/js/form-pickers.js}"></script>
         <a class="brand"
            href="../dashboard/index.html"
            data-spring-href="/"
@@ -101,16 +101,16 @@
 
                 <button class="profile-trigger"
                         type="button"
-                        aria-label="Open profile menu"
+                        aria-label="Open profile menu" aria-controls="profile-menu"
                         aria-expanded="false">
 
-                    <span class="profile-avatar"
-                          data-profile-initial>
-                        U
+                    <span class="profile-avatar">
+                        <img th:if="${profileImageUrl != null}" th:src="${profileImageUrl}" alt="" class="nav-avatar-image">
+                        <span th:if="${profileImageUrl == null}" data-profile-initial>U</span>
                     </span>
                 </button>
 
-                <div class="profile-menu" hidden>
+                <div class="profile-menu" id="profile-menu" hidden>
                     <div class="profile-menu-user">
                         <strong data-profile-name></strong>
                         <span data-profile-role></span>
@@ -120,15 +120,16 @@
                        href="../profile/index.html"
                        data-spring-href="/profile">
 
-                        <span data-icon-slot="profile"></span>
+                        <span class="profile-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg></span>
                         My Profile
                     </a>
 
+                    <a class="profile-menu-item" href="/admin" th:if="${currentUser != null and (currentUser.role.name() == 'ADMIN' or currentUser.role.name() == 'STAFF')}"><span class="profile-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Management</a>
                     <button class="profile-menu-item profile-logout"
                             type="button"
                             data-preview-logout>
 
-                        <span data-icon-slot="logout"></span>
+                        <span class="profile-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H4v14h5M14 8l4 4-4 4M8 12h10"/></svg></span>
                         Log Out
                     </button>
                 </div>
@@ -310,9 +311,11 @@
                 <span>or</span>
             </div>
 
+            <p data-toast="error" class="form-feedback" role="alert" th:if="${param.loginError != null}">Incorrect username or password.</p>
             <form class="login-form"
                   id="preview-login-form"
                   action="/login"
+                  th:action="@{/login}"
                   method="post">
 
                 <label for="login-username">
@@ -362,6 +365,7 @@
     <div class="modal-backdrop login-modal-backdrop"
          id="register-modal"
          th:fragment="registerModal"
+         th:hidden="${registrationError == null}"
          hidden>
 
         <section class="auth-modal login-modal registration-modal"
@@ -391,17 +395,21 @@
             </button>
 
             <h2 id="register-title">Sign Up</h2>
+            <p data-toast="error" id="registration-error" class="form-feedback" role="alert" tabindex="-1"
+               th:hidden="${registrationError == null}" th:text="${registrationError}" hidden></p>
 
             <form class="registration-form"
                   id="preview-register-form"
                   action="/register"
+                  th:action="@{/register}"
                   method="post">
 
                 <label for="register-username">
                     Username
 
-                    <input id="register-username"
+                    <input id="register-username" th:value="${registrationValues != null ? registrationValues['username'] : ''}"
                            name="username"
+                           pattern="[A-Za-z0-9_.-]{3,50}" maxlength="50" title="Use 3-50 letters, numbers, dots, underscores or hyphens"
                            type="text"
                            placeholder="Enter your username"
                            autocomplete="username"
@@ -414,6 +422,7 @@
 
                         <input id="register-password"
                                name="password"
+                               minlength="8" maxlength="72" aria-describedby="register-password-help"
                                type="password"
                                placeholder="Enter your password"
                                autocomplete="new-password"
@@ -435,8 +444,8 @@
                 <label for="register-name">
                     Full Name
 
-                    <input id="register-name"
-                           name="fullName"
+                    <input id="register-name" th:value="${registrationValues != null ? registrationValues['fullName'] : ''}"
+                           name="fullName" maxlength="150"
                            type="text"
                            placeholder="Enter your Fullname"
                            autocomplete="name"
@@ -446,8 +455,8 @@
                 <label for="register-email">
                     Email
 
-                    <input id="register-email"
-                           name="email"
+                    <input id="register-email" th:value="${registrationValues != null ? registrationValues['email'] : ''}"
+                           name="email" maxlength="100"
                            type="email"
                            placeholder="Enter your Email"
                            autocomplete="email"
@@ -457,8 +466,8 @@
                 <label for="register-phone">
                     Phone
 
-                    <input id="register-phone"
-                           name="phone"
+                    <input id="register-phone" th:value="${registrationValues != null ? registrationValues['phone'] : ''}"
+                           name="phone" maxlength="20"
                            type="tel"
                            placeholder="Enter your Phone"
                            autocomplete="tel">
@@ -468,23 +477,24 @@
                     <label for="register-department">
                         Department
 
-                        <input id="register-department"
-                               name="department"
+                        <input id="register-department" th:value="${registrationValues != null ? registrationValues['department'] : ''}"
+                               name="department" maxlength="100"
                                type="text"
                                placeholder="Enter your Department">
                     </label>
 
                     <label for="register-role">
-                        Role
+                        Account type
 
                         <input id="register-role"
-                               name="role"
+                               name="accountType"
                                type="text"
-                               value="USER"
+                               value="Borrower"
                                readonly>
                     </label>
                 </div>
 
+                <p id="register-password-help" class="field-help">Use 8-72 characters. Both passwords must match.</p>
                 <div class="registration-actions">
                     <button class="registration-submit"
                             type="submit">
@@ -524,19 +534,7 @@
                    aria-label="LeadIT Home">
 
                     <span class="logo-mark small" aria-hidden="true">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             width="24"
-                             height="24"
-                             viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="currentColor"
-                             stroke-width="1"
-                             stroke-linecap="round"
-                             stroke-linejoin="round">
-
-                            <path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"></path>
-                            <path d="M20.054 15.987H3.946"></path>
-                        </svg>
+                        <img src="../../static/images/search/logo.svg" th:src="@{/images/search/logo.svg}" alt="">
                     </span>
 
                     <span>LeadIT</span>
@@ -547,20 +545,7 @@
                         aria-label="Close search"
                         data-close-search>
 
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         width="24"
-                         height="24"
-                         viewBox="0 0 24 24"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1"
-                         stroke-linecap="round"
-                         stroke-linejoin="round"
-                         aria-hidden="true">
-
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
-                    </svg>
+                    <img src="../../static/images/search/close.svg" th:src="@{/images/search/close.svg}" alt="">
                 </button>
             </header>
 
@@ -570,33 +555,15 @@
                   method="get"
                   role="search">
 
-                <label class="visually-hidden"
-                       for="global-search-input">
-                    Search equipment
-                </label>
 
-                <input id="global-search-input"
+
+                <input id="global-search-input" aria-label="Search equipment"
                        name="keyword"
                        type="search"
                        placeholder="ค้นหาอุปกรณ์ที่ต้องการยืม"
                        autocomplete="off">
 
-                <button type="submit" aria-label="Search">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         width="24"
-                         height="24"
-                         viewBox="0 0 24 24"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1"
-                         stroke-linecap="round"
-                         stroke-linejoin="round"
-                         aria-hidden="true">
 
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                    </svg>
-                </button>
             </form>
 
             <section class="popular-searches">
@@ -620,9 +587,9 @@
             <section class="search-result-preview">
                 <h2>ยอดนิยม</h2>
 
-                <p class="search-empty-message">
-                    พิมพ์ชื่อหรือรหัสอุปกรณ์เพื่อเริ่มค้นหา
-                </p>
+                <p class="search-empty-message" role="status" aria-live="polite" hidden></p>
+                <div class="search-results-grid"></div>
+                <button class="search-load-more" type="button" hidden>Load more</button>
             </section>
 
             <footer class="search-overlay-footer">

@@ -1,6 +1,6 @@
 INSERT INTO users (username, email, password, role) VALUES
 ('admin', 'admin@itborrow.com', 'admin123', 'ADMIN'),
-('somchai', 'somchai@itborrow.com', 'password123', 'STAFF'),
+('somchai', 'somchai@itborrow.com', 'password123', 'USER'),
 ('malee', 'malee@itborrow.com', 'password123', 'VIP');
 
 INSERT INTO user_profiles (user_id, full_name, phone, department) VALUES

@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -17,22 +19,24 @@
           href="https://fonts.gstatic.com"
           crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
           rel="stylesheet">
 
     <link rel="stylesheet"
           href="../../static/css/style.css?v=1"
           th:href="@{/css/style.css}">
+    <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
-<body data-page="requests">
+<body data-page="requests" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
 
     <!-- Header จาก fragments/site.html -->
     <div id="site-header"
          th:replace="~{fragments/site :: siteHeader}"></div>
 
 
-    <main class="request-history-page">
+    <main class="request-history-page request-page">
 
         <!-- =====================================================
              PAGE HEADING
@@ -41,6 +45,7 @@
         <header class="request-history-heading">
 
             <h1>My Requests</h1>
+<p role="alert" th:if="${overdueCount != null and overdueCount > 0}" th:text="|You have ${overdueCount} overdue request(s). Please return the equipment.|"></p>
 
             <p>
                 Track your request statuses and return due dates
@@ -88,6 +93,7 @@
                 Returned
             </button>
 
+            <button class="request-filter-button" type="button" data-request-filter="CANCELLED" aria-pressed="false">Cancelled</button>
         </nav>
 
 
@@ -133,11 +139,7 @@
 
                         <span class="request-card-icon"
                               data-icon-slot="request-device"
-                              aria-hidden="true">
-
-                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
-
-                        </span>
+                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
 
                         <div>
 
@@ -188,11 +190,7 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
-
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
                                 Slot C-5
                             </span>
@@ -221,11 +219,7 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
-
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
                                 Slot C-3
                             </span>
@@ -251,11 +245,7 @@
 
                         <span class="request-card-icon"
                               data-icon-slot="request-device"
-                              aria-hidden="true">
-
-                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
-
-                        </span>
+                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
 
                         <div>
 
@@ -306,11 +296,7 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
-
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
                                 Slot C-5
                             </span>
@@ -339,11 +325,7 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
-
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
                                 Slot C-6
                             </span>
@@ -369,11 +351,7 @@
 
                         <span class="request-card-icon"
                               data-icon-slot="request-device"
-                              aria-hidden="true">
-
-                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
-
-                        </span>
+                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
 
                         <div>
 
@@ -424,11 +402,7 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
-
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
                                 Slot A-4
                             </span>
@@ -474,11 +448,7 @@
 
                         <span class="request-card-icon"
                               data-icon-slot="request-device"
-                              aria-hidden="true">
-
-                            <!-- ใส่ Lucide LaptopMinimal SVG ตรงนี้ -->
-
-                        </span>
+                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
 
                         <div>
 
@@ -487,11 +457,11 @@
                             </h2>
 
                             <p>
-                                <span th:text="${request.borrowDate}">
+                                <span>Borrowed: </span><span th:text="${request.borrowDate}">
                                     Borrow date
                                 </span>
 
-                                <span aria-hidden="true"> - </span>
+                                <span aria-hidden="true"> | </span><span>Due: </span>
 
                                 <span th:text="${request.dueDate}">
                                     Due date
@@ -506,6 +476,7 @@
                     <div class="request-card-status-area">
 
                         <span class="request-pin"
+                              th:if="${requestPins != null and requestPins[request.id] != null}"
                               th:text="${requestPins != null
                                         and requestPins[request.id] != null
                                         ? 'PIN: ' + requestPins[request.id]
@@ -520,6 +491,8 @@
                                   ? ' request-status-pending'
                                   : request.status == 'RETURNED'
                                   ? ' request-status-returned'
+                                  : request.status == 'CANCELLED' ? ' request-status-cancelled'
+                                  : request.status == 'OVERDUE' ? ' request-status-overdue'
                                   : ' request-status-active'
                               }"
                               th:text="${
@@ -531,7 +504,7 @@
                                   ? 'Overdue'
                                   : request.status == 'RETURNED'
                                   ? 'Returned'
-                                  : 'Pending'
+                                  : request.status == 'CANCELLED' ? 'Cancelled' : 'Pending'
                               }">
 
                             Pending
@@ -583,24 +556,9 @@
                             <span class="request-item-locker">
 
                                 <span data-icon-slot="locker-location"
-                                      aria-hidden="true">
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
 
-                                    <!-- ใส่ Lucide MapPin SVG ตรงนี้ -->
-
-                                </span>
-
-                                <span th:text="${
-                                    equipmentLockerNames != null
-                                    and equipmentLockerNames[
-                                        item.equipmentId
-                                    ] != null
-                                    ? equipmentLockerNames[
-                                        item.equipmentId
-                                    ]
-                                    : 'Slot pending'
-                                }">
-
-                                    Slot pending
+                                <span th:text="${item.storageSlot != null and !#strings.isEmpty(item.storageSlot) ? item.storageSlot : 'Slot not assigned'}">Slot not assigned
                                 </span>
 
                             </span>
@@ -611,6 +569,10 @@
 
                 </div>
 
+                <footer class="request-card-actions" th:if="${request.status == 'PENDING' or request.status == 'APPROVED' or request.status == 'RETURNED'}">
+                            <button class="request-action" type="button" th:if="${request.status == 'PENDING' or request.status == 'APPROVED'}" th:attr="data-cancel-request=${request.id},aria-label=|Cancel request #${request.id}|">Cancel request</button>
+                            <button class="request-action" type="button" th:if="${request.status == 'RETURNED'}" th:attr="data-return-receipt=${request.id}">View charges</button>
+                </footer>
             </article>
 
         </section>
@@ -673,8 +635,6 @@
     </div>
 
     <!-- เรียกใช้สคริปต์  -->
-    <script src="../../static/js/sidebar.js"
-            th:src="@{/js/sidebar.js}"></script>
 
     <script src="../../static/js/site-preview.js?v=1"
             th:src="@{/js/site-preview.js}"></script>
@@ -682,5 +642,9 @@
     <script src="../../static/js/request-history.js?v=1"
             th:src="@{/js/request-history.js}"></script>
 
+<script src="../../static/js/return-receipt.js" th:src="@{/js/return-receipt.js}"></script>
+<script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+<script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>
