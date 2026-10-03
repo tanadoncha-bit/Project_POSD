@@ -46,6 +46,7 @@ class ReturnRecordServiceTest {
     @Mock private BorrowState mockState;
     @Mock private FineStrategyService mockStrategy;
 
+    @org.mockito.Mock org.springframework.context.ApplicationEventPublisher events;
     @InjectMocks
     private ReturnRecordServiceImpl service;
 

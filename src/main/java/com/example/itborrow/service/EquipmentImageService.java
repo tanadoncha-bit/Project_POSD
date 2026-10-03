@@ -3,20 +3,23 @@ package com.example.itborrow.service;
 import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.service.avatar.*;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class EquipmentImageService {
+    private final PersistentJobs jobs;
     private final ImageStorage storage;
     private final EquipmentImageProcessor processor;
     private final EquipmentRepository equipment;
+    private final com.example.itborrow.repository.BorrowItemRepository borrowItems;
     private final CurrentUser current;
     private final TransactionTemplate transactions;
     public EquipmentImageService(EquipmentImageProcessor processor, EquipmentRepository equipment, CurrentUser current,
-            PlatformTransactionManager manager, EquipmentStorage storage) {
+            PlatformTransactionManager manager, @org.springframework.beans.factory.annotation.Qualifier("equipmentStorage") ImageStorage storage, com.example.itborrow.repository.BorrowItemRepository borrowItems, PersistentJobs jobs) {
+        this.jobs=jobs;
+        this.borrowItems=borrowItems;
         this.storage=storage; this.processor=processor;
         this.equipment=equipment; this.current=current; this.transactions=new TransactionTemplate(manager);
     }
@@ -34,13 +37,13 @@ public class EquipmentImageService {
                 String previous=item.getImageUrl(); item.setImageUrl(imageUrl); equipment.saveAndFlush(item); return previous;
             });
         } catch(RuntimeException ex) { cleanup(path); throw ex; }
-        if(old!=null && old.startsWith("/images/equipment/")) cleanup(old.substring("/images/equipment/".length()));
+        if(old!=null && old.startsWith("/images/equipment/") && !borrowItems.existsBySnapshotImageUrl(old)) cleanup(old.substring("/images/equipment/".length()));
         return imageUrl;
     }
     public String read(Long id, String filename) {
         String path=id+"/"+filename;
         var item=equipment.findById(id).orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
-        if(!("/images/equipment/"+path).equals(item.getImageUrl()))
+        if(!("/images/equipment/"+path).equals(item.getImageUrl()) && !borrowItems.existsBySnapshotImageUrl("/images/equipment/"+path))
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND);
         if (urls.size() >= 512 && !urls.containsKey(path)) urls.clear();
         return urls.compute(path, (key, cached) -> {
@@ -57,6 +60,6 @@ public class EquipmentImageService {
     private void cleanup(String path) {
         urls.remove(path);
         try { storage.delete(path); }
-        catch(RuntimeException ex) { org.slf4j.LoggerFactory.getLogger(getClass()).warn("Equipment image cleanup failed; reconcile unreferenced storage objects."); }
+        catch(RuntimeException ex) { jobs.cleanup(path); }
     }
 }

@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "request-server-empty"
         );
 
+    const serverPaged = document.querySelector("[data-server-paged=true]") !== null;
     let currentFilter = "ALL";
 
 
@@ -95,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function cardMatchesSearch(card) {
+        if (serverPaged) return true;
         const keyword =
             getSearchKeyword();
 
@@ -244,6 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
         button.addEventListener(
             "click",
             () => {
+                if (serverPaged) { const url=new URL(location.href); url.searchParams.set('status',button.dataset.requestFilter); url.searchParams.delete('page'); location.assign(url); return; }
                 selectFilter(
                     button.dataset.requestFilter
                 );
@@ -300,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     filterButtons.forEach(button => {
         const filter = button.dataset.requestFilter;
-        const count = requestCards.filter(card => filter === "ALL" || normalizeStatus(card.dataset.requestStatus) === filter).length;
+        const count = serverPaged ? Number(button.dataset.total || 0) : requestCards.filter(card => filter === "ALL" || normalizeStatus(card.dataset.requestStatus) === filter).length;
         const badge = document.createElement("span"); badge.className = "request-filter-count"; badge.textContent = count;
         button.append(badge);
     });

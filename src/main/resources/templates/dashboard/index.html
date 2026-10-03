@@ -26,8 +26,10 @@
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+    <link rel="stylesheet" href="/css/user-navigation.css" th:href="@{/css/user-navigation.css}">
 </head>
 
 <body data-page="home" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
@@ -223,157 +225,7 @@
 
             </div>
 
-            <div class="equipment-grid equipment-preview-state"
-                 th:remove="all">
 
-                <article class="equipment-card"
-                         tabindex="0"
-                         role="button"
-                         data-equipment-card
-                         data-equipment-id="1"
-                         data-name="MacBook Air 15&quot; M3"
-                         data-category="Laptops"
-                         data-code="LT-MAC-001"
-                         data-status="AVAILABLE"
-                         data-processor="Apple M3"
-                         data-memory="16 GB"
-                         data-storage="512 GB SSD"
-                         data-screen="15.3 inch"
-                         data-locker="Locker A-01">
-
-                    <div class="equipment-card-image">
-
-                        <img src="../../static/images/equipment-macbook.png"
-                             alt="MacBook Air 15 M3">
-
-                        <span class="availability-badge">
-                            Available
-                        </span>
-
-                    </div>
-
-                    <div class="equipment-card-body">
-
-                        <h3>MacBook Air 15&quot; M3</h3>
-
-                        <p>Laptops</p>
-
-                    </div>
-
-                </article>
-
-
-                <article class="equipment-card"
-                         tabindex="0"
-                         role="button"
-                         data-equipment-card
-                         data-equipment-id="2"
-                         data-name="HP Victus Gaming 16"
-                         data-category="Laptops"
-                         data-code="LT-HP-002"
-                         data-status="AVAILABLE"
-                         data-processor="AMD Ryzen 7"
-                         data-memory="16 GB"
-                         data-storage="1 TB SSD"
-                         data-screen="16.1 inch"
-                         data-locker="Locker A-02">
-
-                    <div class="equipment-card-image">
-
-                        <img src="../../static/images/equipment-victus.png"
-                             alt="HP Victus Gaming">
-
-                        <span class="availability-badge">
-                            Available
-                        </span>
-
-                    </div>
-
-                    <div class="equipment-card-body">
-
-                        <h3>HP Victus Gaming 16</h3>
-
-                        <p>Laptops</p>
-
-                    </div>
-
-                </article>
-
-
-                <article class="equipment-card"
-                         tabindex="0"
-                         role="button"
-                         data-equipment-card
-                         data-equipment-id="3"
-                         data-name="Razer Viper V2 Pro White"
-                         data-category="Accessories"
-                         data-code="AC-RZ-003"
-                         data-status="AVAILABLE"
-                         data-processor="-"
-                         data-memory="-"
-                         data-storage="-"
-                         data-screen="-"
-                         data-locker="Locker B-01">
-
-                    <div class="equipment-card-image">
-
-                        <img src="../../static/images/equipment-razer.png"
-                             alt="Razer Viper V2 Pro White">
-
-                        <span class="availability-badge">
-                            Available
-                        </span>
-
-                    </div>
-
-                    <div class="equipment-card-body">
-
-                        <h3>Razer Viper V2 Pro White</h3>
-
-                        <p>Accessories</p>
-
-                    </div>
-
-                </article>
-
-
-                <article class="equipment-card"
-                         tabindex="0"
-                         role="button"
-                         data-equipment-card
-                         data-equipment-id="4"
-                         data-name="Keychron V2 65%"
-                         data-category="Accessories"
-                         data-code="AC-KC-004"
-                         data-status="AVAILABLE"
-                         data-processor="-"
-                         data-memory="-"
-                         data-storage="-"
-                         data-screen="-"
-                         data-locker="Locker B-02">
-
-                    <div class="equipment-card-image">
-
-                        <img src="../../static/images/equipment-keyboard.png"
-                             alt="Keychron V2 65%">
-
-                        <span class="availability-badge">
-                            Available
-                        </span>
-
-                    </div>
-
-                    <div class="equipment-card-body">
-
-                        <h3>Keychron V2 65%</h3>
-
-                        <p>Accessories</p>
-
-                    </div>
-
-                </article>
-
-            </div>
 
             <div class="equipment-grid"
                  hidden
@@ -467,7 +319,7 @@
      ===================================================== -->
 <div class="success-modal-backdrop" id="success-request-modal" hidden>
     <div class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
-        
+
         <button class="success-modal-close" id="success-modal-close-btn" type="button" aria-label="Close modal">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6 6 18"></path>
@@ -618,6 +470,7 @@
     <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
     <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
 
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

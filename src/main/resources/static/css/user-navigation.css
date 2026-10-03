@@ -1,0 +1,8 @@
+/* Native cross-document transitions keep normal navigation and page script lifecycles. */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: user-header; }
+::view-transition-group(user-header) { animation-duration: 160ms; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+    @view-transition { navigation: none; }
+}

@@ -8,11 +8,11 @@ public class AccountModelAdvice {
     private final com.example.itborrow.service.AvatarService avatars;
     private final UserRepository users; private final UserProfileRepository profiles;
     public AccountModelAdvice(UserRepository users, UserProfileRepository profiles, com.example.itborrow.service.AvatarService avatars) { this.avatars=avatars; this.users=users; this.profiles=profiles; }
-    @ModelAttribute public void account(Principal principal, Model model) {
+    @ModelAttribute public void account(Principal principal, Model model, jakarta.servlet.http.HttpServletRequest request) {
         if (principal != null) users.findByUsername(principal.getName()).ifPresent(user -> {
             model.addAttribute("profileImageUrl", avatars.url(user.getId()));
             model.addAttribute("user", user); model.addAttribute("currentUser",user);
-            profiles.findByUserId(user.getId()).ifPresent(profile -> model.addAttribute("profile",profile));
+            if (request.getRequestURI().equals(request.getContextPath()+"/profile")) profiles.findByUserId(user.getId()).ifPresent(profile -> model.addAttribute("profile",profile));
         });
     }
 }

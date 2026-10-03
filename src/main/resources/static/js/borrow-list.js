@@ -13,6 +13,10 @@
         const heading = node("h2", title); heading.id = className + "-title";
         dialog.setAttribute("aria-labelledby", heading.id);
         const header = node("header"); const close = node("button", "Close"); close.type = "button"; close.onclick = () => dialog.close();
+        if (className === "borrow-item-dialog") {
+            close.textContent = "\u00d7";
+            close.setAttribute("aria-label", "Close equipment details");
+        }
         header.append(heading, close); dialog.append(header);
         let pressedOutside = false;
         function outside(event) {
@@ -43,10 +47,29 @@
     async function details(id) {
         if (document.querySelector(".borrow-item-dialog[open]")) return;
         const dialog = makeDialog("borrow-item-dialog", "Equipment details");
-        const body = node("div", "Loading...", "borrow-list-body"); dialog.append(body);
+        const body = node("div", "", "borrow-list-body");
+        body.setAttribute("aria-busy", "true");
+        const loading = node("div", "", "borrow-detail-overview detail-loading");
+        loading.setAttribute("aria-hidden", "true");
+        const preview = node("div", "", "borrow-detail-media detail-skeleton");
+        const lines = node("div", "", "detail-loading-lines");
+        for (const style of ["short", "title", "badge", "line", "line", "line", "line"]) {
+            lines.append(node("span", "", `detail-skeleton detail-skeleton-${style}`));
+        }
+        loading.append(preview, lines);
+        const announcement = node("span", "Loading equipment details", "detail-loading-announcement");
+        announcement.setAttribute("role", "status");
+        body.append(loading, announcement);
+        const actions = node("footer", "", "borrow-detail-actions");
+        const pendingAction = node("button", "Loading details...", "button button-primary");
+        pendingAction.disabled = true;
+        actions.append(pendingAction);
+        dialog.append(body, actions);
         try {
-            const equipment = await getEquipment(id); if (!dialog.isConnected) return;
-            const categories = await fetch("/api/v1/categories").then(response => response.ok ? response.json() : []).catch(() => []);
+            const [equipment, categories] = await Promise.all([
+                getEquipment(id),
+                fetch("/api/v1/categories").then(response => response.ok ? response.json() : []).catch(() => [])
+            ]);
             if (!dialog.isConnected) return;
             const category = categories.find(x => x.id === equipment.categoryId)?.name || "IT Equipment";
             const media = node("div", "", "borrow-detail-media");
@@ -55,15 +78,17 @@
                 image.onerror = () => media.replaceChildren(node("span", "No image available")); media.append(image);
             } else media.append(node("span", "No image available"));
             const specs = node("section", "", "borrow-detail-specifications");
-            specs.append(node("h4", "Specifications"), node("p", equipment.specifications || "Specifications have not been added yet."));
+            const specRows = node("div");
+            window.renderEquipmentSpecs(specRows, equipment.specifications);
+            specs.append(node("h4", "Specifications"), specRows);
             const identity = node("div", "", "borrow-detail-identity");
-            const badge = node("span", equipment.status.replaceAll("_", " "), "borrow-detail-status");
+            const badge = node("span", {AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed"}[equipment.status] || "Unknown", "borrow-detail-status");
+            badge.dataset.status = equipment.status;
             badge.dataset.available = String(equipment.status === "AVAILABLE");
-            const code = node("div", "", "borrow-detail-code");
-            code.append(node("span", "Asset code"), node("strong", equipment.assetCode));
-            identity.append(node("p", category, "borrow-detail-category"), node("h3", equipment.name), badge, code);
+            identity.append(node("p", category, "borrow-detail-category"), node("h3", equipment.name), badge);
             const overview = node("div", "", "borrow-detail-overview"); overview.append(media, identity);
-            body.replaceChildren(overview, specs);
+            identity.append(specs);
+            body.replaceChildren(overview);
             const action = node("button", items.some(x => x.id === equipment.id) ? "View borrowing list" : "Add to borrowing list", "button button-primary");
             action.disabled = equipment.status !== "AVAILABLE";
             if (action.disabled) action.textContent = "Currently unavailable";
@@ -74,9 +99,18 @@
                 dialog.close();
                 toast.success("Added to your borrowing list. You can keep browsing.");
             };
-            const actions = node("footer", "", "borrow-detail-actions");
-            actions.append(action); dialog.append(actions);
-        } catch(error) { body.textContent = error.message; }
+            actions.replaceChildren(action);
+        } catch(error) {
+            if (!dialog.isConnected) return;
+            const message = node("p", error.message, "detail-load-error");
+            message.setAttribute("role", "alert");
+            body.replaceChildren(message);
+            const close = node("button", "Close", "button button-primary");
+            close.onclick = () => dialog.close();
+            actions.replaceChildren(close);
+        } finally {
+            body.setAttribute("aria-busy", "false");
+        }
     }
     function openList() {
         if (document.querySelector(".borrow-list-drawer[open]")) return;

@@ -2,9 +2,21 @@ package com.example.itborrow.dto.response;
 
 public class BorrowItemResponseDto {
 
+    private java.time.LocalDate returnedOn;
+    public java.time.LocalDate getReturnedOn() { return returnedOn; }
+    public void setReturnedOn(java.time.LocalDate value) { returnedOn=value; }
+    private java.math.BigDecimal purchasePrice;
+    public java.math.BigDecimal getPurchasePrice() { return purchasePrice; }
+    public void setPurchasePrice(java.math.BigDecimal value) { purchasePrice=value; }
     private Long equipmentId;
     private String assetCode;
     private String equipmentName;
+    private String categoryName;
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String value) { categoryName = value; }
+    private String imageUrl;
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     private String storageSlot;
     public String getStorageSlot() { return storageSlot; }
     public void setStorageSlot(String value) { storageSlot = value; }

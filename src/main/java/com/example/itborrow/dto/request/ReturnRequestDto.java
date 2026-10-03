@@ -8,6 +8,9 @@ import java.time.LocalDate;
 
 public class ReturnRequestDto {
 
+    private boolean partial;
+    public boolean isPartial() { return partial; }
+    public void setPartial(boolean value) { partial=value; }
     private LocalDate returnDate;
     @Size(max = 100)
     private java.util.List<@NotNull @jakarta.validation.Valid Inspection> items;

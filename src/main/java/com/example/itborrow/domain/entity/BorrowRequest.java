@@ -39,12 +39,37 @@ public class BorrowRequest {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @org.hibernate.annotations.BatchSize(size = 20)
     @OneToMany(mappedBy = "borrowRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BorrowItem> items = new ArrayList<>();
 
     @OneToOne(mappedBy = "borrowRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private ReturnRecord returnRecord;
 
+    @Column(name="daily_fine", updatable=false)
+    private java.math.BigDecimal dailyFine;
+    public java.math.BigDecimal getDailyFine() { return dailyFine; }
+    public void setDailyFine(java.math.BigDecimal value) { dailyFine=value; }
+    @Column(name="grace_days", updatable=false)
+    private Integer graceDays;
+    public Integer getGraceDays() { return graceDays; }
+    public void setGraceDays(Integer value) { graceDays=value; }
+    @Column(name="scratch_rate", updatable=false)
+    private java.math.BigDecimal scratchRate;
+    public java.math.BigDecimal getScratchRate() { return scratchRate; }
+    public void setScratchRate(java.math.BigDecimal value) { scratchRate=value; }
+    @Column(name="damage_rate", updatable=false)
+    private java.math.BigDecimal damageRate;
+    public java.math.BigDecimal getDamageRate() { return damageRate; }
+    public void setDamageRate(java.math.BigDecimal value) { damageRate=value; }
+    @Column(name="loss_rate", updatable=false)
+    private java.math.BigDecimal lossRate;
+    public java.math.BigDecimal getLossRate() { return lossRate; }
+    public void setLossRate(java.math.BigDecimal value) { lossRate=value; }
+    @Column(name="rejection_reason", length=500)
+    private String rejectionReason;
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String value) { rejectionReason=value; }
     public BorrowRequest() {
     }
 

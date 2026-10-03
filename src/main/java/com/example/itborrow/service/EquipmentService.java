@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import com.example.itborrow.domain.entity.Equipment;
 
 public interface EquipmentService {
+    Page<Equipment> searchInventory(String keyword, com.example.itborrow.domain.enums.EquipmentStatus status, Pageable pageable);
+    java.util.Map<String,Long> inventorySummary();
     Page<Equipment> getAllEquipments(Pageable pageable);
     Page<Equipment> searchEquipments(String keyword, Pageable pageable);
     Equipment getEquipmentById(Long id);

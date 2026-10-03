@@ -12,7 +12,7 @@ public class OverdueEventListener {
         this.notificationService = notificationService;
     }
 
-    @org.springframework.transaction.event.TransactionalEventListener(phase = org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT)
+    @org.springframework.transaction.event.TransactionalEventListener(phase = org.springframework.transaction.event.TransactionPhase.BEFORE_COMMIT)
     public void handleOverdueEvent(OverdueEvent event) {
         var request = event.getBorrowRequest();
 

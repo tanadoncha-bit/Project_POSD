@@ -41,6 +41,7 @@ class BorrowRequestServiceTest {
     @Mock private BorrowRequestRepository borrowRequestRepository;
     @Mock private UserRepository userRepository;
     @Mock private EquipmentRepository equipmentRepository;
+    @Mock private com.example.itborrow.repository.EquipmentCategoryRepository categories;
     @Mock private BorrowStateResolver stateResolver;
     @Mock private BorrowRequestMapper mapper;
     @Mock private com.example.itborrow.service.CurrentUser current;
@@ -72,7 +73,7 @@ class BorrowRequestServiceTest {
         BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), "ยืมไปประชุม", List.of(itemDto));
 
         when(current.require()).thenReturn(testUser);
-        when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
         when(borrowRequestRepository.save(any(BorrowRequest.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(mapper.toResponseDto(any(BorrowRequest.class))).thenReturn(BorrowResponseDto.builder().build());
@@ -91,7 +92,7 @@ class BorrowRequestServiceTest {
         BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), null, List.of(itemDto));
 
         when(current.require()).thenReturn(testUser);
-        when(equipmentRepository.findById(10L)).thenReturn(Optional.of(testEquipment));
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
 
         assertThatThrownBy(() -> service.createBorrowRequest(dto))
                 .isInstanceOf(EquipmentNotAvailableException.class)

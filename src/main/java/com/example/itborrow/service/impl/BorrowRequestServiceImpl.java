@@ -35,13 +35,15 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     private final BorrowStateResolver stateResolver;
     private final BorrowRequestMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final com.example.itborrow.repository.EquipmentCategoryRepository categories;
 
     public BorrowRequestServiceImpl(BorrowRequestRepository borrowRequestRepository,
                                      EquipmentRepository equipmentRepository,
                                      BorrowStateResolver stateResolver,
                                      BorrowRequestMapper mapper,
-                                     ApplicationEventPublisher eventPublisher, com.example.itborrow.service.CurrentUser current) {
+                                     ApplicationEventPublisher eventPublisher, com.example.itborrow.service.CurrentUser current, com.example.itborrow.repository.EquipmentCategoryRepository categories) {
         this.current = current;
+        this.categories = categories;
         this.borrowRequestRepository = borrowRequestRepository;
         this.equipmentRepository = equipmentRepository;
         this.stateResolver = stateResolver;
@@ -64,13 +66,19 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
 
         BorrowRequest request = new BorrowRequest();
         request.setUser(user);
+        boolean vip = user.getRole() == com.example.itborrow.domain.enums.Role.VIP;
+        request.setDailyFine(java.math.BigDecimal.valueOf(vip ? 30 : 50));
+        request.setGraceDays(vip ? 2 : 0);
+        request.setScratchRate(new java.math.BigDecimal("0.20"));
+        request.setDamageRate(new java.math.BigDecimal("0.50"));
+        request.setLossRate(java.math.BigDecimal.ONE);
         request.setBorrowDate(dto.getBorrowDate());
         request.setDueDate(dto.getDueDate());
         request.setNote(dto.getNote());
         request.setStatus(BorrowStatus.PENDING);
 
-        for (BorrowItemRequestDto itemDto : dto.getItems()) {
-            Equipment equipment = equipmentRepository.findById(itemDto.getEquipmentId())
+        for (BorrowItemRequestDto itemDto : dto.getItems().stream().sorted(java.util.Comparator.comparing(BorrowItemRequestDto::getEquipmentId)).toList()) {
+            Equipment equipment = equipmentRepository.findLockedById(itemDto.getEquipmentId())
                     .orElseThrow(() -> ResourceNotFoundException.of("Equipment", itemDto.getEquipmentId()));
 
             if (equipment.getStatus() != EquipmentStatus.AVAILABLE) {
@@ -81,11 +89,14 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
 
             BorrowItem item = new BorrowItem();
             item.setEquipment(equipment);
+            item.captureEquipmentIdentity();
+            item.setSnapshotCategoryName(categories.findById(equipment.getCategoryId()).map(c -> c.getName()).orElse("Equipment"));
             item.setQuantity(itemDto.getQuantity());
             request.addItem(item);
         }
 
         BorrowRequest saved = borrowRequestRepository.save(request);
+        eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(saved.getId(), "CREATED"));
         return mapper.toResponseDto(saved);
     }
 
@@ -102,6 +113,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
                 throw new EquipmentNotAvailableException("Equipment is unavailable or reserved during this period: " + asset.getAssetCode());
         }
         stateResolver.resolve(request.getStatus()).approve(request);
+        eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(request.getId(), "APPROVED"));
         return mapper.toResponseDto(borrowRequestRepository.save(request));
     }
 
@@ -122,6 +134,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
             equipment.setStatus(EquipmentStatus.IN_USE);
         }
 
+        eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(request.getId(), "PICKED_UP"));
         return mapper.toResponseDto(borrowRequestRepository.save(request));
     }
 
@@ -131,6 +144,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
         BorrowRequest request = findLockedById(id);
         current.requireOwnerOrOperator(request);
         stateResolver.resolve(request.getStatus()).cancel(request);
+        eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(request.getId(), "CANCELLED"));
         return mapper.toResponseDto(borrowRequestRepository.save(request));
     }
 
@@ -152,6 +166,11 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public void checkAndMarkOverdue() {
+        for (var expired : borrowRequestRepository.findExpiredForUpdate(java.util.List.of(BorrowStatus.PENDING,BorrowStatus.APPROVED),LocalDate.now())) {
+            expired.setStatus(BorrowStatus.CANCELLED);
+            borrowRequestRepository.save(expired);
+            eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(expired.getId(),"EXPIRED"));
+        }
         List<BorrowRequest> overdueCandidates = borrowRequestRepository
                 .findOverdueForUpdate(BorrowStatus.BORROWED, LocalDate.now());
 
@@ -160,6 +179,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
             borrowRequestRepository.save(request);
 
             eventPublisher.publishEvent(new OverdueEvent(this, request));
+            eventPublisher.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(request.getId(),"OVERDUE"));
         }
     }
 

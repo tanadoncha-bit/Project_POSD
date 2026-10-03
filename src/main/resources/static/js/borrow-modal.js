@@ -9,6 +9,7 @@
         try {
             const url = new URL("/borrow", window.location.origin);
             url.searchParams.set("modal", "true");
+            if (Array.isArray(equipmentId)) { if (equipmentId.length > 100) throw new Error("Select at most 100 equipment items."); equipmentId.forEach(id => url.searchParams.append("equipmentIds", id)); }
             if (equipmentId && !Array.isArray(equipmentId)) url.searchParams.set("equipmentId", equipmentId);
             const response = await fetch(url, { credentials: "same-origin" });
             if (!response.ok) throw new Error("Unable to load available equipment. Please try again.");
@@ -23,6 +24,16 @@
                 }
                 inputs.forEach(input => { input.checked = selected.has(input.value); input.closest("label").hidden = !input.checked; });
                 form.dataset.borrowList = "true";
+            }
+            if (equipmentId && (!Array.isArray(equipmentId) || equipmentId.length)) {
+                form.dataset.confirmSelection = "true";
+                form.querySelector("[data-equipment-section-title]").textContent = "Selected equipment";
+                form.querySelectorAll('input[name="equipmentIds"]').forEach(input => {
+                    if (input.checked) {
+                        input.type = "hidden";
+                        input.checked = true;
+                    }
+                });
             }
             const dialog = document.createElement("dialog");
             dialog.className = "borrow-dialog";

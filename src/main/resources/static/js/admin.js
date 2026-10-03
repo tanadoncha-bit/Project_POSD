@@ -24,53 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
     let equipments = new Map();
     let requests = new Map();
     let categories = [];
+    let assetPage=0, assetTotal=0, assetLoadVersion=0;
     let requestPage = 0;
     let requestLoadVersion = 0;
     const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     const money = value => Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function showError(message) { toast.error(message); }
-    const inspectionContainer = document.getElementById("return-inspections");
-    function updateDamageEstimate() {
-        let total = 0; let missingPrice = false;
-        inspectionContainer.querySelectorAll("[data-inspection]").forEach(row => {
-            const condition = row.querySelector("select").value;
-            const rate = { NORMAL: 0, MINOR_SCRATCHES: 0.2, DAMAGED: 0.5, LOST: 1 }[condition];
-            const price = equipments.get(row.dataset.inspection)?.purchasePrice;
-            row.querySelector("textarea").required = rate > 0;
-            const unavailable = rate > 0 && price == null;
-            missingPrice ||= unavailable;
-            const amount = Math.round((Number(price || 0) * rate + Number.EPSILON) * 100) / 100;
-            total += amount;
-            row.querySelector("output").textContent = unavailable ? "Set the purchase price in Inventory first." : `Damage charge: ${money(amount)} THB`;
-        });
-        document.getElementById("return-damage-estimate").textContent = missingPrice ? "A purchase price is missing. Update Inventory before confirming." : `Estimated damage charges: ${money(total)} THB + late fee (if any)`;
-        document.querySelector("[data-confirm-return]").disabled = missingPrice;
-    }
-    inspectionContainer.addEventListener("change", updateDamageEstimate);
-    function renderInspections(loan) {
-        inspectionContainer.innerHTML = loan.items.map(item => {
-            const price = equipments.get(String(item.equipmentId))?.purchasePrice;
-            return `<fieldset data-inspection="${item.equipmentId}"><legend>${escapeHtml(item.equipmentName)} (${escapeHtml(item.assetCode)})</legend>
-                <p>Purchase price: ${price == null ? "Not set" : money(price) + " THB"}</p>
-                <label>Condition<select><option value="NORMAL">Normal - 0%</option><option value="MINOR_SCRATCHES">Scratch - 20%</option><option value="DAMAGED">Damaged - 50% (maintenance)</option><option value="LOST">Lost - 100% (disposed)</option></select></label>
-                <label>Inspection note<textarea maxlength="500" placeholder="Describe any damage or loss"></textarea></label><output></output></fieldset>`;
-        }).join("");
-        updateDamageEstimate();
-    }
-    document.getElementById("admin-return-form").addEventListener("submit", async event => {
-        event.preventDefault();
-        const button = event.currentTarget.querySelector('[type="submit"]'); button.disabled = true;
-        const items = Array.from(inspectionContainer.querySelectorAll("[data-inspection]")).map(row => ({equipmentId: Number(row.dataset.inspection), condition: row.querySelector("select").value, remark: row.querySelector("textarea").value}));
-        try {
-            const result = await requestJson(`/api/v1/borrow-requests/${selectedRequestId}/return`, {method:"POST", body:JSON.stringify({items, remark:document.getElementById("return-remark").value})});
-            success(`Return recorded. Late fee: ${money(result.fineAmount)} THB. Damage: ${money(result.damageAmount)} THB. Total: ${money(result.totalAmount)} THB.`);
-            await loadData();
-        } catch (error) { showError(error.message); }
-        finally { button.disabled = false; }
-    });
+    const requestJson = window.workflowApi;
+    const {renderInspections}=window.createAdminReturns({getRequests:()=>requests,getSelectedRequestId:()=>selectedRequestId,money,escapeHtml,requestJson,success,loadData,showError});
     function statusClass(status) {
         if (status === "AVAILABLE") return "available";
         if (["IN_USE", "BORROWED", "APPROVED"].includes(status)) return "in-use";
+        if (status === "DISPOSED") return "disposed";
         if (status === "PENDING") return "pending";
         if (status === "RETURNED") return "returned";
         if (status === "OVERDUE") return "overdue";
@@ -90,10 +55,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const url = equipmentImage(id);
         return url ? `<img src="${url}" alt="" loading="lazy">` : '<span class="management-no-image">No image</span>';
     }
+    function requestImage(item) {
+        const url = item?.imageUrl;
+        return url && (url.startsWith("https://") || url.startsWith("/images/"))
+            ? `<img src="${escapeHtml(url)}" alt="" loading="lazy">`
+            : '<span class="management-no-image">No image</span>';
+    }
     function shelfDevice(item, category) {
         const kind = /laptop|notebook/i.test(category) ? "laptop" : /display|monitor/i.test(category) ? "monitor" : "accessory";
-        const available = item.status === "AVAILABLE";
-        return `<span class="shelf-device ${kind} ${available ? "ready" : "busy"}" aria-hidden="true"><span class="shelf-screen"><span class="shelf-symbol">${available ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'}</span><span>${escapeHtml(item.status.replaceAll("_", " "))}</span></span><span class="shelf-base"></span></span>`;
+        const states = {
+            AVAILABLE: {className: "ready", label: "Available", icon: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'},
+            IN_USE: {className: "busy", label: "In use", icon: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
+            MAINTENANCE: {className: "maintenance", label: "Maintenance", icon: '<path d="m14 6 4 4M4 20l7-7a6 6 0 0 0 8-8l-4 4-3-3 4-4a6 6 0 0 0-8 8l-7 7z"/>'},
+            DISPOSED: {className: "disposed", label: "Disposed", icon: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'}
+        };
+        const state = states[item.status] || {className: "disposed", label: item.status, icon: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'};
+        return `<span class="shelf-device ${kind} ${state.className}" aria-hidden="true"><span class="shelf-screen"><span class="shelf-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${state.icon}</svg></span><span>${escapeHtml(state.label)}</span></span><span class="shelf-base"></span></span>`;
     }
     function renderShelves(items) {
         const groups = categories.map(category => ({...category, items: items.filter(item => item.categoryId === category.id)}));
@@ -157,33 +134,23 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-admin-nav]").forEach(link => link.classList.toggle("active", link.dataset.adminNav === view));
         window.history.replaceState(null, "", `#${view}`);
     }
-    async function requestJson(url, options = {}) {
-        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
-        const token = document.querySelector('meta[name="_csrf"]')?.content;
-        const response = await fetch(url, { ...options, headers: { "Content-Type": "application/json", ...(header && token ? { [header]: token } : {}), ...(options.headers || {}) } });
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.message || `Request failed (${response.status})`);
-        }
-        return response.status === 204 ? null : response.json();
-    }
-    async function allPages(url) {
-        const items = [];
-        for (let pageNumber = 0; ; pageNumber++) {
-            const result = await requestJson(`${url}&page=${pageNumber}`);
-            items.push(...result.content);
-            if (result.last) return items;
-        }
-    }
     function filterInventory() {
-        const keyword = (search?.value || "").trim().toLowerCase();
-        let visible = 0;
-        inventory.querySelectorAll(".admin-equipment-card").forEach(card => {
-            card.hidden = !(`${card.dataset.name} ${card.dataset.code}`.toLowerCase().includes(keyword) && (statusFilter.value === "ALL" || card.dataset.status === statusFilter.value));
-            if (!card.hidden) visible++;
-        });
-        document.getElementById("admin-inventory-empty").hidden = visible > 0;
-        document.getElementById("inventory-result-count").textContent = `${visible} of ${equipments.size} equipment`;
+        document.getElementById("admin-inventory-empty").hidden = equipments.size > 0;
+        document.getElementById("inventory-result-count").textContent = `${equipments.size} of ${assetTotal} matching equipment`;
+    }
+    async function loadAssets() {
+        const version=++assetLoadVersion;
+        const params=new URLSearchParams({size:'12',page:assetPage,sort:'name,asc',keyword:search.value.trim()});
+        if(statusFilter.value!=='ALL') params.set('status',statusFilter.value);
+        const [result,summary]=await Promise.all([requestJson('/api/v1/equipment?'+params),requestJson('/api/v1/equipment/summary')]);
+        if(version!==assetLoadVersion) return;
+        assetTotal=result.totalElements;
+        renderEquipment(result.content);
+        document.querySelector('[data-count-available]').textContent=summary.available;
+        document.querySelector('[data-count-in-use]').textContent=summary.inUse;
+        document.querySelectorAll('[data-asset-prev]').forEach(b=>b.disabled=result.first);
+        document.querySelectorAll('[data-asset-next]').forEach(b=>b.disabled=result.last);
+        document.querySelectorAll('[data-asset-page]').forEach(b=>b.textContent=`Equipment page ${result.number+1} of ${Math.max(1,result.totalPages)}`);
     }
     function filterRequests() {
         const status = document.querySelector("[data-admin-request-filter].active")?.dataset.adminRequestFilter || "ALL";
@@ -217,14 +184,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("article"); card.className = "admin-request-card";
             Object.assign(card.dataset, { requestId: item.id, requestStatus: item.status });
             let action = item.status === "RETURNED" ? `<button type="button" data-return-receipt="${item.id}">View charges</button>` : "";
-            if (item.status === "PENDING") action = '<button type="button" data-admin-approve><img src="/images/request-confirm.svg" alt="">Approve</button>';
+            if (item.status === "PENDING") action = '<button type="button" data-workflow="reject">Reject</button><button type="button" data-admin-approve><img src="/images/request-confirm.svg" alt="">Approve</button>';
             if (item.status === "APPROVED") action = '<button type="button" data-admin-pickup>Confirm pickup</button>';
             if (["BORROWED", "OVERDUE"].includes(item.status)) action = '<button type="button" data-open-admin-modal="return-modal"><img src="/images/request-return.svg" alt="">Return</button>';
             if (["PENDING", "APPROVED", "BORROWED", "OVERDUE"].includes(item.status) && item.username === page.dataset.username)
                 action = '<span class="request-awaiting-review">Another staff member must handle this request.</span>';
+            if (item.status === "RETURNED" && item.username !== page.dataset.username) action += '<button type="button" data-workflow="settlement">Record payment</button>';
             const label = {PENDING:'Pending', APPROVED:'Approved', BORROWED:'In use', OVERDUE:'Overdue', RETURNED:'Returned', CANCELLED:'Cancelled'}[item.status] || item.status;
-            const note = item.note?.trim();
-            card.innerHTML = `<header><div class="request-borrower"><span class="request-borrower-initial" aria-hidden="true">${escapeHtml((item.username || 'U').slice(0,1).toUpperCase())}</span><div><h2>${escapeHtml(item.username)}</h2><p>Request #${item.id} &middot; Borrowed: ${escapeHtml(item.borrowDate)} &middot; Due: ${escapeHtml(item.dueDate)}</p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${imageMarkup(asset.equipmentId)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
+            const note = item.rejectionReason ? "Rejected: " + item.rejectionReason : item.note?.trim();
+            card.innerHTML = `<header><div class="request-borrower"><span class="request-borrower-initial" aria-hidden="true">${escapeHtml((item.username || 'U').slice(0,1).toUpperCase())}</span><div><h2>${escapeHtml(item.username)}</h2><p>Request #${item.id} &middot; Borrowed: ${escapeHtml(item.borrowDate)} &middot; Due: ${escapeHtml(item.dueDate)}</p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${requestImage(asset)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}${asset.returnedOn ? " ? Returned " + escapeHtml(asset.returnedOn) : ""}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
             requestList.append(card);
         });
         document.querySelector("[data-count-pending]").textContent = summary.pending;
@@ -235,10 +203,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("admin-recent-requests").innerHTML = work.slice(0, 6).map(item => {
             const first = item.items[0];
             const equipment = equipments.get(String(first?.equipmentId));
-            const category = categories.find(category => category.id === equipment?.categoryId)?.name || "Equipment";
+            const category = first?.categoryName || "Equipment";
             const extra = item.items.length > 1 ? ` +${item.items.length - 1} more` : "";
+            if (item.status === "RETURNED" && item.username !== page.dataset.username) action += '<button type="button" data-workflow="settlement">Record payment</button>';
             const label = {PENDING: "Pending", APPROVED: "Approved", OVERDUE: "Overdue"}[item.status];
-            return `<article class="management-queue-card"><header class="management-queue-heading"><div class="management-queue-image">${imageMarkup(first?.equipmentId)}</div><div class="management-queue-title"><h3>${escapeHtml(first?.equipmentName || "Request #" + item.id)}</h3><p>${escapeHtml(category)}${escapeHtml(extra)}</p></div><span class="management-queue-status ${statusClass(item.status)}">${label}</span></header><dl><div><dt>${personIcon}Borrower:</dt><dd>${escapeHtml(item.username)}</dd></div><div><dt>${calendarIcon}Due Date:</dt><dd>${escapeHtml(item.dueDate)}</dd></div></dl><button type="button" data-queue-request="${item.id}" aria-label="More detail for request ${item.id}">More Detail</button></article>`;
+            return `<article class="management-queue-card"><header class="management-queue-heading"><div class="management-queue-image">${requestImage(first)}</div><div class="management-queue-title"><h3>${escapeHtml(first?.equipmentName || "Request #" + item.id)}</h3><p>${escapeHtml(category)}${escapeHtml(extra)}</p></div><span class="management-queue-status ${statusClass(item.status)}">${label}</span></header><dl><div><dt>${personIcon}Borrower:</dt><dd>${escapeHtml(item.username)}</dd></div><div><dt>${calendarIcon}Due Date:</dt><dd>${escapeHtml(item.dueDate)}</dd></div></dl><button type="button" data-queue-request="${item.id}" aria-label="More detail for request ${item.id}">More Detail</button></article>`;
         }).join("") || '<p class="admin-empty-inline">All caught up. No requests need attention.</p>';
         filterRequests();
     }
@@ -260,14 +229,18 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector('[data-request-prev]').addEventListener('click',()=>{requestPage=Math.max(0,requestPage-1);loadRequestPage();});
     document.querySelector('[data-request-next]').addEventListener('click',()=>{requestPage++;loadRequestPage();});
     async function loadData() {
-        const [assets, loans, categoryData] = await Promise.all([allPages("/api/v1/equipment?size=100&sort=name,asc"), requestJson(`/api/v1/borrow-requests/management?page=${requestPage}&status=${document.querySelector("[data-admin-request-filter].active")?.dataset.adminRequestFilter || "ALL"}`), requestJson("/api/v1/categories")]);
-        categories = categoryData;
-        document.getElementById("admin-category").replaceChildren(new Option("Select a category", ""), ...categories.map(item => new Option(item.name, item.id)));
-        renderEquipment(assets); renderRequests(loans.page.content, loans); updateRequestPaging(loans.page);
-        document.getElementById("admin-load-error").hidden = true;
+        if(!categories.length) {
+            categories=await requestJson('/api/v1/categories');
+            for(const id of ['admin-category','admin-edit-category']) document.getElementById(id).replaceChildren(new Option('Select a category',''),...categories.map(item=>new Option(item.name,item.id)));
+        }
+        await Promise.all([loadAssets(),loadRequestPage()]);
+        document.getElementById("admin-load-error").hidden=true;
     }
+    document.querySelectorAll('[data-asset-prev],[data-asset-next]').forEach(button=>button.addEventListener('click',()=>{assetPage=Math.max(0,assetPage+(button.hasAttribute('data-asset-next')?1:-1));loadAssets().catch(e=>showError(e.message));}));
     document.addEventListener("click", async event => {
         const target = event.target;
+        const operation=target.closest('[data-workflow]');
+        if(operation) { try { if(await window.workflowAction(operation.dataset.workflow, operation.closest('[data-request-id]')?.dataset.requestId || selectedEquipmentId)) { success('Saved.'); await loadData(); } } catch(e) { showError(e.message); } return; }
         const nav = target.closest("[data-admin-nav]");
         if (nav) { event.preventDefault(); showView(nav.dataset.adminNav); return; }
         if (target.closest("[data-admin-menu]")) { page.classList.toggle("admin-menu-open"); return; }
@@ -301,12 +274,14 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("admin-equipment-code").textContent = item.assetCode;
             document.getElementById("admin-equipment-image").innerHTML = imageMarkup(item.id);
             document.getElementById("admin-equipment-category").textContent = categories.find(category => category.id === item.categoryId)?.name || "Other";
-            document.getElementById("admin-equipment-specs").textContent = item.specifications?.trim() || "No specifications added yet.";
+            window.renderEquipmentSpecs(document.getElementById("admin-equipment-specs"), item.specifications);
             const detailStatus = document.getElementById("admin-equipment-status");
             detailStatus.className = `admin-status ${statusClass(item.status)}`;
-            detailStatus.textContent = item.status.replaceAll("_", " ");
+            document.querySelector('[data-workflow="repair"]').hidden = item.status !== "MAINTENANCE";
+            detailStatus.textContent = {AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed"}[item.status] || item.status;
             document.getElementById("admin-borrower-strip").hidden = item.status !== "IN_USE";
             const form = document.getElementById("admin-edit-equipment-form");
+            form.elements.categoryId.value = item.categoryId;
             form.elements.storageSlot.value = item.storageSlot || "";
             document.getElementById("admin-equipment-slot").textContent = item.storageSlot || "Not assigned";
             form.elements.image.value = "";
@@ -354,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         }
     });
-    search?.addEventListener("input", filterInventory); statusFilter?.addEventListener("change", filterInventory);
+    let searchTimer; search?.addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{assetPage=0;loadAssets().catch(e=>showError(e.message));},250);}); statusFilter?.addEventListener("change",()=>{assetPage=0;loadAssets().catch(e=>showError(e.message));});
     document.querySelectorAll("[data-admin-request-filter]").forEach(button => button.addEventListener("click", () => {
         document.querySelectorAll("[data-admin-request-filter]").forEach(item => item.classList.toggle("active", item === button)); requestPage=0; loadRequestPage();
     }));
@@ -373,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     for (const mode of ["add", "edit"]) document.getElementById(`admin-${mode}-equipment-form`).addEventListener("submit", async event => {
         event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const button = form.querySelector('[type="submit"]'); button.disabled = true;
-        const payload = mode === "add" ? { name: data.get("name"), assetCode: data.get("assetCode"), categoryId: Number(data.get("categoryId")), status: "AVAILABLE" } : { name: data.get("name"), status: data.get("status") };
+        const payload = mode === "add" ? { name: data.get("name"), assetCode: data.get("assetCode"), categoryId: Number(data.get("categoryId")), status: "AVAILABLE" } : { name: data.get("name"), categoryId: Number(data.get("categoryId")), status: data.get("status") };
         payload.imageUrl = data.get("imageUrl").trim(); payload.specifications = data.get("specifications").trim();
         payload.storageSlot = data.get("storageSlot").trim();
         payload.purchasePrice = data.get("purchasePrice");

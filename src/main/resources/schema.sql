@@ -115,3 +115,38 @@ ALTER TABLE equipment ADD COLUMN IF NOT EXISTS image_url VARCHAR(1000);
 ALTER TABLE equipment ADD COLUMN IF NOT EXISTS specifications TEXT;
 
 ALTER TABLE equipment ADD COLUMN IF NOT EXISTS storage_slot VARCHAR(100);
+
+CREATE TABLE IF NOT EXISTS borrow_workflow_audit (
+ id BIGSERIAL PRIMARY KEY,
+ request_id BIGINT NOT NULL,
+ actor_username VARCHAR(100) NOT NULL,
+ action VARCHAR(30) NOT NULL,
+ changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_workflow_audit_request ON borrow_workflow_audit(request_id, id);
+
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_name VARCHAR(150);
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_asset_code VARCHAR(30);
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_storage_slot VARCHAR(100);
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_image_url VARCHAR(1000);
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_category_name VARCHAR(150);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_equipment_storage_slot ON equipment(storage_slot);
+
+CREATE INDEX IF NOT EXISTS idx_borrow_item_snapshot_image ON borrow_items(snapshot_image_url);
+
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS daily_fine NUMERIC(12,2);
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS grace_days INT;
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS scratch_rate NUMERIC(5,4);
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS damage_rate NUMERIC(5,4);
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS loss_rate NUMERIC(5,4);
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS snapshot_purchase_price NUMERIC(12,2);
+
+ALTER TABLE borrow_items ADD COLUMN IF NOT EXISTS returned_on DATE;
+
+ALTER TABLE borrow_requests ADD COLUMN IF NOT EXISTS rejection_reason VARCHAR(500);
+CREATE TABLE IF NOT EXISTS settlements (request_id BIGINT PRIMARY KEY REFERENCES borrow_requests(id), amount NUMERIC(16,2) NOT NULL, reference VARCHAR(500) NOT NULL, actor_username VARCHAR(50) NOT NULL, paid_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS equipment_repairs (id BIGSERIAL PRIMARY KEY, equipment_id BIGINT NOT NULL REFERENCES equipment(id), actor_username VARCHAR(50) NOT NULL, note VARCHAR(500) NOT NULL, repaired_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+
+CREATE TABLE IF NOT EXISTS delivery_jobs (id BIGSERIAL PRIMARY KEY, kind VARCHAR(30) NOT NULL, recipient VARCHAR(320) NOT NULL, subject VARCHAR(200) NOT NULL, payload TEXT NOT NULL, completed BOOLEAN NOT NULL DEFAULT false, attempts INT NOT NULL DEFAULT 0, next_attempt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, last_error VARCHAR(150));
+CREATE INDEX IF NOT EXISTS idx_delivery_jobs_pending ON delivery_jobs(completed,next_attempt);
+CREATE TABLE IF NOT EXISTS email_verifications (user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, email VARCHAR(320) NOT NULL, token_hash VARCHAR(64), expires_at TIMESTAMP, requested_at TIMESTAMP NOT NULL, verified_at TIMESTAMP);

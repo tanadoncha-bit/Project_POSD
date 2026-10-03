@@ -32,6 +32,7 @@
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 <script defer src="/js/form-pickers.js" th:src="@{/js/form-pickers.js}"></script>
@@ -58,11 +59,10 @@
 
                 <div>
 
-                    <h1>Borrow Equipment Form</h1>
+                    <h1>Confirm borrowing</h1>
 
                     <p>
-                        Specify the borrower, return due date,
-                        and select equipment to borrow
+                        Review your equipment and return date. Your request will be sent for approval.
                     </p>
 
                 </div>
@@ -137,11 +137,6 @@
                             College of Computing
                         </p>
 
-                        <p>
-                            <strong>Role:</strong>
-                            Student
-                        </p>
-
                     </div>
 
 
@@ -165,14 +160,6 @@
 
                             <span th:text="${currentUser.email}">
                                 Email
-                            </span>
-                        </p>
-
-                        <p>
-                            <strong>Role:</strong>
-
-                            <span th:text="${currentUser.role}">
-                                USER
                             </span>
                         </p>
 
@@ -211,7 +198,7 @@
 
                         </span>
 
-                        Select Equipment
+                        <span data-equipment-section-title>Select equipment</span>
 
                         <span class="selected-equipment-count"
                               id="selected-equipment-count">
@@ -224,6 +211,7 @@
 
                     <!-- ตัวอย่างอุปกรณ์สำหรับ Live Server -->
 
+                    <p th:if="${param.equipmentIds == null and selectedEquipmentId == null}"><a href="/equipment">Browse all equipment</a></p>
                     <div class="equipment-choice-list"
                          th:remove="all">
 
@@ -341,6 +329,11 @@
 
                             </span>
 
+                            <span class="borrow-equipment-photo">
+                                <img th:if="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}"
+                                     th:src="${equipment.imageUrl}" th:alt="${equipment.name}" loading="lazy">
+                                <span th:unless="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}">No photo</span>
+                            </span>
                             <span th:text="${equipment.name}">
                                 Equipment
                             </span>
@@ -382,7 +375,7 @@
 
                         </span>
 
-                        Due Date
+                        Return date
 
                     </label>
 
@@ -423,7 +416,7 @@
 
                         </span>
 
-                        Note
+                        Note (optional)
 
                     </label>
 
@@ -478,7 +471,7 @@
                     </span>
 
                     <span id="borrow-submit-label">
-                        Submit
+                        Submit request
                     </span>
 
                 </button>
@@ -574,6 +567,7 @@
             th:src="@{/js/borrow-form.js}"></script>
 
 <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

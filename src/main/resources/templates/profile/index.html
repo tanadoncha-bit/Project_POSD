@@ -24,6 +24,7 @@
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 </head>
 
@@ -320,31 +321,7 @@
                     <div class="profile-loan-list">
 
                         <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
-                        <article class="profile-loan-item"
-                                 th:remove="all">
 
-                            <div class="profile-loan-image">
-                                <span>LeadIT</span>
-                            </div>
-
-                            <div class="profile-loan-information">
-                                <h3>Keychron V2 65%</h3>
-                                <p>จำนวน: 1</p>
-
-                                <span class="profile-locker-location">
-
-                                    <span aria-hidden="true">
-                                        <!-- Lucide icon: MapPin -->
-                                    </span>
-
-                                    Slot C-5
-                                </span>
-                            </div>
-
-                            <span class="profile-loan-status status-active">
-                                In Use
-                            </span>
-                        </article>
 
                         <!-- ข้อมูลจริงจาก Spring Boot -->
                         <th:block th:if="${activeLoans != null and !activeLoans.isEmpty()}">
@@ -421,7 +398,7 @@
                             </p>
                         </div>
                     </div>
-                </section>
+                <nav class="management-pagination" aria-label="Active loan pages" th:if="${activeLoanPage != null and activeLoanPage.totalPages > 1}"><a th:if="${activeLoanPage.hasPrevious()}" th:href="@{/profile(activePage=${activeLoanPage.number - 1},historyPage=${borrowHistoryPage.number})}">Previous</a><span th:text="|Page ${activeLoanPage.number + 1} of ${activeLoanPage.totalPages}|"></span><a th:if="${activeLoanPage.hasNext()}" th:href="@{/profile(activePage=${activeLoanPage.number + 1},historyPage=${borrowHistoryPage.number})}">Next</a></nav></section>
 
                 <!-- =============================================
                      BORROW HISTORY
@@ -440,49 +417,9 @@
                     <div class="profile-history-list">
 
                         <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
-                        <article class="profile-loan-item"
-                                 th:remove="all">
 
-                            <div class="profile-loan-image">
-                                <span>LeadIT</span>
-                            </div>
 
-                            <div class="profile-loan-information">
-                                <h3>Keychron V2 65%</h3>
-                                <p>จำนวน: 1</p>
 
-                                <span class="profile-locker-location">
-
-                                    <span aria-hidden="true">
-                                        <!-- Lucide icon: MapPin -->
-                                    </span>
-
-                                    Slot C-5
-                                </span>
-                            </div>
-                        </article>
-
-                        <article class="profile-loan-item"
-                                 th:remove="all">
-
-                            <div class="profile-loan-image">
-                                <span>LeadIT</span>
-                            </div>
-
-                            <div class="profile-loan-information">
-                                <h3>SUPERLIGHT 2C</h3>
-                                <p>จำนวน: 1</p>
-
-                                <span class="profile-locker-location">
-
-                                    <span aria-hidden="true">
-                                        <!-- Lucide icon: MapPin -->
-                                    </span>
-
-                                    Slot C-3
-                                </span>
-                            </div>
-                        </article>
 
                         <!-- ข้อมูลจริงจาก Spring Boot -->
                         <th:block th:if="${borrowHistory != null and !borrowHistory.isEmpty()}">
@@ -554,7 +491,7 @@
                             </p>
                         </div>
                     </div>
-                </section>
+                <nav class="management-pagination" aria-label="Loan history pages" th:if="${borrowHistoryPage != null and borrowHistoryPage.totalPages > 1}"><a th:if="${borrowHistoryPage.hasPrevious()}" th:href="@{/profile(historyPage=${borrowHistoryPage.number - 1},activePage=${activeLoanPage.number})}">Previous</a><span th:text="|Page ${borrowHistoryPage.number + 1} of ${borrowHistoryPage.totalPages}|"></span><a th:if="${borrowHistoryPage.hasNext()}" th:href="@{/profile(historyPage=${borrowHistoryPage.number + 1},activePage=${activeLoanPage.number})}">Next</a></nav></section>
             </div>
         </div>
     </main>
@@ -566,10 +503,12 @@
         <div th:replace="~{fragments/site :: searchOverlay}"></div>
     </div>
     <script src="../../static/js/site-preview.js" th:src="@{/js/site-preview.js}"></script>
-    <script src="../../static/js/profile.js"
+    <script src="../../static/js/workflow-actions.js" th:src="@{/js/workflow-actions.js}"></script>
+<script src="../../static/js/profile.js"
             th:src="@{/js/profile.js}"></script>
 <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
 <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

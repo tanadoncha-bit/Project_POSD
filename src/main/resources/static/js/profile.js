@@ -248,38 +248,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (verifyEmailButton) {
-        verifyEmailButton.addEventListener(
-            "click",
-            () => {
-                if (isLiveServerPreview()) {
-                    verifyEmailButton.classList.add(
-                        "is-verified"
-                    );
-
-                    verifyEmailButton.innerHTML = `
-                        <span
-                            class="profile-button-icon"
-                            aria-hidden="true"
-                        >
-                            <!-- Lucide icon: BadgeCheck -->
-                        </span>
-
-                        <span>Email Verified</span>
-                    `;
-
-                    verifyEmailButton.disabled = true;
-
-                    setFormMessage(
-                        "Email verified successfully."
-                    );
-
-                    return;
-                }
-
-                window.location.href =
-                    "/profile/verify-email";
-            }
-        );
+        workflowApi('/api/v1/profile/verification').then(info => {
+            verifyEmailButton.disabled = info.verified || !info.configured;
+            verifyEmailButton.title = info.verified ? 'Email verified' : info.configured ? 'Verify your email' : 'Email delivery is not configured';
+            if(info.verified) verifyEmailButton.querySelector('span:last-child').textContent='Email verified';
+        }).catch(() => {});
+        verifyEmailButton.onclick = async () => {
+            try {
+                await workflowApi('/api/v1/profile/verification',{method:'POST'});
+                const done=await workflowForm('Verify email','A code has been queued for your current email address. It expires in 30 minutes.','Verification code',token=>workflowApi('/api/v1/profile/verification/confirm',{method:'POST',body:JSON.stringify({token})}));
+                if(done) { verifyEmailButton.disabled=true; verifyEmailButton.querySelector('span:last-child').textContent='Email verified'; }
+            } catch(e) { toast.error(e.message); }
+        };
     }
 
     if (changePasswordButton) {

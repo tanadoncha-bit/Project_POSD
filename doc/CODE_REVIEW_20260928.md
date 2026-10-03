@@ -21,7 +21,7 @@ Scope: static review of application workflows, authorization, persistence, image
 
 - Fees use current purchase price and current borrower role at return time. Editing price or changing VIP status mid-loan changes charges. Define whether to snapshot policy and valuation at approval/pickup or deliberately use current values, then persist that policy for audit.
 - There is no complete payment/settlement workflow: recording charges should not imply they were paid. Also decide partial returns, request rejection reason, no-show expiry and damaged-item repair flow before real operational use.
-- NotificationServiceimpl logs notifications rather than delivering them. profile.js navigates to /profile/verify-email but no matching controller endpoint was found. Do not present these as complete production features.
+- NotificationServiceimpl logs notifications rather than delivering them. Email verification has no working delivery/verification flow; the current profile button is disabled while unconfigured. Do not present these as complete production features.
 - Storage slot is a free-text label, not a validated locker allocation. If physical capacity/exclusivity matters, introduce actual slot records and allocation rules.
 
 ## Performance observations
@@ -79,4 +79,38 @@ Completed in the first remediation pass:
 - Management requests use 20-item server pages and status filtering, with independent summary counts and a bounded attention queue.
 - Full existing tests pass; integration coverage added for self-pickup/return, overlapping approval, slot propagation, stale image paths and paginated request access.
 
-Not completed by this pass: catalog/profile/history server pagination, whole-project CSS/JS consolidation, versioned migration runner, actor audit records and loan-time fee snapshots, real email verification/notification delivery, partial returns/payment settlement, durable cleanup retries, and controlled browser performance comparison. These remain explicit follow-up work; this pass is not a claim that every review item is closed.
+Completed in the second remediation pass (2026-09-29):
+- Catalog uses 12-item server pages with keyword filtering before pagination.
+- My Requests uses 10-item owner-scoped server pages with status/keyword filtering. Status counts cover the owner's entire history, not just the visible page.
+- Profile active loans and history use independent 5-item pages.
+- List checkout loads only selected available assets (at most 100). The legacy direct /borrow route without IDs still loads all available assets.
+- Workflow audit records CREATED, APPROVED, PICKED_UP, CANCELLED, RETURNED, OVERDUE and EXPIRED with actor and timestamp. Audit inserts participate in the workflow transaction; failures roll back the action.
+- The scheduled overdue check cancels PENDING/APPROVED requests after their due date, recording EXPIRED. Borrowed requests become OVERDUE. Repeated runs do not repeat transitions.
+- Removed unused th:remove="all" static preview branches from dashboard, catalog, profile and request history templates.
+- Added coverage for page bounds, owner/status filtering, selected asset loading, profile page independence, audit actors and expired requests.
+
+Deployment prerequisite: apply doc/migrations/20260929_workflow_audit.sql before starting this version against an existing database. H2 tests create the table from schema.sql; they do not verify production migration deployment.
+
+Remaining: whole-project CSS/JS consolidation, versioned migration runner, loan-time fee snapshots, real email verification/notification delivery, partial returns/payment settlement, durable cleanup retries, and controlled browser performance comparison. Management shelves and the legacy direct borrow form still use unpaged equipment data. This is not a claim that every review item is closed.
+
+
+## Equipment identity / allocation follow-up (2026-09-29)
+- Category can be edited and is validated server-side.
+- Slot labels are normalized; preflight conflict messages and a database unique index prevent shared assignments, including concurrent writes. Slots remain assigned until explicitly cleared, even for disposed assets.
+- Submission snapshots preserve name, asset code, category, image URL and slot. User history/search and management request/queue rendering no longer depend on current equipment identity. Storage replacement retains images referenced by requests.
+- Deployment requires `20260929_equipment_history_slots.sql`, with duplicate slots resolved first. Backfilling existing requests freezes current values; it cannot recover already-overwritten history. No live migration was performed.
+- Physical locker capacity/models and loan-time valuation snapshots remain separate work.
+
+
+## Consolidated implementation status (2026-10-03)
+This section supersedes the earlier "Remaining" list for the work below.
+- Frozen submission-time price and fee policy; partial returns with per-item returned dates; final-request late-fee policy explicitly documented.
+- Rejection reasons, separately recorded full settlement and audited maintenance completion, with operator/ownership/state checks and UI actions.
+- Bounded management inventory/shelves and server-side filters; selected/new-request and request-history DTOs remain bounded. Global counts are independent of page content.
+- Equipment API DTO boundary, shared workflow dialog/API module, extracted returns module and scoped equipment/workflow styles. Full legacy-file cleanup is not claimed.
+- Flyway V1-V5 and opt-in `migrations` profile; fresh, existing-schema and repeat-run migrations tested on an isolated PostgreSQL 18 instance. Production remains untouched.
+- SMTP-backed queued notifications, single-use email verification and persistent storage-cleanup retries. Local SMTP still requires configuration; delivery was mocked in tests.
+- Automated coverage includes frozen fees after price/role edits, partial/double returns, settlement before completion/duplicate/self restrictions, rejection, repair, verification replay/ownership/email changes, retry delivery, server filtering and SQL counts.
+- A small authenticated H2 inventory sample used 3 SQL statements for 12/40 assets. This is not an end-to-end timing comparison. Browser testing was blocked by the browser runtime's Windows sandbox error.
+
+Deployment and operational instructions: see the final workflow upgrade section in WORKFLOW_SETUP.md. Remaining external validation: production migration, real SMTP/Storage delivery and browser user acceptance. Extended business features (partial payments/refunds, gateway payments, physical locker hardware) remain outside this implemented scope.

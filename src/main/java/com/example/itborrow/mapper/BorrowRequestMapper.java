@@ -24,6 +24,8 @@ public class BorrowRequestMapper {
                 .dueDate(entity.getDueDate())
                 .status(entity.getStatus().name())
                 .note(entity.getNote())
+                .rejectionReason(entity.getRejectionReason())
+                .feePolicy(new BorrowResponseDto.FeePolicy(entity.getDailyFine(),entity.getGraceDays(),entity.getScratchRate(),entity.getDamageRate(),entity.getLossRate()))
                 .items(itemDtos)
                 .build();
     }
@@ -31,11 +33,15 @@ public class BorrowRequestMapper {
     private BorrowItemResponseDto toItemResponseDto(BorrowItem item) {
         var result = new BorrowItemResponseDto(
                 item.getEquipment().getId(),
-                item.getEquipment().getAssetCode(),
-                item.getEquipment().getName(),
+                item.getSnapshotName() != null ? item.getSnapshotAssetCode() : item.getEquipment().getAssetCode(),
+                item.getSnapshotName() != null ? item.getSnapshotName() : item.getEquipment().getName(),
                 item.getQuantity()
         );
-        result.setStorageSlot(item.getEquipment().getStorageSlot());
+        result.setImageUrl(item.getSnapshotName() != null ? item.getSnapshotImageUrl() : item.getEquipment().getImageUrl());
+        result.setReturnedOn(item.getReturnedOn());
+        result.setPurchasePrice(item.getSnapshotPurchasePrice());
+        result.setCategoryName(item.getSnapshotCategoryName());
+        result.setStorageSlot(item.getSnapshotName() != null ? item.getSnapshotStorageSlot() : item.getEquipment().getStorageSlot());
         return result;
     }
 }

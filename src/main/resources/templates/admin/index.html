@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
 <script defer src="/js/form-pickers.js" th:src="@{/js/form-pickers.js}"></script>
@@ -56,9 +57,9 @@
             <a href="/admin/users" data-admin-nav="users" aria-label="Users and roles" title="Users and roles" th:if="${currentUser.role.name() == 'ADMIN'}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg><span>Users &amp; roles</span></a>
         </nav>
 
-        <a class="admin-logout admin-back-to-catalog" href="/equipment" th:href="@{/equipment}" aria-label="Browse equipment" title="Browse equipment">
+        <a class="admin-logout admin-back-to-catalog" href="/" th:href="@{/}" aria-label="Back to home" title="Back to home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6-6 6 6 6M4 12h16"/></svg>
-            <span>Browse equipment</span>
+            <span>Back to home</span>
         </a>
     </aside>
 
@@ -69,7 +70,7 @@
             <p id="admin-load-error" role="alert" hidden></p>
             <section class="admin-view active" data-admin-panel="dashboard">
                 <header class="admin-page-heading"><div><h1>Overview</h1><p class="management-intro">Your equipment and requests, in one place.</p></div><a class="button button-dark" href="#inventory" data-admin-nav="inventory">View inventory</a></header>
-                <div class="admin-stat-grid">
+                <nav class="equipment-pagination" aria-label="Equipment pages"><button type="button" data-asset-prev>Previous</button><span data-asset-page></span><button type="button" data-asset-next>Next</button></nav><div class="admin-stat-grid">
                     <article class="admin-stat-card available"><span>Available</span><strong data-count-available>0</strong></article>
                     <article class="admin-stat-card in-use"><span>In use</span><strong data-count-in-use>0</strong></article>
                     <article class="admin-stat-card pending"><span>Pending</span><strong data-count-pending>0</strong></article>
@@ -88,7 +89,7 @@
                     <span class="inventory-result-count" id="inventory-result-count" role="status"></span>
                 </div>
                 <div class="admin-inventory-grid" id="admin-inventory-grid"><div class="inventory-loading" role="status" aria-label="Loading equipment"><div aria-hidden="true"><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div><div class="inventory-loading-card"><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span><span class="equipment-skeleton"></span></div></div></div></div>
-                <p id="admin-inventory-empty" hidden>No equipment matches.</p>
+                <p id="admin-inventory-empty" hidden>No equipment matches.</p><nav class="equipment-pagination" aria-label="Equipment pages"><button type="button" data-asset-prev>Previous</button><span data-asset-page></span><button type="button" data-asset-next>Next</button></nav>
             </section>
             <section class="admin-view" data-admin-panel="requests" hidden>
                 <div class="request-management-heading"><header class="admin-page-heading"><div><h1>Borrow requests</h1><p class="management-intro">Review requests, confirm pickups and manage returns.</p></div></header>
@@ -127,15 +128,15 @@
                 <div class="admin-detail-image" id="admin-equipment-image"></div>
                 <div class="admin-detail-info"><span id="admin-equipment-status" class="admin-status"></span><dl><div><dt>Category</dt><dd id="admin-equipment-category"></dd></div><div><dt>Storage slot</dt><dd id="admin-equipment-slot"></dd></div><div><dt>Asset code</dt><dd id="admin-equipment-code"></dd></div><div><dt>Purchase price</dt><dd id="admin-equipment-price"></dd></div></dl></div>
             </div>
-            <section class="admin-detail-specs"><h3>Specifications</h3><p id="admin-equipment-specs"></p></section>
+            <section class="admin-detail-specs"><h3>Specifications</h3><div id="admin-equipment-specs"></div></section>
             <p id="admin-borrower-strip" hidden>Currently in use. Record a return before changing availability.</p>
-            <footer><button class="admin-danger-action" type="button" data-admin-delete th:if="${currentUser.role.name() == 'ADMIN'}">Delete equipment</button><button class="secondary" type="button" data-close-admin-modal>Close</button><button type="button" data-open-admin-modal="edit-equipment-modal">Edit equipment</button></footer>
+            <footer><button type="button" data-workflow="repair" hidden>Complete repair</button><button class="admin-danger-action" type="button" data-admin-delete th:if="${currentUser.role.name() == 'ADMIN'}">Delete equipment</button><button class="secondary" type="button" data-close-admin-modal>Close</button><button type="button" data-open-admin-modal="edit-equipment-modal">Edit equipment</button></footer>
         </section>
     </div>
     <div class="admin-modal-backdrop inventory-modal-backdrop" id="edit-equipment-modal" hidden>
         <section class="admin-modal admin-form-modal" role="dialog" aria-modal="true" aria-labelledby="edit-equipment-title">
             <header class="inventory-modal-heading"><div><h2 id="edit-equipment-title">Edit equipment</h2><p>Update equipment information and availability.</p></div><button type="button" data-close-admin-modal aria-label="Close edit equipment">&times;</button></header>
-            <form id="admin-edit-equipment-form"><label>Name<input name="name" maxlength="150" required></label>
+            <form id="admin-edit-equipment-form"><label>Category<select name="categoryId" id="admin-edit-category" required><option value="">Select a category</option></select></label><label>Name<input name="name" maxlength="150" required></label>
                 <label>Storage slot<input name="storageSlot" maxlength="100" placeholder="e.g. A-4 or Cabinet B / Shelf 2"></label><label class="equipment-upload">Equipment photo<input name="imageUrl" type="hidden"><input name="image" type="file" accept="image/jpeg,image/png"><span>JPG or PNG, up to 2 MB</span><img class="equipment-upload-preview" alt="Selected equipment photo" hidden></label>
                 <label>Specifications<textarea name="specifications" rows="4" maxlength="10000" placeholder="Enter specifications, one per line"></textarea></label>
                 <label>Purchase price (THB)<input name="purchasePrice" type="number" min="0" max="9999999999.99" step="0.01" required></label>
@@ -159,7 +160,10 @@
     </div>
 
 
-    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}"></script>
+    <script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
+<script src="../../static/js/workflow-actions.js" th:src="@{/js/workflow-actions.js}"></script>
+<script src="../../static/js/admin-returns.js" th:src="@{/js/admin-returns.js}"></script>
+<script src="../../static/js/admin.js" th:src="@{/js/admin.js}"></script>
 <script src="../../static/js/return-receipt.js" th:src="@{/js/return-receipt.js}"></script>
 </body>
 </html>

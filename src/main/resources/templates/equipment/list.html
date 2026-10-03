@@ -25,8 +25,10 @@
     <link rel="stylesheet"
           href="../../static/css/style.css"
           th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+    <link rel="stylesheet" href="/css/user-navigation.css" th:href="@{/css/user-navigation.css}">
 </head>
 
 <body data-page="equipment" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
@@ -36,7 +38,7 @@
          th:replace="~{fragments/site :: siteHeader}"></div>
 
 
-    <main class="catalog-main">
+    <main class="catalog-main" th:attr="data-server-paged=${equipmentPage != null}">
 
         <header class="catalog-heading">
 
@@ -47,6 +49,7 @@
             </p>
 
         </header>
+        <form class="catalog-search-form" method="get" action="/equipment"><label>Search equipment<input type="search" name="keyword" th:value="${keyword}" placeholder="Name or asset code"></label><button class="button button-dark" type="submit">Search</button></form>
 
 
         <!-- =====================================================
@@ -56,344 +59,7 @@
              เมื่อรัน Spring Boot จะถูกลบออกด้วย th:remove
              ===================================================== -->
 
-        <section class="catalog-grid"
-                 id="catalog-preview-state"
-                 aria-label="Equipment catalog"
-                 th:remove="all">
 
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="1"
-                     data-name="MacBook Air 15&quot; M3"
-                     data-category="Laptops"
-                     data-code="LT-MAC-001"
-                     data-status="AVAILABLE"
-                     data-processor="Apple M3"
-                     data-memory="16 GB"
-                     data-storage="512 GB SSD"
-                     data-screen="15.3 inch"
-                     data-locker="Locker A-01">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-macbook.png"
-                         alt="MacBook Air 15 M3">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>MacBook Air 15&quot; M3</h2>
-
-                    <p>Laptops</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="2"
-                     data-name="HP Victus Gaming 16-e0082AX"
-                     data-category="Laptops"
-                     data-code="LT-HP-002"
-                     data-status="AVAILABLE"
-                     data-processor="AMD Ryzen 7"
-                     data-memory="16 GB"
-                     data-storage="1 TB SSD"
-                     data-screen="16.1 inch"
-                     data-locker="Locker A-02">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-victus.png"
-                         alt="HP Victus Gaming">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>HP Victus Gaming 16-e0082AX</h2>
-
-                    <p>Laptops</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="3"
-                     data-name="Razer Viper V2 Pro White"
-                     data-category="Accessories"
-                     data-code="AC-RZ-003"
-                     data-status="AVAILABLE"
-                     data-processor="-"
-                     data-memory="-"
-                     data-storage="-"
-                     data-screen="-"
-                     data-locker="Locker B-01">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-razer.png"
-                         alt="Razer Viper V2 Pro White">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>Razer Viper V2 Pro White</h2>
-
-                    <p>Accessories</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="4"
-                     data-name="Logitech Gaming G733 Wireless"
-                     data-category="Accessories"
-                     data-code="AC-LG-004"
-                     data-status="IN_USE"
-                     data-processor="-"
-                     data-memory="-"
-                     data-storage="-"
-                     data-screen="-"
-                     data-locker="Locker B-02">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-headset.png"
-                         alt="Logitech Gaming G733 Wireless">
-
-                    <span class="availability-badge status-in-use">
-                        In Used
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>Logitech Gaming G733 Wireless</h2>
-
-                    <p>Accessories</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="5"
-                     data-name="Logitech G Pro X Superlight 2"
-                     data-category="Accessories"
-                     data-code="AC-LG-005"
-                     data-status="AVAILABLE"
-                     data-processor="-"
-                     data-memory="-"
-                     data-storage="-"
-                     data-screen="-"
-                     data-locker="Locker B-03">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-mouse.png"
-                         alt="Logitech G Pro X Superlight 2">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>Logitech G Pro X Superlight 2</h2>
-
-                    <p>Accessories</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="6"
-                     data-name="MacBook Air 15&quot; M3"
-                     data-category="Laptops"
-                     data-code="LT-MAC-006"
-                     data-status="AVAILABLE"
-                     data-processor="Apple M3"
-                     data-memory="16 GB"
-                     data-storage="512 GB SSD"
-                     data-screen="15.3 inch"
-                     data-locker="Locker A-03">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-macbook.png"
-                         alt="MacBook Air 15 M3">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>MacBook Air 15&quot; M3</h2>
-
-                    <p>Laptops</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="7"
-                     data-name="MacBook Air 15&quot; M3"
-                     data-category="Laptops"
-                     data-code="LT-MAC-007"
-                     data-status="AVAILABLE"
-                     data-processor="Apple M3"
-                     data-memory="16 GB"
-                     data-storage="512 GB SSD"
-                     data-screen="15.3 inch"
-                     data-locker="Locker A-04">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-macbook.png"
-                         alt="MacBook Air 15 M3">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>MacBook Air 15&quot; M3</h2>
-
-                    <p>Laptops</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="8"
-                     data-name="Keychron V2 65%"
-                     data-category="Accessories"
-                     data-code="AC-KC-008"
-                     data-status="AVAILABLE"
-                     data-processor="-"
-                     data-memory="-"
-                     data-storage="-"
-                     data-screen="-"
-                     data-locker="Locker B-04">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-keyboard.png"
-                         alt="Keychron V2 65%">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>Keychron V2 65%</h2>
-
-                    <p>Accessories</p>
-
-                </div>
-
-            </article>
-
-
-            <article class="equipment-card"
-                     tabindex="0"
-                     role="button"
-                     data-equipment-card
-                     data-equipment-id="9"
-                     data-name="MacBook Air 15&quot; M3"
-                     data-category="Laptops"
-                     data-code="LT-MAC-009"
-                     data-status="AVAILABLE"
-                     data-processor="Apple M3"
-                     data-memory="16 GB"
-                     data-storage="512 GB SSD"
-                     data-screen="15.3 inch"
-                     data-locker="Locker A-05">
-
-                <div class="equipment-card-image">
-
-                    <img src="../../static/images/equipment-macbook.png"
-                         alt="MacBook Air 15 M3">
-
-                    <span class="availability-badge">
-                        Available
-                    </span>
-
-                </div>
-
-                <div class="equipment-card-body">
-
-                    <h2>MacBook Air 15&quot; M3</h2>
-
-                    <p>Laptops</p>
-
-                </div>
-
-            </article>
-
-        </section>
 
 
         <!-- =====================================================
@@ -442,14 +108,8 @@
                     </span>
 
                     <span class="availability-badge"
-                          th:classappend="${equipment.status != null
-                                           and equipment.status.name() != 'AVAILABLE'}
-                                           ? ' status-in-use'
-                                           : ''"
-                          th:text="${equipment.status != null
-                                    and equipment.status.name() == 'AVAILABLE'}
-                                    ? 'Available'
-                                    : 'In Used'">
+                          th:attr="data-status=${equipment.status}"
+                          th:text="${equipment.status == null ? 'Unknown' : (equipment.status.name() == 'AVAILABLE' ? 'Available' : (equipment.status.name() == 'IN_USE' ? 'In use' : (equipment.status.name() == 'MAINTENANCE' ? 'Maintenance' : 'Disposed')))}">
 
                         Available
                     </span>
@@ -495,6 +155,9 @@
 
         </section>
 
+        <nav class="management-pagination" aria-label="Equipment pages" th:if="${equipmentPage != null and equipmentPage.totalPages > 1}">
+            <a th:if="${equipmentPage.hasPrevious()}" th:href="@{/equipment(page=${equipmentPage.number - 1},keyword=${keyword})}">Previous</a><span th:text="|Page ${equipmentPage.number + 1} of ${equipmentPage.totalPages}|"></span><a th:if="${equipmentPage.hasNext()}" th:href="@{/equipment(page=${equipmentPage.number + 1},keyword=${keyword})}">Next</a>
+        </nav>
     </main>
 
 
@@ -706,6 +369,7 @@
 
 
 <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

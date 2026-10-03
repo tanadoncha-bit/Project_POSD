@@ -22,12 +22,12 @@ public class EquipmentPageController {
     }
 
     @GetMapping
-    public String showEquipmentList(Model model) {
-        model.addAttribute(
-                "equipments",
-                equipmentService.getAllEquipments(Pageable.unpaged()).getContent()
-        );
-
+    public String showEquipmentList(@org.springframework.web.bind.annotation.RequestParam(defaultValue="0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue="") String keyword, Model model) {
+        var results = equipmentService.searchEquipments(keyword, org.springframework.data.domain.PageRequest.of(Math.max(0,page),12,org.springframework.data.domain.Sort.by("name").and(org.springframework.data.domain.Sort.by("id"))));
+        model.addAttribute("equipments", results.getContent());
+        model.addAttribute("equipmentPage", results);
+        model.addAttribute("keyword", keyword);
         return "equipment/list";
     }
 

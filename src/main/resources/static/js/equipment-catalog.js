@@ -63,10 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function setModalStatus(status) {
         const available = isAvailableStatus(status);
 
-        if (modalStatusText) modalStatusText.textContent = available ? "Available" : "In Used";
+        const label = {AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed"}[status] || "Unknown";
+        if (modalStatusText) modalStatusText.textContent = label;
 
         if (modalStatusBadge) {
-            modalStatusBadge.textContent = available ? "Available" : "In Used";
+            modalStatusBadge.textContent = label;
+            modalStatusBadge.dataset.status = status;
             modalStatusBadge.classList.toggle("equipment-locker-offline", !available);
         }
 
@@ -178,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const parameters = new URLSearchParams(window.location.search);
         const keyword = parameters.get("keyword")?.trim().toLowerCase();
 
-        if (!keyword) return;
+        if (!keyword || document.querySelector("[data-server-paged=true]")) return;
 
         equipmentCards.forEach((card) => {
             const searchableText = [

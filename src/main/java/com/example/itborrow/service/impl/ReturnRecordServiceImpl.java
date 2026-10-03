@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 @Service
 public class ReturnRecordServiceImpl implements ReturnRecordService {
 
+    private final org.springframework.context.ApplicationEventPublisher events;
     private final com.example.itborrow.service.CurrentUser current;
     private final ReturnRecordRepository returnRecordRepository;
     private final BorrowRequestRepository borrowRequestRepository;
@@ -34,8 +35,8 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
                                     BorrowRequestRepository borrowRequestRepository,
                                     EquipmentRepository equipmentRepository,
                                     BorrowStateResolver stateResolver,
-                                    FinestrategyResolver fineStrategyResolver, com.example.itborrow.service.CurrentUser current) {
-        this.current = current;
+                                    FinestrategyResolver fineStrategyResolver, com.example.itborrow.service.CurrentUser current, org.springframework.context.ApplicationEventPublisher events) {
+        this.current = current; this.events=events;
         this.returnRecordRepository = returnRecordRepository;
         this.borrowRequestRepository = borrowRequestRepository;
         this.equipmentRepository = equipmentRepository;
@@ -66,33 +67,43 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
                 if (input == null || input.equipmentId() == null || inputs.put(input.equipmentId(), input) != null)
                     throw new IllegalArgumentException("Each equipment must be inspected exactly once.");
             }
-            var expected = request.getItems().stream().map(i -> i.getEquipment().getId()).collect(java.util.stream.Collectors.toSet());
-            if (!inputs.keySet().equals(expected)) throw new IllegalArgumentException("Inspect every equipment in this request and no other equipment.");
+            var expected = request.getItems().stream().filter(i -> i.getReturnedOn() == null).map(i -> i.getEquipment().getId()).collect(java.util.stream.Collectors.toSet());
+            if (inputs.isEmpty() || !expected.containsAll(inputs.keySet()) || (!dto.isPartial() && !inputs.keySet().equals(expected))) throw new IllegalArgumentException("Inspect every equipment in this request and no other equipment.");
         } else {
-            for (var item : request.getItems()) inputs.put(item.getEquipment().getId(), new ReturnRequestDto.Inspection(item.getEquipment().getId(), dto.getCondition(), dto.getRemark()));
+            for (var item : request.getItems()) if (item.getReturnedOn() == null) inputs.put(item.getEquipment().getId(), new ReturnRequestDto.Inspection(item.getEquipment().getId(), dto.getCondition(), dto.getRemark()));
         }
-        stateResolver.resolve(request.getStatus()).returnEquipment(request);
+        if (request.getStatus() != com.example.itborrow.domain.enums.BorrowStatus.BORROWED && request.getStatus() != com.example.itborrow.domain.enums.BorrowStatus.OVERDUE)
+            throw new com.example.itborrow.exception.InvalidBorrowStateException("Only active loans can be returned.");
+        boolean completed = request.getItems().stream().filter(i -> i.getReturnedOn() == null).allMatch(i -> inputs.containsKey(i.getEquipment().getId()));
+        if (completed) stateResolver.resolve(request.getStatus()).returnEquipment(request);
         FineStrategyService strategy = fineStrategyResolver.resolve(request.getUser().getRole());
-        BigDecimal fine = strategy.calculate(request, today);
-        ReturnRecord record = new ReturnRecord();
-        BigDecimal damage = BigDecimal.ZERO;
-        for (BorrowItem item : request.getItems().stream().sorted(java.util.Comparator.comparing(i -> i.getEquipment().getId())).toList()) {
+        BigDecimal fine = request.getDailyFine() == null ? strategy.calculate(request, today) : request.getDailyFine().multiply(BigDecimal.valueOf(Math.max(0, java.time.temporal.ChronoUnit.DAYS.between(request.getDueDate(), today) - request.getGraceDays())));
+        ReturnRecord record = returnRecordRepository.findByBorrowRequestId(borrowRequestId).orElseGet(ReturnRecord::new);
+        BigDecimal damage = record.getDamageAmount() == null ? BigDecimal.ZERO : record.getDamageAmount();
+        for (BorrowItem item : request.getItems().stream().filter(i -> inputs.containsKey(i.getEquipment().getId())).sorted(java.util.Comparator.comparing(i -> i.getEquipment().getId())).toList()) {
             Equipment equipment = equipmentRepository.findLockedById(item.getEquipment().getId())
                 .orElseThrow(() -> ResourceNotFoundException.of("Equipment", item.getEquipment().getId()));
             var input = inputs.get(equipment.getId());
             var condition = com.example.itborrow.domain.enums.ReturnCondition.parse(input.condition());
             if (condition.getRate().signum() > 0 && (input.remark() == null || input.remark().isBlank()))
                 throw new IllegalArgumentException("Describe the damage or loss for " + equipment.getName() + ".");
-            BigDecimal price = equipment.getPurchasePrice();
+            BigDecimal price = item.getSnapshotName() == null ? equipment.getPurchasePrice() : item.getSnapshotPurchasePrice();
+            BigDecimal rate = request.getDailyFine() == null ? condition.getRate() : switch (condition) {
+                case NORMAL -> BigDecimal.ZERO;
+                case MINOR_SCRATCHES -> request.getScratchRate();
+                case DAMAGED -> request.getDamageRate();
+                case LOST -> request.getLossRate();
+            };
             if (condition.getRate().signum() > 0 && price == null)
-                throw new IllegalArgumentException("Set the purchase price for " + equipment.getName() + " before charging for damage.");
+                throw new IllegalArgumentException("Missing recorded purchase price for " + equipment.getName() + " before charging for damage.");
             if (price != null && price.signum() < 0) throw new IllegalArgumentException("Invalid equipment price.");
-            BigDecimal charge = price == null ? BigDecimal.ZERO : price.multiply(condition.getRate()).setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal charge = price == null ? BigDecimal.ZERO : price.multiply(rate).setScale(2, java.math.RoundingMode.HALF_UP);
             damage = damage.add(charge);
-            record.getInspections().add(new com.example.itborrow.domain.entity.ReturnInspection(equipment.getId(), equipment.getName(), condition.name(), price, condition.getRate(), charge, input.remark()));
+            record.getInspections().add(new com.example.itborrow.domain.entity.ReturnInspection(equipment.getId(), item.getSnapshotName() != null ? item.getSnapshotName() : equipment.getName(), condition.name(), price, rate, charge, input.remark()));
             if (equipment.getStatus() != EquipmentStatus.IN_USE)
                 throw new com.example.itborrow.exception.InvalidBorrowStateException("Equipment is not currently in use.");
             equipment.setStatus(condition.getStatus());
+            item.setReturnedOn(today);
         }
         var conditions = record.getInspections().stream().map(com.example.itborrow.domain.entity.ReturnInspection::getCondition).distinct().toList();
         record.setBorrowRequest(request);
@@ -105,6 +116,7 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
         borrowRequestRepository.save(request);
         ReturnRecord saved = returnRecordRepository.save(record);
 
+        events.publishEvent(new com.example.itborrow.common.event.BorrowWorkflowEvent(request.getId(),completed ? "RETURNED" : "PARTIAL_RETURN"));
         return toResponseDto(saved);
     }
 

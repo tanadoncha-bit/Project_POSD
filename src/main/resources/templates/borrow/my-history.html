@@ -25,8 +25,10 @@
     <link rel="stylesheet"
           href="../../static/css/style.css?v=1"
           th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
     <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
     <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+    <link rel="stylesheet" href="/css/user-navigation.css" th:href="@{/css/user-navigation.css}">
 </head>
 
 <body data-page="requests" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
@@ -36,7 +38,7 @@
          th:replace="~{fragments/site :: siteHeader}"></div>
 
 
-    <main class="request-history-page request-page">
+    <main class="request-history-page request-page" th:attr="data-server-paged=${requestPage != null}">
 
         <!-- =====================================================
              PAGE HEADING
@@ -63,7 +65,7 @@
 
             <button class="request-filter-button active"
                     type="button"
-                    data-request-filter="ALL"
+                    data-request-filter="ALL" th:attr="data-total=${requestCounts != null ? requestCounts['ALL'] : 0}"
                     aria-pressed="true">
 
                 All Request
@@ -71,7 +73,7 @@
 
             <button class="request-filter-button"
                     type="button"
-                    data-request-filter="ACTIVE"
+                    data-request-filter="ACTIVE" th:attr="data-total=${requestCounts != null ? requestCounts['ACTIVE'] : 0}"
                     aria-pressed="false">
 
                 Active
@@ -79,7 +81,7 @@
 
             <button class="request-filter-button"
                     type="button"
-                    data-request-filter="PENDING"
+                    data-request-filter="PENDING" th:attr="data-total=${requestCounts != null ? requestCounts['PENDING'] : 0}"
                     aria-pressed="false">
 
                 Pending
@@ -87,13 +89,13 @@
 
             <button class="request-filter-button"
                     type="button"
-                    data-request-filter="RETURNED"
+                    data-request-filter="RETURNED" th:attr="data-total=${requestCounts != null ? requestCounts['RETURNED'] : 0}"
                     aria-pressed="false">
 
                 Returned
             </button>
 
-            <button class="request-filter-button" type="button" data-request-filter="CANCELLED" aria-pressed="false">Cancelled</button>
+            <button class="request-filter-button" type="button" data-request-filter="CANCELLED" th:attr="data-total=${requestCounts != null ? requestCounts['CANCELLED'] : 0}" aria-pressed="false">Cancelled</button>
         </nav>
 
 
@@ -120,302 +122,7 @@
              เมื่อรัน Spring Boot จะถูกลบด้วย th:remove
              ===================================================== -->
 
-        <section class="request-list"
-                 id="request-preview-list"
-                 data-auth-only
-                 hidden
-                 th:remove="all">
 
-
-            <!-- REQUEST 1 — PENDING -->
-
-            <article class="request-card"
-                     data-request-card
-                     data-request-status="PENDING">
-
-                <header class="request-card-header">
-
-                    <div class="request-card-heading">
-
-                        <span class="request-card-icon"
-                              data-icon-slot="request-device"
-                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
-
-                        <div>
-
-                            <h2>Request #1</h2>
-
-                            <p>
-                                Jul 25, 2026 - Jul 30, 2026
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="request-card-status-area">
-
-                        <span class="request-pin">
-                            PIN: 4239
-                        </span>
-
-                        <span class="request-status request-status-pending">
-                            Pending
-                        </span>
-
-                    </div>
-
-                </header>
-
-
-                <div class="request-item-list">
-
-                    <article class="request-equipment-item">
-
-                        <div class="request-item-image">
-
-                            <span class="request-item-image-placeholder">
-                                LeadIT
-                            </span>
-
-                        </div>
-
-                        <div class="request-item-content">
-
-                            <h3>Keychron V2 65%</h3>
-
-                            <p>Quantity: 1</p>
-
-                            <span class="request-item-locker">
-
-                                <span data-icon-slot="locker-location"
-                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
-
-                                Slot C-5
-                            </span>
-
-                        </div>
-
-                    </article>
-
-
-                    <article class="request-equipment-item">
-
-                        <div class="request-item-image">
-
-                            <span class="request-item-image-placeholder">
-                                LeadIT
-                            </span>
-
-                        </div>
-
-                        <div class="request-item-content">
-
-                            <h3>SUPERLIGHT 2C</h3>
-
-                            <p>Quantity: 1</p>
-
-                            <span class="request-item-locker">
-
-                                <span data-icon-slot="locker-location"
-                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
-
-                                Slot C-3
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-            </article>
-
-
-            <!-- REQUEST 2 — RETURNED -->
-
-            <article class="request-card"
-                     data-request-card
-                     data-request-status="RETURNED">
-
-                <header class="request-card-header">
-
-                    <div class="request-card-heading">
-
-                        <span class="request-card-icon"
-                              data-icon-slot="request-device"
-                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
-
-                        <div>
-
-                            <h2>Request #2</h2>
-
-                            <p>
-                                Jul 10, 2026 - Jul 20, 2026
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="request-card-status-area">
-
-                        <span class="request-pin">
-                            PIN: N/A
-                        </span>
-
-                        <span class="request-status request-status-returned">
-                            Returned
-                        </span>
-
-                    </div>
-
-                </header>
-
-
-                <div class="request-item-list">
-
-                    <article class="request-equipment-item">
-
-                        <div class="request-item-image">
-
-                            <span class="request-item-image-placeholder">
-                                LeadIT
-                            </span>
-
-                        </div>
-
-                        <div class="request-item-content">
-
-                            <h3>Keychron V2 65%</h3>
-
-                            <p>Quantity: 1</p>
-
-                            <span class="request-item-locker">
-
-                                <span data-icon-slot="locker-location"
-                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
-
-                                Slot C-5
-                            </span>
-
-                        </div>
-
-                    </article>
-
-
-                    <article class="request-equipment-item">
-
-                        <div class="request-item-image">
-
-                            <span class="request-item-image-placeholder">
-                                LeadIT
-                            </span>
-
-                        </div>
-
-                        <div class="request-item-content">
-
-                            <h3>Keychron V2 65%</h3>
-
-                            <p>Quantity: 1</p>
-
-                            <span class="request-item-locker">
-
-                                <span data-icon-slot="locker-location"
-                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
-
-                                Slot C-6
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-            </article>
-
-
-            <!-- REQUEST 3 — ACTIVE -->
-
-            <article class="request-card"
-                     data-request-card
-                     data-request-status="ACTIVE">
-
-                <header class="request-card-header">
-
-                    <div class="request-card-heading">
-
-                        <span class="request-card-icon"
-                              data-icon-slot="request-device"
-                              aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
-
-                        <div>
-
-                            <h2>Request #3</h2>
-
-                            <p>
-                                Aug 1, 2026 - Aug 7, 2026
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="request-card-status-area">
-
-                        <span class="request-pin">
-                            PIN: 5812
-                        </span>
-
-                        <span class="request-status request-status-active">
-                            Active
-                        </span>
-
-                    </div>
-
-                </header>
-
-
-                <div class="request-item-list">
-
-                    <article class="request-equipment-item">
-
-                        <div class="request-item-image">
-
-                            <span class="request-item-image-placeholder">
-                                LeadIT
-                            </span>
-
-                        </div>
-
-                        <div class="request-item-content">
-
-                            <h3>MacBook Air 15&quot; M3</h3>
-
-                            <p>Quantity: 1</p>
-
-                            <span class="request-item-locker">
-
-                                <span data-icon-slot="locker-location"
-                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
-
-                                Slot A-4
-                            </span>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-            </article>
-
-        </section>
 
 
         <!-- =====================================================
@@ -515,6 +222,7 @@
                 </header>
 
 
+                <p class="request-management-note" th:if="${request.rejectionReason != null}" th:text="|Rejected: ${request.rejectionReason}|"></p>
                 <div class="request-item-list">
 
                     <article class="request-equipment-item"
@@ -522,23 +230,11 @@
 
                         <div class="request-item-image">
 
-                            <img th:if="${equipmentImageUrls != null
-                                        and equipmentImageUrls[
-                                            item.equipmentId
-                                        ] != null}"
-                                 th:src="${equipmentImageUrls[
-                                             item.equipmentId
-                                         ]}"
-                                 th:alt="${item.equipmentName}">
-
+                            <img th:if="${!#strings.isEmpty(item.imageUrl)}"
+                                 th:src="${item.imageUrl}" th:alt="${item.equipmentName}"
+                                 loading="lazy" decoding="async">
                             <span class="request-item-image-placeholder"
-                                  th:unless="${equipmentImageUrls != null
-                                             and equipmentImageUrls[
-                                                 item.equipmentId
-                                             ] != null}">
-
-                                LeadIT
-                            </span>
+                                  th:if="${#strings.isEmpty(item.imageUrl)}">No photo</span>
 
                         </div>
 
@@ -549,6 +245,7 @@
                                 Equipment name
                             </h3>
 
+                            <p th:if="${item.returnedOn != null}" th:text="|Returned: ${item.returnedOn}|"></p>
                             <p th:text="|Quantity: ${item.quantity}|">
                                 Quantity: 1
                             </p>
@@ -620,6 +317,9 @@
 
         </section>
 
+        <nav class="management-pagination" aria-label="Request pages" th:if="${requestPage != null and requestPage.totalPages > 1}">
+            <a th:if="${requestPage.hasPrevious()}" th:href="@{/my-requests(page=${requestPage.number - 1},status=${requestStatus},keyword=${keyword})}">Previous</a><span th:text="|Page ${requestPage.number + 1} of ${requestPage.totalPages}|"></span><a th:if="${requestPage.hasNext()}" th:href="@{/my-requests(page=${requestPage.number + 1},status=${requestStatus},keyword=${keyword})}">Next</a>
+        </nav>
     </main>
 
 
@@ -645,6 +345,7 @@
 <script src="../../static/js/return-receipt.js" th:src="@{/js/return-receipt.js}"></script>
 <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
 <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
 </body>
 </html>

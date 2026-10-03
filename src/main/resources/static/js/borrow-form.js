@@ -213,7 +213,7 @@ function initializeBorrowForm() {
             submitLabel.textContent =
                 isSubmitting
                     ? "Submitting..."
-                    : "Submit";
+                    : "Submit request";
         }
     }
 

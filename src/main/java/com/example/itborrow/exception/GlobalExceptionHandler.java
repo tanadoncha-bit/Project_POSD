@@ -79,6 +79,10 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler({org.springframework.dao.DataIntegrityViolationException.class, org.springframework.dao.PessimisticLockingFailureException.class})
     public ResponseEntity<ErrorResponseDto> conflict(Exception ex, HttpServletRequest req) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause.getMessage() != null && cause.getMessage().toLowerCase(java.util.Locale.ROOT).contains("uq_equipment_storage_slot"))
+                return buildResponse(HttpStatus.CONFLICT, "This storage slot is already assigned to another asset. Choose a different slot.", req);
+        }
         return buildResponse(HttpStatus.CONFLICT, "Data conflicts with an existing record. Refresh and retry.", req);
     }
 

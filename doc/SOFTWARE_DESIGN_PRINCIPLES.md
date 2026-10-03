@@ -24,3 +24,12 @@ Legacy migration keeps the original bytes and skips users already holding a Stor
 ## Verification
 
 Integration tests exercise authenticated uploads, CSRF, isolation between accounts, normalization, error preservation and legacy migration using a mocked storage port. Adapter contract tests run against a local HTTP server (no real credentials/network dependency). A service test verifies rollback cleanup. Existing borrowing, role, monetary and rendering tests remain in place.
+
+
+## Workflow remediation (2026-10-03)
+- SRP: `WorkflowOperations` owns rejection/settlement/repair operations; `EmailVerificationService` owns account verification; `PersistentJobs` owns durable provider delivery. `admin-returns.js`, `workflow-actions.js`, `equipment-specs.js` and `equipment-workflows.css` separate frequently changed UI responsibilities from the original admin and global styles.
+- DIP: equipment image operations and cleanup depend on the qualified `ImageStorage` port; SMTP is supplied through `JavaMailSender` and an optional provider.
+- Encapsulation: the equipment API accepts/returns `EquipmentData` instead of exposing JPA entities. State changes, permissions, amount checks and unique-slot validation remain server-side.
+- Historical integrity: request identity and financial policy are immutable snapshots. Receipts, repairs, payments and workflow audits have distinct purposes. Metadata edits do not imply a repair, payment or a different physical asset.
+- Persistence boundaries: workflow audit and queued notifications participate in the same transaction as business changes; storage cleanup is retryable after commit. External delivery is not claimed to be exactly once.
+- Progressive refactoring: existing State/Strategy classes remain. Legacy global CSS/admin code still exists; the change extracts active components rather than claiming a complete rewrite of every file.

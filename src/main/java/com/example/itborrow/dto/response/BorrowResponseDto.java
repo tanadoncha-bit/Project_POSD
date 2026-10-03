@@ -5,6 +5,11 @@ import java.util.List;
 
 public class BorrowResponseDto {
 
+    public record FeePolicy(java.math.BigDecimal dailyFine,Integer graceDays,java.math.BigDecimal scratchRate,java.math.BigDecimal damageRate,java.math.BigDecimal lossRate) {}
+    private FeePolicy feePolicy;
+    public FeePolicy getFeePolicy() { return feePolicy; }
+    private String rejectionReason;
+    public String getRejectionReason() { return rejectionReason; }
     private Long id;
     private Long userId;
     private String username;
@@ -24,6 +29,8 @@ public class BorrowResponseDto {
     public static class Builder {
         private final BorrowResponseDto dto = new BorrowResponseDto();
 
+        public Builder feePolicy(FeePolicy value) { dto.feePolicy=value; return this; }
+        public Builder rejectionReason(String value) { dto.rejectionReason=value; return this; }
         public Builder id(Long id) {
             dto.id = id; return this;
         }
