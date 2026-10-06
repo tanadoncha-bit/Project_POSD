@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Set up login | LeadIT</title><link rel="stylesheet" th:href="@{/css/style.css}"><link rel="stylesheet" th:href="@{/css/equipment-workflows.css}"></head>
-<body class="email-verification-page"><main class="email-verification-card"><p class="email-verification-brand">LeadIT</p><h1>Set username and password</h1><p>You can continue signing in with Google. Set these to also sign in with a username and password.</p><p role="alert" th:if="${accountError}" th:text="${accountError}"></p>
-<form class="login-setup-form" method="post" th:action="@{/profile/setup-login}"><label>Username<input name="username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]{3,50}" autocomplete="username"></label><label>Password<input type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password"></label><label>Confirm password<input type="password" name="confirmPassword" required minlength="8" maxlength="72" autocomplete="new-password"></label><p>After saving, sign in again with your new username or Google.</p><button class="button button-dark" type="submit">Save login details</button><a th:href="@{/profile}">Cancel</a></form></main></body></html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Complete registration | LeadIT</title><link rel="stylesheet" th:href="@{/css/style.css}"><link rel="stylesheet" th:href="@{/css/signup-completion.css}"></head>
+<body class="signup-completion">
+<header class="signup-header"><span class="signup-logo" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="13" rx="2"/><path d="M4 16l-2 4h20l-2-4"/></svg></span><span>LeadIT</span></header>
+<main class="signup-card">
+<p class="signup-step">ONE LAST STEP</p><h1>Complete your account</h1>
+<p class="signup-description">Your email is verified with Google. Choose your username and password to finish signing up.</p>
+<p class="signup-error" role="alert" th:if="${accountError}" th:text="${accountError}"></p>
+<form method="post" th:action="@{/profile/setup-login}" class="signup-form">
+<label for="signup-email">Email <span class="signup-verified">Verified</span></label>
+<input id="signup-email" type="email" th:value="${user.email}" readonly aria-describedby="email-note">
+<p id="email-note" class="signup-hint">This email comes from your Google account and cannot be edited here.</p>
+<label for="signup-username">Username</label><input id="signup-username" name="username" th:value="${setupUsername}" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]{3,50}" autocomplete="username" placeholder="Choose a username" aria-describedby="username-note">
+<p id="username-note" class="signup-hint">3-50 characters. Letters, numbers, dots, underscores and hyphens.</p>
+<label for="signup-password">Password</label><input id="signup-password" type="password" name="password" required minlength="8" maxlength="72" autocomplete="new-password" placeholder="At least 8 characters">
+<label for="signup-confirm">Confirm password</label><input id="signup-confirm" type="password" name="confirmPassword" required minlength="8" maxlength="72" autocomplete="new-password" placeholder="Enter your password again">
+<p class="signup-description signup-login-note">You can sign in with Google or these login details. After saving, please sign in again.</p><button class="signup-submit" type="submit">Complete registration</button>
+</form><form method="post" th:action="@{/logout}"><button class="signup-back" type="submit">Sign out and use another account</button></form>
+</main></body></html>

@@ -213,10 +213,12 @@ class WorkflowIntegrationTest {
 
     @Test
     void deliveryRetriesFailuresAndClearsSentPayload() {
+        org.mockito.Mockito.when(mailSender.createMimeMessage()).thenAnswer(call ->
+                new jakarta.mail.internet.MimeMessage(jakarta.mail.Session.getInstance(new java.util.Properties())));
         jobs.email("alice@example.test", "Test", "Private test body");
         org.mockito.Mockito.doThrow(new org.springframework.mail.MailSendException("Unavailable"))
                 .doNothing().when(mailSender)
-                .send(org.mockito.ArgumentMatchers.any(org.springframework.mail.SimpleMailMessage.class));
+                .send(org.mockito.ArgumentMatchers.any(jakarta.mail.internet.MimeMessage.class));
         jobs.process();
         assertThat(jdbc.queryForObject("SELECT attempts FROM delivery_jobs", Integer.class)).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT completed FROM delivery_jobs", Boolean.class)).isFalse();

@@ -74,8 +74,14 @@ public class AccountController {
             flash.addFlashAttribute("accountError", ex.getMessage());
             return "redirect:/profile/change-password";
         }
-    }    @GetMapping("/profile/setup-login") public String setupForm() {return accounts.requiresLoginSetup() ? "profile/setup-login" : "redirect:/profile";}
+    }
+
+    @GetMapping("/profile/setup-login")
+    public String setupForm() {
+        return accounts.requiresLoginSetup() ? "profile/setup-login" : "redirect:/profile";
+    }
     @PostMapping("/profile/setup-login") public String setup(@Valid @ModelAttribute LoginSetupDto dto,BindingResult errors,RedirectAttributes flash,jakarta.servlet.http.HttpServletRequest request) {
+        flash.addFlashAttribute("setupUsername", dto.username() == null ? "" : dto.username());
         if(errors.hasErrors()) {flash.addFlashAttribute("accountError","Use a username of 3-50 letters/numbers and a password of 8-72 characters.");return "redirect:/profile/setup-login";}
         try {
             accounts.setupLogin(dto);

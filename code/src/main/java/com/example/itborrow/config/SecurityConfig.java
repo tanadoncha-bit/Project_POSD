@@ -41,7 +41,11 @@ public class SecurityConfig {
                         request -> request.getRequestURI().startsWith("/api/")));
         if(registrations.getIfAvailable()!=null) {
             http.oauth2Login(oauth -> oauth.loginPage("/").userInfoEndpoint(info -> info.oidcUserService(googleUsers))
-                .defaultSuccessUrl("/profile",true)
+                .successHandler((request, response, authentication) -> {
+                    var account = users.findByUsername(authentication.getName()).orElseThrow();
+                    String destination = account.isLocalPasswordEnabled() ? "/profile" : "/profile/setup-login";
+                    response.sendRedirect(request.getContextPath() + destination);
+                })
                 .failureHandler((request,response,error) -> {
                     String message="Unable to sign in with Google. Please try again.";
                     if(error instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthError && "account_exists".equals(oauthError.getError().getErrorCode()))
