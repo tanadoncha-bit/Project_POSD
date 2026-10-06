@@ -9,14 +9,28 @@ import java.util.Map;
 @Component
 public class EmailDeliveryHandler implements DeliveryJobHandler {
     private final ObjectProvider<JavaMailSender> mail;
-    private final String from,host;
-    public EmailDeliveryHandler(ObjectProvider<JavaMailSender> mail,@Value("${app.mail.from:}") String from,@Value("${spring.mail.host:}") String host) {this.mail=mail;this.from=from;this.host=host;}
+    private final String from,host,provider;
+    private final BrevoEmailClient brevo;
+    public EmailDeliveryHandler(ObjectProvider<JavaMailSender> mail,
+            @Value("${app.mail.from:}") String from,
+            @Value("${spring.mail.host:}") String host,
+            @Value("${app.mail.provider:smtp}") String provider, BrevoEmailClient brevo) {
+        this.mail=mail;this.from=from;this.host=host;this.provider=provider;this.brevo=brevo;
+        if (!java.util.Set.of("smtp", "brevo").contains(provider))
+            throw new IllegalArgumentException("MAIL_PROVIDER must be smtp or brevo.");
+    }
     public String kind() {return "EMAIL";}
-    public boolean available() {return !from.isBlank() && !host.isBlank() && mail.getIfAvailable()!=null;}
+    public boolean available() {
+        return !from.isBlank() && ("brevo".equals(provider) ? brevo.available() : !host.isBlank() && mail.getIfAvailable()!=null);
+    }
     public void execute(Map<String,Object> job) {
         String recipient = (String) job.get("recipient");
         String subject = (String) job.get("subject");
         String body = (String) job.get("payload");
+        if ("brevo".equals(provider)) {
+            brevo.send(from, recipient, subject, body, html(subject, body));
+            return;
+        }
         try {
             var sender = mail.getObject();
             var message = sender.createMimeMessage();
