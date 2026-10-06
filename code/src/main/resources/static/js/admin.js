@@ -454,7 +454,8 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const mode of ["add", "edit"]) document.getElementById(`admin-${mode}-equipment-form`).addEventListener("submit", async event => {
         event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const button = form.querySelector('[type="submit"]'); button.disabled = true;
         const payload = mode === "add" ? { name: data.get("name"), assetCode: data.get("assetCode"), categoryId: Number(data.get("categoryId")), status: "AVAILABLE" } : { name: data.get("name"), categoryId: Number(data.get("categoryId")), status: data.get("status") };
-        payload.imageUrl = data.get("imageUrl").trim(); payload.specifications = data.get("specifications").trim();
+        // Uploaded photos belong to the image endpoint, not the equipment JSON payload.
+        payload.specifications = data.get("specifications").trim();
         payload.storageSlot = data.get("storageSlot").trim();
         payload.purchasePrice = data.get("purchasePrice");
         try {
