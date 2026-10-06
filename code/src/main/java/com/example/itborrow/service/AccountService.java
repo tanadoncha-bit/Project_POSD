@@ -76,7 +76,7 @@ public class AccountService {
     }
 
     @Transactional
-    public void setupLogin(LoginSetupDto dto) {
+    public User setupLogin(LoginSetupDto dto) {
         var account = users.findLockedById(current.require().getId()).orElseThrow();
         if (account.isLocalPasswordEnabled())
             throw new IllegalArgumentException("Username and password are already set.");
@@ -87,5 +87,12 @@ public class AccountService {
         account.setPassword(encoder.encode(dto.password()));
         account.setLocalPasswordEnabled(true);
         users.saveAndFlush(account);
+        var profile = profiles.findByUserId(account.getId()).orElseGet(UserProfile::new);
+        profile.setUser(account);
+        profile.setFullName(dto.fullName());
+        profile.setPhone(dto.phone());
+        profile.setDepartment(dto.department());
+        profiles.save(profile);
+        return account;
     }
 }

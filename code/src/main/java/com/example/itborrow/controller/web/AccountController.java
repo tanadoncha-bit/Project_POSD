@@ -80,15 +80,33 @@ public class AccountController {
     public String setupForm() {
         return accounts.requiresLoginSetup() ? "profile/setup-login" : "redirect:/profile";
     }
-    @PostMapping("/profile/setup-login") public String setup(@Valid @ModelAttribute LoginSetupDto dto,BindingResult errors,RedirectAttributes flash,jakarta.servlet.http.HttpServletRequest request) {
-        flash.addFlashAttribute("setupUsername", dto.username() == null ? "" : dto.username());
-        if(errors.hasErrors()) {flash.addFlashAttribute("accountError","Use a username of 3-50 letters/numbers and a password of 8-72 characters.");return "redirect:/profile/setup-login";}
+    @PostMapping("/profile/setup-login")
+    public String setup(@Valid @ModelAttribute LoginSetupDto dto, BindingResult errors,
+            RedirectAttributes flash, jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
+        flash.addFlashAttribute("setupValues", java.util.Map.of(
+                "username", dto.username() == null ? "" : dto.username(),
+                "fullName", dto.fullName() == null ? "" : dto.fullName(),
+                "phone", dto.phone() == null ? "" : dto.phone(),
+                "department", dto.department() == null ? "" : dto.department()));
+        if (errors.hasErrors()) {
+            flash.addFlashAttribute("accountError", "Check your name, username and password fields.");
+            return "redirect:/profile/setup-login";
+        }
         try {
-            accounts.setupLogin(dto);
-            org.springframework.security.core.context.SecurityContextHolder.clearContext();
-            var session=request.getSession(false);if(session!=null)session.invalidate();
-            return "redirect:/?credentialsSet=true";
-        } catch(IllegalArgumentException|org.springframework.dao.DataIntegrityViolationException error) {flash.addFlashAttribute("accountError",error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");return "redirect:/profile/setup-login";}
+            var account = accounts.setupLogin(dto);
+            var authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(
+                    account.getUsername(), null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
+            var context = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            org.springframework.security.core.context.SecurityContextHolder.setContext(context);
+            if (request.getSession(false) != null) request.changeSessionId();
+            new org.springframework.security.web.context.HttpSessionSecurityContextRepository().saveContext(context, request, response);
+            flash.addFlashAttribute("accountMessage", "Registration complete.");
+            return "redirect:/profile";
+        } catch (IllegalArgumentException | org.springframework.dao.DataIntegrityViolationException error) {
+            flash.addFlashAttribute("accountError", error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");
+            return "redirect:/profile/setup-login";
+        }
     }
-
 }

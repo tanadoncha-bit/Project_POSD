@@ -46,8 +46,8 @@ class GoogleOAuthIntegrationTest {
         mvc.perform(post("/profile/setup-login").with(auth)
             .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
             .param("username", "completed_google_user").param("password", "chosen-password")
-            .param("confirmPassword", "chosen-password").param("email", "attacker@example.test"))
-            .andExpect(redirectedUrl("/?credentialsSet=true"));
+            .param("confirmPassword", "chosen-password").param("fullName", "New Member").param("email", "attacker@example.test"))
+            .andExpect(redirectedUrl("/profile"));
         var saved = accounts.signIn("signup-flow-sub", "signup-flow@example.test", true, "New Member", null);
         org.assertj.core.api.Assertions.assertThat(saved.getUsername()).isEqualTo("completed_google_user");
         org.assertj.core.api.Assertions.assertThat(saved.getEmail()).isEqualTo("signup-flow@example.test");
