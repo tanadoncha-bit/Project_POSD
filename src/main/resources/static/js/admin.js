@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const money = value => Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function showError(message) { toast.error(message); }
     const requestJson = window.workflowApi;
-    const {renderInspections}=window.createAdminReturns({getRequests:()=>requests,getSelectedRequestId:()=>selectedRequestId,money,escapeHtml,requestJson,success,loadData,showError});
+    const {renderInspections}=window.createAdminReturns({getRequests:()=>requests,getSelectedRequestId:()=>selectedRequestId,money,escapeHtml,requestImage,requestJson,success,loadData,showError});
     function statusClass(status) {
         if (status === "AVAILABLE") return "available";
         if (["IN_USE", "BORROWED", "APPROVED"].includes(status)) return "in-use";
@@ -55,6 +55,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const url = equipmentImage(id);
         return url ? `<img src="${url}" alt="" loading="lazy">` : '<span class="management-no-image">No image</span>';
     }
+    function borrowerAvatar(user) {
+        const initial = escapeHtml((user.username || 'U').slice(0, 1).toUpperCase());
+        const image = user.userId == null ? '' : `<img src="/admin/borrower-avatar/${encodeURIComponent(user.userId)}" alt="" loading="lazy" decoding="async" data-borrower-avatar>`;
+        return `<span class="request-borrower-initial" aria-hidden="true"><span>${initial}</span>${image}</span>`;
+    }
+    document.addEventListener('error', event => {
+        if (event.target instanceof HTMLImageElement && event.target.hasAttribute('data-borrower-avatar')) event.target.remove();
+    }, true);
     function requestImage(item) {
         const url = item?.imageUrl;
         return url && (url.startsWith("https://") || url.startsWith("/images/"))
@@ -101,29 +109,93 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.querySelector("input:not(.picker-native), select:not(.picker-native), textarea, button")?.focus();
     }
     function success(message) { closeModals(); toast.success(message); }
-    let usersLoading = false;
+    let userLoadVersion = 0;
+    let userLoadController;
+    let currentUsersUrl = "/admin/users";
     async function loadUsers(url = "/admin/users") {
-        if (usersLoading) return;
         const container = document.querySelector("[data-user-management-content]");
         if (!container) return;
-        usersLoading = true;
+        const version = ++userLoadVersion;
+        userLoadController?.abort();
+        userLoadController = new AbortController();
         container.setAttribute("aria-busy", "true");
+        const results = container.querySelector('[data-user-results]');
+        results?.setAttribute('aria-busy', 'true');
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, {signal: userLoadController.signal});
             if (!response.ok) throw new Error("Unable to load users. Please try again.");
             const documentResult = new DOMParser().parseFromString(await response.text(), "text/html");
             const content = documentResult.querySelector("[data-user-management-content] .user-management");
             if (!content) throw new Error("Your session or permissions have changed. Please reload the page.");
-            container.replaceChildren(content);
+            if (version !== userLoadVersion) return;
+            if (results) {
+                results.replaceChildren(...content.querySelector('[data-user-results]').childNodes);
+                container.querySelector('.user-total-count').textContent = content.querySelector('.user-total-count').textContent;
+            } else container.replaceChildren(content);
+            currentUsersUrl = url;
+            const historyPanel = container.querySelector('.user-history-panel');
+            const updatedHistory = content.querySelector('.user-history-panel');
+            if (historyPanel && updatedHistory && historyPanel !== updatedHistory) {
+                updatedHistory.open = historyPanel.open;
+                historyPanel.replaceWith(updatedHistory);
+            }
+            document.dispatchEvent(new Event('picker:sync'));
         } catch (error) {
-            container.innerHTML = '<div class="equipment-load-failed"><p>Unable to load users.</p><button type="button" data-retry-users>Try again</button></div>';
+            if (error.name === 'AbortError' || version !== userLoadVersion) return;
+            if (!results) container.innerHTML = '<div class="equipment-load-failed"><p>Unable to load users.</p><button type="button" data-retry-users>Try again</button></div>';
             toast.error(error.message);
-        } finally { usersLoading = false; container.removeAttribute("aria-busy"); }
+        } finally {
+            if (version === userLoadVersion) {
+                container.removeAttribute("aria-busy");
+                results?.removeAttribute('aria-busy');
+            }
+        }
     }
     document.addEventListener("click", event => {
         const pagination = event.target.closest('[data-user-management-content] nav a');
         if (pagination) { event.preventDefault(); loadUsers(pagination.href); }
         if (event.target.closest("[data-retry-users]")) loadUsers();
+    });
+    document.addEventListener("submit", event => {
+        if (!event.target.matches("[data-user-search]")) return;
+        event.preventDefault();
+        loadUsers("/admin/users?" + new URLSearchParams(new FormData(event.target)));
+    });
+    document.addEventListener('submit', async event => {
+        const form = event.target;
+        if (!form.matches('.user-role-form')) return;
+        event.preventDefault();
+        const button = form.querySelector('[type="submit"]');
+        if (button.disabled) return;
+        const label = button.textContent;
+        const body = new URLSearchParams(new FormData(form));
+        button.disabled = true;
+        button.textContent = 'Saving...';
+        form.setAttribute('aria-busy', 'true');
+        try {
+            const headers = {};
+            const token = document.querySelector('meta[name="_csrf"]')?.content;
+            const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+            if (token && header) headers[header] = token;
+            const response = await fetch(form.action, {method: 'POST', body, headers});
+            if (!response.ok) throw new Error('Unable to save role. Please try again.');
+            const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const error = doc.querySelector('[data-user-management-content] [data-toast="error"]');
+            if (error) throw new Error(error.textContent.trim());
+            if (!doc.querySelector('[data-user-management-content] .user-management')) {
+                // Changing your own role can remove access to user management.
+                location.assign(response.url);
+                return;
+            }
+            toast.success(doc.querySelector('[data-user-management-content] [data-toast="success"]')?.textContent.trim() || 'Role updated.');
+            await loadUsers(currentUsersUrl);
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            button.disabled = false;
+            button.textContent = label;
+            form.removeAttribute('aria-busy');
+        }
     });
     function showView(name) {
         const view = ["dashboard", "inventory", "requests", ...(document.querySelector("[data-admin-panel=users]") ? ["users"] : [])].includes(name) ? name : "dashboard";
@@ -148,6 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderEquipment(result.content);
         document.querySelector('[data-count-available]').textContent=summary.available;
         document.querySelector('[data-count-in-use]').textContent=summary.inUse;
+        document.querySelectorAll('.equipment-pagination').forEach(nav => nav.hidden = result.totalPages <= 1);
         document.querySelectorAll('[data-asset-prev]').forEach(b=>b.disabled=result.first);
         document.querySelectorAll('[data-asset-next]').forEach(b=>b.disabled=result.last);
         document.querySelectorAll('[data-asset-page]').forEach(b=>b.textContent=`Equipment page ${result.number+1} of ${Math.max(1,result.totalPages)}`);
@@ -185,14 +258,14 @@ document.addEventListener("DOMContentLoaded", () => {
             Object.assign(card.dataset, { requestId: item.id, requestStatus: item.status });
             let action = item.status === "RETURNED" ? `<button type="button" data-return-receipt="${item.id}">View charges</button>` : "";
             if (item.status === "PENDING") action = '<button type="button" data-workflow="reject">Reject</button><button type="button" data-admin-approve><img src="/images/request-confirm.svg" alt="">Approve</button>';
-            if (item.status === "APPROVED") action = '<button type="button" data-admin-pickup>Confirm pickup</button>';
+
             if (["BORROWED", "OVERDUE"].includes(item.status)) action = '<button type="button" data-open-admin-modal="return-modal"><img src="/images/request-return.svg" alt="">Return</button>';
             if (["PENDING", "APPROVED", "BORROWED", "OVERDUE"].includes(item.status) && item.username === page.dataset.username)
                 action = '<span class="request-awaiting-review">Another staff member must handle this request.</span>';
             if (item.status === "RETURNED" && item.username !== page.dataset.username) action += '<button type="button" data-workflow="settlement">Record payment</button>';
             const label = {PENDING:'Pending', APPROVED:'Approved', BORROWED:'In use', OVERDUE:'Overdue', RETURNED:'Returned', CANCELLED:'Cancelled'}[item.status] || item.status;
             const note = item.rejectionReason ? "Rejected: " + item.rejectionReason : item.note?.trim();
-            card.innerHTML = `<header><div class="request-borrower"><span class="request-borrower-initial" aria-hidden="true">${escapeHtml((item.username || 'U').slice(0,1).toUpperCase())}</span><div><h2>${escapeHtml(item.username)}</h2><p>Request #${item.id} &middot; Borrowed: ${escapeHtml(item.borrowDate)} &middot; Due: ${escapeHtml(item.dueDate)}</p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${requestImage(asset)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}${asset.returnedOn ? " ? Returned " + escapeHtml(asset.returnedOn) : ""}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
+            card.innerHTML = `<header><div class="request-borrower">${borrowerAvatar(item)}<div><h2>${escapeHtml(item.username)}</h2><p>Request #${item.id} &middot; Borrowed: ${escapeHtml(item.borrowDate)} &middot; Due: ${escapeHtml(item.dueDate)}</p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${requestImage(asset)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}${asset.returnedOn ? " ? Returned " + escapeHtml(asset.returnedOn) : ""}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
             requestList.append(card);
         });
         document.querySelector("[data-count-pending]").textContent = summary.pending;
@@ -218,13 +291,33 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector('[data-request-page]').textContent = `Page ${result.number+1} of ${Math.max(1,result.totalPages)}`;
     }
     async function loadRequestPage() {
-        const version=++requestLoadVersion;
-        const status=document.querySelector('[data-admin-request-filter].active')?.dataset.adminRequestFilter || 'ALL';
+        const version = ++requestLoadVersion;
+        const status = document.querySelector('[data-admin-request-filter].active')?.dataset.adminRequestFilter || 'ALL';
+        const panel = document.querySelector('[data-admin-panel="requests"]');
+        const pagingButtons = Array.from(document.querySelectorAll('[data-request-prev], [data-request-next]'));
+        const pagingState = pagingButtons.map(button => button.disabled);
+        let loaded = false;
+        const empty = document.getElementById('admin-request-empty');
+        panel.setAttribute('aria-busy', 'true');
+        requestList.setAttribute('aria-busy', 'true');
+        empty.textContent = 'No requests match.';
+        document.querySelectorAll('[data-request-prev], [data-request-next]').forEach(button => button.disabled = true);
         try {
-            const result=await requestJson(`/api/v1/borrow-requests/management?page=${requestPage}&status=${status}`);
-            if(version!==requestLoadVersion)return;
-            renderRequests(result.page.content,result); updateRequestPaging(result.page);
-        } catch(error) { showError(error.message); }
+            const result = await requestJson(`/api/v1/borrow-requests/management?page=${requestPage}&status=${status}`);
+            if (version !== requestLoadVersion) return;
+            renderRequests(result.page.content, result);
+            updateRequestPaging(result.page);
+            loaded = true;
+        } catch (error) {
+            if (version !== requestLoadVersion) return;
+            showError(error.message);
+        } finally {
+            if (version === requestLoadVersion) {
+                panel.removeAttribute('aria-busy');
+                requestList.setAttribute('aria-busy', 'false');
+                if (!loaded) pagingButtons.forEach((button, index) => button.disabled = pagingState[index]);
+            }
+        }
     }
     document.querySelector('[data-request-prev]').addEventListener('click',()=>{requestPage=Math.max(0,requestPage-1);loadRequestPage();});
     document.querySelector('[data-request-next]').addEventListener('click',()=>{requestPage++;loadRequestPage();});
@@ -270,6 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (details) {
             selectedEquipmentId = details.closest(".admin-equipment-card").dataset.id;
             const item = equipments.get(selectedEquipmentId);
+            const deleteButton = document.querySelector("[data-admin-delete]");
+            if (deleteButton) deleteButton.hidden = true;
+            const inspectedId = selectedEquipmentId;
+            if (deleteButton) requestJson(`/api/v1/equipment/${inspectedId}/deletion`).then(result => {
+                if (selectedEquipmentId === inspectedId) deleteButton.hidden = !result.allowed;
+            }).catch(() => { deleteButton.hidden = true; });
             document.getElementById("admin-equipment-title").textContent = item.name;
             document.getElementById("admin-equipment-code").textContent = item.assetCode;
             document.getElementById("admin-equipment-image").innerHTML = imageMarkup(item.id);
@@ -296,12 +395,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (opener.dataset.openAdminModal === "return-modal") {
                 selectedRequestId = opener.closest(".admin-request-card").dataset.requestId;
                 const loan = requests.get(selectedRequestId);
-                document.getElementById("return-request-summary").textContent = `Request #${loan.id} - ${loan.username} - Due ${loan.dueDate}`;
+                document.getElementById("return-request-summary").innerHTML = `${borrowerAvatar(loan)}<div><strong>${escapeHtml(loan.username)}</strong><p>Borrowed: ${escapeHtml(loan.borrowDate)} | Due: ${escapeHtml(loan.dueDate)} &middot; Request #${loan.id}</p></div>`;
                 renderInspections(loan); document.getElementById("return-remark").value = "";
             }
             openModal(opener.dataset.openAdminModal); return;
         }
-        const action = target.closest("[data-admin-approve], [data-admin-pickup], [data-admin-delete]");
+        const action = target.closest("[data-admin-approve], [data-admin-delete]");
         if (!action) return;
         action.disabled = true;
         try {
@@ -311,9 +410,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 await requestJson(`/api/v1/equipment/${selectedEquipmentId}`, { method: "DELETE" });
             } else {
                 const id = action.closest(".admin-request-card").dataset.requestId;
-                const operation = action.hasAttribute("data-admin-approve") ? "approve" : "pickup";
+                const operation = "approve";
                 await requestJson(`/api/v1/borrow-requests/${id}/${operation}`, { method: "PATCH" });
-                message = operation === "approve" ? "Request approved." : "Pickup recorded.";
+                message = "Request approved.";
             }
             await loadData(); success(message);
         } catch (error) { showError(error.message); } finally { action.disabled = false; }

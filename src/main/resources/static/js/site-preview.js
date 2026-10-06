@@ -615,17 +615,19 @@ function initializeSearchOverlay() {
             const data = await response.json();
             const categories = await fetch("/api/v1/categories", { signal: current.signal }).then(r => r.ok ? r.json() : []);
             for (const equipment of data.content) {
-                const card = element("a", "search-equipment-card"); card.href = `/equipment/${equipment.id}`;
-                const media = element("div", "search-equipment-media");
-                // Equipment has no image field yet: use an explicit neutral placeholder.
+                const card = element("a", "search-equipment-card equipment-card"); card.href = `/equipment/${equipment.id}`;
+                const media = element("div", "equipment-card-image");
+                // Use the same photo and status treatment as the equipment catalog.
                 if (equipment.imageUrl && (equipment.imageUrl.startsWith("https://") || equipment.imageUrl.startsWith("/images/"))) {
                     const image = document.createElement("img"); image.src = equipment.imageUrl; image.alt = equipment.name;
-                    image.onerror = () => media.replaceChildren(element("span", "search-equipment-placeholder", "No image")); media.append(image);
-                } else media.append(element("span", "search-equipment-placeholder", "No image"));
-                const badge = element("span", "search-equipment-status", statusNames[equipment.status] || "Unavailable");
-                badge.dataset.available = String(equipment.status === "AVAILABLE");
-                if (equipment.status === "AVAILABLE") { const dot = document.createElement("img"); dot.src = "/images/search/status.svg"; dot.alt = ""; badge.prepend(dot); }
-                card.append(media, badge, element("h3", "", equipment.name), element("p", "", categories.find(category => category.id === equipment.categoryId)?.name || "IT Equipment")); grid.append(card);
+                    image.onerror = () => media.replaceChildren(element("span", "equipment-image-placeholder", "No image")); media.append(image);
+                } else media.append(element("span", "equipment-image-placeholder", "No image"));
+                const badge = element("span", "availability-badge", statusNames[equipment.status] || "Unavailable");
+                badge.dataset.status = equipment.status;
+                media.append(badge);
+                const body = element("div", "equipment-card-body");
+                body.append(element("h3", "", equipment.name), element("p", "", categories.find(category => category.id === equipment.categoryId)?.name || "IT Equipment"));
+                card.append(media, body); grid.append(card);
             }
             message.hidden = grid.children.length > 0; message.textContent = "No equipment found.";
             more.hidden = data.last !== false;

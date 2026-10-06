@@ -120,9 +120,9 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Override
     @Transactional
     public BorrowResponseDto pickUpEquipment(Long id) {
-        current.requireOperator();
         BorrowRequest request = findLockedById(id);
-        current.requireIndependentOperator(request);
+        if (!current.require().getId().equals(request.getUser().getId()))
+            throw new org.springframework.security.access.AccessDeniedException("Only the borrower can confirm pickup.");
         if (LocalDate.now().isBefore(request.getBorrowDate()) || LocalDate.now().isAfter(request.getDueDate()))
             throw new IllegalArgumentException("Pickup must be within the requested borrowing period.");
         stateResolver.resolve(request.getStatus()).pickUp(request);

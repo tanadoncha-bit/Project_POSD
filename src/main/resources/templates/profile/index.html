@@ -330,13 +330,11 @@
                                          th:each="item : ${loan.items}">
 
                                     <div class="profile-loan-image">
-                                        <img th:if="${equipmentImages != null
-                                                    and equipmentImages[item.equipmentId] != null}"
-                                             th:src="${equipmentImages[item.equipmentId]}"
+                                        <img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}"
+                                             th:src="${item.imageUrl}"
                                              th:alt="${item.equipmentName}">
 
-                                        <span th:unless="${equipmentImages != null
-                                                         and equipmentImages[item.equipmentId] != null}">
+                                        <span th:unless="${item.imageUrl != null and !item.imageUrl.isBlank()}">
                                             LeadIT
                                         </span>
                                     </div>
@@ -368,7 +366,7 @@
                                         </span>
                                     </div>
 
-                                    <span class="profile-loan-status status-active"
+                                    <span class="profile-loan-status" th:attr="data-status=${loan.status}"
                                           th:text="${loan.status}">
                                         In Use
                                     </span>
@@ -428,13 +426,11 @@
                                          th:each="item : ${request.items}">
 
                                     <div class="profile-loan-image">
-                                        <img th:if="${equipmentImages != null
-                                                    and equipmentImages[item.equipmentId] != null}"
-                                             th:src="${equipmentImages[item.equipmentId]}"
+                                        <img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}"
+                                             th:src="${item.imageUrl}"
                                              th:alt="${item.equipmentName}">
 
-                                        <span th:unless="${equipmentImages != null
-                                                         and equipmentImages[item.equipmentId] != null}">
+                                        <span th:unless="${item.imageUrl != null and !item.imageUrl.isBlank()}">
                                             LeadIT
                                         </span>
                                     </div>

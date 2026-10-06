@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.itborrow.domain.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+    org.springframework.data.domain.Page<User> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email, org.springframework.data.domain.Pageable pageable);
     java.util.Optional<User> findByUsername(String username);
     long countByRole(com.example.itborrow.domain.enums.Role role);
     boolean existsByUsername(String username);

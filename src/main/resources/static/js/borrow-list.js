@@ -1,8 +1,12 @@
 /* Shared equipment details and a session-persistent, account-scoped borrowing list. */
 (() => {
+    const authenticated = () => document.body.dataset.authenticated === "true";
+    const pendingKey = "leadit.borrowList.pendingAdd";
+    // Guests may inspect equipment, but have no borrowing list.
+    try { sessionStorage.removeItem("leadit.borrowList.guest"); } catch {}
     const key = "leadit.borrowList." + (document.body.dataset.username || "guest");
     let items = [];
-    try { const saved = JSON.parse(sessionStorage.getItem(key) || "[]"); if (Array.isArray(saved)) items = saved.filter(x => Number.isSafeInteger(x.id) && x.id > 0 && typeof x.name === "string"); } catch {}
+    try { const saved = JSON.parse(sessionStorage.getItem(key) || "[]"); if (authenticated() && Array.isArray(saved)) items = saved.filter(x => Number.isSafeInteger(x.id) && x.id > 0 && typeof x.name === "string"); } catch {}
     function node(tag, text, className) { const el = document.createElement(tag); if (text) el.textContent = text; if (className) el.className = className; return el; }
     const launcher = node("button", "", "borrow-list-launcher"); launcher.type = "button";
     document.body.append(launcher);
@@ -40,7 +44,7 @@
         return response.json();
     }
     function add(equipment) {
-        if (equipment.status !== "AVAILABLE") return;
+        if (!authenticated() || equipment.status !== "AVAILABLE") return;
         if (!items.some(x => x.id === equipment.id)) items.push({id:equipment.id, name:equipment.name, assetCode:equipment.assetCode});
         save();
     }
@@ -93,6 +97,15 @@
             action.disabled = equipment.status !== "AVAILABLE";
             if (action.disabled) action.textContent = "Currently unavailable";
             action.onclick = () => {
+                if (!authenticated()) {
+                    try {
+                        sessionStorage.setItem(pendingKey, JSON.stringify({id: equipment.id,
+                            path: location.pathname + location.search, expires: Date.now() + 5 * 60 * 1000}));
+                    } catch {}
+                    dialog.close();
+                    setModalOpen("login-modal", true);
+                    return;
+                }
                 const alreadyAdded = items.some(item => item.id === equipment.id);
                 if (alreadyAdded) { dialog.close(); openList(); return; }
                 add(equipment);
@@ -113,6 +126,7 @@
         }
     }
     function openList() {
+        if (!authenticated()) { setModalOpen("login-modal", true); return; }
         if (document.querySelector(".borrow-list-drawer[open]")) return;
         const dialog = makeDialog("borrow-list-drawer", "Borrowing list");
         const body = node("div", "", "borrow-list-body");
@@ -143,6 +157,32 @@
     }
     window.borrowList = { showDetails: details, removeMany(ids) { const selected = new Set(ids.map(String)); items = items.filter(x => !selected.has(String(x.id))); save(); }, open:openList };
     launcher.onclick = openList; update();
+    async function resumePendingAdd() {
+        if (!authenticated()) return;
+        let pending;
+        try { pending = JSON.parse(sessionStorage.getItem(pendingKey) || "null"); } catch { return; }
+        if (!pending) return;
+        if (!Number.isSafeInteger(pending.id) || pending.id <= 0 || !(pending.expires > Date.now())) {
+            sessionStorage.removeItem(pendingKey); return;
+        }
+        const destination = new URL(pending.path || "/equipment", location.origin);
+        const allowed = destination.origin === location.origin &&
+            (/^\/equipment(?:\/\d+)?$/.test(destination.pathname) || ["/", "/Dashboard", "/my-requests"].includes(destination.pathname));
+        if (allowed && destination.pathname + destination.search !== location.pathname + location.search) {
+            location.replace(destination.href); return;
+        }
+        sessionStorage.removeItem(pendingKey);
+        try {
+            const equipment = await getEquipment(pending.id);
+            if (equipment.status !== "AVAILABLE") {
+                toast.error("This equipment is no longer available."); return;
+            }
+            add(equipment);
+            toast.success("Added to your borrowing list. You can keep browsing.");
+        } catch (error) { toast.error(error.message); }
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", resumePendingAdd, {once:true});
+    else resumePendingAdd();
     // Capture before older catalog handlers so every entry point has the same flow.
     document.addEventListener("click", event => {
         const target = event.target.closest(".search-equipment-card, [data-equipment-card], .equipment-detail-borrow, #open-borrow-modal-btn");

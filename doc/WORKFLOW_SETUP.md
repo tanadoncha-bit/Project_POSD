@@ -163,3 +163,20 @@ Home/catalog no longer fetch the unused full profile. My Requests summarizes sta
 The authenticated H2 fixture (12 requests, first page of 10) reduced Hibernate statements from 24 to 6 for My Requests and 5 to 4 for Home/catalog. These counts exclude JdbcTemplate avatar queries and do not measure remote database latency, image downloads or browser rendering. `userNavigationQueryBudget` checks query ceilings; its sample is written to `target/user-navigation-performance.txt`.
 
 Home, Equipment and My Requests opt into native cross-document view transitions where supported, with a stable header and reduced-motion opt-out. This is still server-rendered navigation, not an SPA or cached history: authentication, form scripts, direct URLs and browser back/forward keep their existing lifecycle. Unsupported browsers navigate normally. Visual browser verification remains outstanding.
+
+
+### Request filter navigation (2026-10-04)
+My Requests renders authentication visibility, counts and selected filter in the initial HTML. Filters and pagination progressively fetch the server-rendered page and replace only the request main content; the header and page-level scripts remain mounted. Results are cached in memory per URL for 30 seconds, capped at 10 entries, never persisted in localStorage. Cache is cleared on cancellation and window focus; restored browser pages refresh. Requests still use server-side owner filtering and pagination, so the first visit to a filter queries the database instead of incorrectly filtering only the current 10 cards. Rapid switches abort older fetches and ignore stale responses. Back/forward navigation restores the matching URL, and session redirects leave the cached page.
+
+
+### Operator forms and simulated lockers (2026-10-04)
+V6 adds `locker_access`. Restart with the migrations profile to apply it before using approval/PIN actions. No live database migration was performed by this change.
+
+This is explicitly a simulation, not a hardware integration. Approval issues a six-digit PIN; only the borrower can retrieve it through the no-store locker endpoint. Existing approvals initialize on first authorized access. My Requests shows a View locker PIN (simulation) action for approved requests. The owner can enter that PIN to simulate opening once, within the borrowing dates. This does not claim equipment has been physically collected. A different operator confirms pickup, which moves the request to BORROWED and assets to IN_USE and invalidates the PIN. Cancellation/expiry invalidate access too. Multi-item requests display the associated storage locations together. Missing storage is marked for staff assistance. Simulation PINs are stored as readable values so the borrower can view them; this component must be replaced with a provision/revoke hardware integration before real-world access control use.
+
+Equipment deletion controls are shown only after a server eligibility check; the delete endpoint still rechecks under lock. User management searches username/email, pages 10 users, and expands a role editor only on demand; the audit preview shows the latest 10 changes. Return condition and role selectors use the shared custom dropdown, with ordinary select fallback in unsupported browsers.
+
+### Borrower pickup and return inspection
+
+- Approved requests show the locker PIN inline in My requests. The borrower confirms collection with Confirm pickup during the requested borrowing period; only the request owner can confirm. Pickup revokes the PIN and marks equipment In use. Pending requests retain Cancel request.
+- Operators approve requests and inspect returns; pickup confirmation is handled by the borrower. The return inspection shows equipment photos, per-item condition and remarks, partial-return selection, and estimated late/damage/total fees using the recorded policy. Rates and overdue days are read-only; final charges are calculated by the server.

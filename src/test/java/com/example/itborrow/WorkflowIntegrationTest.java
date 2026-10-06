@@ -87,7 +87,7 @@ class WorkflowIntegrationTest {
     @Test void partialReturnsKeepFrozenFeesAndSettlementIsSeparate() throws Exception {
         var second=new Equipment("SECOND","Second",EquipmentStatus.AVAILABLE);second.setCategoryId(asset.getCategoryId());second.setPurchasePrice(new java.math.BigDecimal("1000"));equipment.save(second);
         auth("alice"); var dto=new BorrowRequestDto();dto.setBorrowDate(LocalDate.now());dto.setDueDate(LocalDate.now().plusDays(1));dto.setItems(List.of(new BorrowItemRequestDto(asset.getId(),1),new BorrowItemRequestDto(second.getId(),1)));
-        long id=borrowing.createBorrowRequest(dto).getId(); auth("admin"); borrowing.approveBorrowRequest(id); borrowing.pickUpEquipment(id);
+        long id=borrowing.createBorrowRequest(dto).getId(); auth("admin"); borrowing.approveBorrowRequest(id); auth("alice"); borrowing.pickUpEquipment(id);
         var request=requests.findById(id).orElseThrow();request.setBorrowDate(LocalDate.now().minusDays(4));request.setDueDate(LocalDate.now().minusDays(2));requests.save(request);
         alice.setRole(Role.VIP);users.save(alice);var changed=equipment.findById(asset.getId()).orElseThrow();changed.setPurchasePrice(new java.math.BigDecimal("9000"));equipment.save(changed);
         String partial="{\"partial\":true,\"items\":[{\"equipmentId\":"+asset.getId()+",\"condition\":\"SCRATCH\",\"remark\":\"Scratch\"}]}";
@@ -202,9 +202,9 @@ class WorkflowIntegrationTest {
             assertThat(requests.findById(own.getId()).orElseThrow().getStatus()).isEqualTo(BorrowStatus.PENDING);
         }
     }
-    @Test void operatorsCannotHandleTheirOwnPickupOrReturn() throws Exception {
+    @Test void borrowersConfirmTheirOwnPickupButCannotInspectTheirOwnReturn() throws Exception {
         var own=loan(admin,BorrowStatus.APPROVED,asset);
-        mvc.perform(patch("/api/v1/borrow-requests/"+own.getId()+"/pickup").with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(patch("/api/v1/borrow-requests/"+own.getId()+"/pickup").with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isOk());
         own.setStatus(BorrowStatus.BORROWED); requests.save(own);
         mvc.perform(post("/api/v1/borrow-requests/"+own.getId()+"/return").with(user("admin").roles("ADMIN")).with(csrf()).contentType("application/json").content("{\"condition\":\"NORMAL\"}"))
             .andExpect(status().isForbidden());
@@ -230,6 +230,32 @@ class WorkflowIntegrationTest {
             .andExpect(status().isOk());
         assertThat(equipment.findById(asset.getId()).orElseThrow().getImageUrl()).isEqualTo(asset.getImageUrl());
     }
+    @Test void simulatedLockerIsPrivateSingleUseAndRevokedAtPickup() throws Exception {
+        var request=loan(alice,BorrowStatus.PENDING,asset);
+        mvc.perform(patch("/api/v1/borrow-requests/"+request.getId()+"/approve").with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isOk());
+        String url="/api/v1/borrow-requests/"+request.getId()+"/locker";
+        mvc.perform(get(url).with(user("bob"))).andExpect(status().isForbidden());
+        mvc.perform(get(url).with(user("alice"))).andExpect(status().isOk()).andExpect(jsonPath("$.simulation").value(true)).andExpect(header().string("Cache-Control",org.hamcrest.Matchers.containsString("no-store")));
+        String pin=jdbc.queryForObject("SELECT pin FROM locker_access WHERE request_id=?",String.class,request.getId());
+        assertThat(pin).matches("[0-9]{6}");
+        mvc.perform(post(url).with(user("alice")).with(csrf()).contentType("application/json").content("{\"pin\":\"bad\"}")).andExpect(status().isBadRequest());
+        mvc.perform(post(url).with(user("alice")).with(csrf()).contentType("application/json").content("{\"pin\":\""+pin+"\"}")).andExpect(status().isNoContent());
+        mvc.perform(post(url).with(user("alice")).with(csrf()).contentType("application/json").content("{\"pin\":\""+pin+"\"}")).andExpect(status().isBadRequest());
+        mvc.perform(patch("/api/v1/borrow-requests/"+request.getId()+"/pickup").with(user("alice")).with(csrf())).andExpect(status().isOk());
+        mvc.perform(get(url).with(user("alice"))).andExpect(status().isBadRequest());
+        assertThat(equipment.findById(asset.getId()).orElseThrow().getStatus()).isEqualTo(EquipmentStatus.IN_USE);
+    }
+
+    @Test void deletionEligibilityAndUserSearch() throws Exception {
+        mvc.perform(get("/api/v1/equipment/"+asset.getId()+"/deletion").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.allowed").value(true));
+        loan(alice,BorrowStatus.CANCELLED,asset);
+        mvc.perform(get("/api/v1/equipment/"+asset.getId()+"/deletion").with(user("admin").roles("ADMIN")))
+            .andExpect(jsonPath("$.allowed").value(false));
+        mvc.perform(get("/admin/users").param("keyword","alice").with(user("admin").roles("ADMIN")))
+            .andExpect(status().isOk()).andExpect(model().attribute("accounts",org.hamcrest.Matchers.hasProperty("totalElements",org.hamcrest.Matchers.is(1L))));
+    }
+
     @Test void userNavigationQueryBudget() throws Exception {
         for (int i=0;i<12;i++) loan(alice,BorrowStatus.PENDING,asset);
         var stats=entityManagerFactory.unwrap(org.hibernate.SessionFactory.class).getStatistics();
@@ -260,7 +286,11 @@ class WorkflowIntegrationTest {
         mvc.perform(get("/equipment?keyword=PAGE-13")).andExpect(model().attribute("equipments",org.hamcrest.Matchers.hasSize(1)));
         mvc.perform(get("/my-requests").with(user("alice"))).andExpect(model().attribute("requests",org.hamcrest.Matchers.hasSize(10)));
         mvc.perform(get("/my-requests?status=RETURNED").with(user("alice"))).andExpect(model().attribute("requests",org.hamcrest.Matchers.hasSize(1)));
-        mvc.perform(get("/my-requests?status=PENDING&page=1").with(user("alice"))).andExpect(model().attribute("requests",org.hamcrest.Matchers.hasSize(2)));
+        mvc.perform(get("/my-requests?status=PENDING&page=1").with(user("alice")))
+            .andExpect(model().attribute("requests",org.hamcrest.Matchers.hasSize(2)))
+            .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("Please log in to view your request history."))))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("data-request-filter=\"PENDING\"")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("class=\"request-filter-count\">12</span>")));
         mvc.perform(get("/borrow?modal=true&equipmentIds="+asset.getId()).with(user("alice"))).andExpect(model().attribute("availableEquipments",org.hamcrest.Matchers.hasSize(1)));
     }
     @Test void profilePaginatesActiveAndPastLoansIndependently() throws Exception {
@@ -298,20 +328,41 @@ class WorkflowIntegrationTest {
         var b=loan(alice,BorrowStatus.PENDING,asset);
         mvc.perform(patch("/api/v1/borrow-requests/"+b.getId()+"/approve").with(user("admin").roles("ADMIN"))).andExpect(status().isForbidden());
         mvc.perform(patch("/api/v1/borrow-requests/"+b.getId()+"/approve").with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("APPROVED"));
-        auth("alice");assertThatThrownBy(() -> borrowing.pickUpEquipment(b.getId())).isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        auth("bob");assertThatThrownBy(() -> borrowing.pickUpEquipment(b.getId())).isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+    @Test void pickupRequiresOwnerCsrfAndBorrowingPeriodAndRevokesPin() throws Exception {
+        var request=loan(alice,BorrowStatus.PENDING,asset);
+        mvc.perform(patch("/api/v1/borrow-requests/"+request.getId()+"/approve").with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isOk());
+        String url="/api/v1/borrow-requests/"+request.getId()+"/pickup";
+        mvc.perform(get("/my-requests").with(user("alice"))).andExpect(status().isOk())
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("data-locker-pin")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("data-confirm-pickup")))
+            .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("View locker PIN"))));
+        mvc.perform(patch(url).with(user("bob")).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(patch(url).with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isForbidden());
+        mvc.perform(patch(url).with(user("alice"))).andExpect(status().isForbidden());
+        request=requests.findById(request.getId()).orElseThrow();
+        request.setBorrowDate(LocalDate.now().plusDays(1)); request.setDueDate(LocalDate.now().plusDays(2)); requests.save(request);
+        mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isBadRequest());
+        request.setBorrowDate(LocalDate.now().minusDays(2)); request.setDueDate(LocalDate.now().minusDays(1)); requests.save(request);
+        mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isBadRequest());
+        request.setBorrowDate(LocalDate.now()); request.setDueDate(LocalDate.now().plusDays(1)); requests.save(request);
+        mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("BORROWED"));
+        assertThat(jdbc.queryForObject("SELECT pin FROM locker_access WHERE request_id=?",String.class,request.getId())).isNull();
+        mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isConflict());
     }
     @Test void parallelPickupsHaveExactlyOneWinner() throws Exception {
         var first=loan(alice,BorrowStatus.APPROVED,asset);var second=loan(bob,BorrowStatus.APPROVED,asset);
         var pool=Executors.newFixedThreadPool(2);var gate=new CountDownLatch(1);
         try {
-            var one=pool.submit(() -> pickup(first.getId(),gate));var two=pool.submit(() -> pickup(second.getId(),gate));gate.countDown();
+            var one=pool.submit(() -> pickup(first.getId(),"alice",gate));var two=pool.submit(() -> pickup(second.getId(),"bob",gate));gate.countDown();
             assertThat(List.of(one.get(15,TimeUnit.SECONDS),two.get(15,TimeUnit.SECONDS))).containsExactlyInAnyOrder(true,false);
             assertThat(requests.findAll().stream().filter(b -> b.getStatus()==BorrowStatus.BORROWED).count()).isEqualTo(1);
             assertThat(equipment.findById(asset.getId()).orElseThrow().getStatus()).isEqualTo(EquipmentStatus.IN_USE);
         } finally { pool.shutdownNow(); }
     }
-    boolean pickup(Long id, CountDownLatch gate) throws Exception {
-        gate.await();auth("admin");
+    boolean pickup(Long id, String username, CountDownLatch gate) throws Exception {
+        gate.await();auth(username);
         try { borrowing.pickUpEquipment(id); return true; }
         catch (com.example.itborrow.exception.EquipmentNotAvailableException ex) { return false; }
         finally { SecurityContextHolder.clearContext(); }
@@ -320,7 +371,7 @@ class WorkflowIntegrationTest {
         var b=loan(alice,BorrowStatus.APPROVED,asset);
         var blocked=new Equipment("BLOCKED","Blocked",EquipmentStatus.IN_USE);blocked.setCategoryId(asset.getCategoryId());equipment.save(blocked);
         new TransactionTemplate(transactions).executeWithoutResult(tx -> {var loaded=requests.findById(b.getId()).orElseThrow();var item=new BorrowItem();item.setEquipment(blocked);loaded.addItem(item);requests.save(loaded);});
-        auth("admin");assertThatThrownBy(() -> borrowing.pickUpEquipment(b.getId())).isInstanceOf(com.example.itborrow.exception.EquipmentNotAvailableException.class);
+        auth("alice");assertThatThrownBy(() -> borrowing.pickUpEquipment(b.getId())).isInstanceOf(com.example.itborrow.exception.EquipmentNotAvailableException.class);
         assertThat(equipment.findById(asset.getId()).orElseThrow().getStatus()).isEqualTo(EquipmentStatus.AVAILABLE);
         assertThat(requests.findById(b.getId()).orElseThrow().getStatus()).isEqualTo(BorrowStatus.APPROVED);
     }

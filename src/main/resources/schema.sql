@@ -150,3 +150,8 @@ CREATE TABLE IF NOT EXISTS equipment_repairs (id BIGSERIAL PRIMARY KEY, equipmen
 CREATE TABLE IF NOT EXISTS delivery_jobs (id BIGSERIAL PRIMARY KEY, kind VARCHAR(30) NOT NULL, recipient VARCHAR(320) NOT NULL, subject VARCHAR(200) NOT NULL, payload TEXT NOT NULL, completed BOOLEAN NOT NULL DEFAULT false, attempts INT NOT NULL DEFAULT 0, next_attempt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, last_error VARCHAR(150));
 CREATE INDEX IF NOT EXISTS idx_delivery_jobs_pending ON delivery_jobs(completed,next_attempt);
 CREATE TABLE IF NOT EXISTS email_verifications (user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, email VARCHAR(320) NOT NULL, token_hash VARCHAR(64), expires_at TIMESTAMP, requested_at TIMESTAMP NOT NULL, verified_at TIMESTAMP);
+
+CREATE TABLE IF NOT EXISTS locker_access (
+ request_id BIGINT PRIMARY KEY REFERENCES borrow_requests(id) ON DELETE CASCADE,
+ pin VARCHAR(6), slots TEXT NOT NULL, opened BOOLEAN NOT NULL DEFAULT false
+);

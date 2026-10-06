@@ -134,6 +134,7 @@ class BorrowRequestServiceTest {
 
     @Test
     void pickUpEquipment_success_changesEquipmentStatusToBorrowed() {
+        when(current.require()).thenReturn(testUser);
         BorrowRequest request = buildBorrowRequestWithItem(BorrowStatus.APPROVED);
 
         when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(request));

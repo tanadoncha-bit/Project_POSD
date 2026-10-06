@@ -84,6 +84,10 @@ public class EquipmentServiceImpl implements EquipmentService {
         equipment.setName(details.getName()); equipment.setStatus(details.getStatus());
         return equipmentRepository.save(equipment);
     }
+    @Transactional(readOnly=true) public boolean canDeleteEquipment(Long id) {
+        var equipment=getEquipmentById(id);
+        return equipment.getStatus()!=EquipmentStatus.IN_USE && !borrowItems.existsByEquipmentId(id);
+    }
     @Transactional public void deleteEquipment(Long id) {
         var equipment=equipmentRepository.findLockedById(id).orElseThrow(() -> ResourceNotFoundException.of("Equipment",id));
         if (equipment.getStatus()==EquipmentStatus.IN_USE) throw new InvalidBorrowStateException("Cannot delete an asset in use.");

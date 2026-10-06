@@ -217,11 +217,17 @@ svg {
 }
 
 .main-navigation a:hover,
-.main-navigation a.active {
+.main-navigation a.active,
+body[data-page="home"] .main-navigation [data-nav-page="home"],
+body[data-page="equipment"] .main-navigation [data-nav-page="equipment"],
+body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
     color: var(--orange);
 }
 
-.main-navigation a.active {
+.main-navigation a.active,
+body[data-page="home"] .main-navigation [data-nav-page="home"],
+body[data-page="equipment"] .main-navigation [data-nav-page="equipment"],
+body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
     font-weight: 700;
 }
 

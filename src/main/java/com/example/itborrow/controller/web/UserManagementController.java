@@ -16,9 +16,10 @@ public class UserManagementController {
     private final UserRepository users;
     private final UserManagementService management;
     public UserManagementController(UserRepository users, UserManagementService management) { this.users=users; this.management=management; }
-    @GetMapping public String list(@RequestParam(defaultValue="0") int page, Model model) {
+    @GetMapping public String list(@RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="") String keyword, Model model) {
         management.requireAdmin();
-        model.addAttribute("accounts",users.findAll(PageRequest.of(Math.max(0,page),25,Sort.by("username"))));
+        model.addAttribute("accounts",users.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword.trim(),keyword.trim(),PageRequest.of(Math.max(0,page),10,Sort.by("username","id"))));
+        model.addAttribute("userKeyword",keyword);
         model.addAttribute("roles",Role.values()); model.addAttribute("history",management.history());
         return "admin/index";
     }

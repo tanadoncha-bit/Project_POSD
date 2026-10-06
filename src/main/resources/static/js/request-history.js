@@ -1,4 +1,76 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const main = document.querySelector("main[data-server-paged=true]");
+    if (main) {
+        const cache = new Map();
+        const ttl = 30000;
+        let pending;
+        let version = 0;
+        const key = url => {
+            const normalized = new URL(url);
+            if (normalized.searchParams.get("status") === "ALL") normalized.searchParams.delete("status");
+            if (normalized.searchParams.get("page") === "0") normalized.searchParams.delete("page");
+            normalized.searchParams.sort();
+            return normalized.pathname + normalized.search;
+        };
+        const remember = (url, html) => {
+            cache.delete(key(url));
+            cache.set(key(url), {html, expires: Date.now() + ttl});
+            if (cache.size > 10) cache.delete(cache.keys().next().value);
+        };
+        remember(new URL(location.href), main.innerHTML);
+        async function navigate(url, push = true) {
+            const id = ++version;
+            pending?.abort();
+            pending = new AbortController();
+            main.setAttribute("aria-busy", "true");
+            try {
+                let entry = cache.get(key(url));
+                if (!entry || entry.expires <= Date.now()) {
+                    const response = await fetch(url, {signal: pending.signal, cache: "no-store"});
+                    if (id !== version) return;
+                    if (response.redirected) { location.assign(response.url); return; }
+                    if (!response.ok) throw new Error("Unable to load requests. Please try again.");
+                    const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+                    const content = doc.querySelector("main[data-server-paged=true]");
+                    if (!content || doc.body.dataset.authenticated !== "true") {
+                        cache.clear(); location.assign(url); return;
+                    }
+                    if (id !== version) return;
+                    remember(url, content.innerHTML);
+                    entry = cache.get(key(url));
+                }
+                if (id !== version) return;
+                main.innerHTML = entry.html;
+                document.dispatchEvent(new Event("requests:updated"));
+                if (push) history.pushState(null, "", url);
+                const selected = main.querySelector('[data-request-filter].active');
+                selected?.focus({preventScroll: true});
+            } catch (error) {
+                if (error.name !== "AbortError" && id === version) {
+                    if (!push) { location.reload(); return; }
+                    window.toast?.error(error.message);
+                }
+            } finally {
+                if (id === version) main.removeAttribute("aria-busy");
+            }
+        }
+        main.addEventListener("click", event => {
+            const filter = event.target.closest("[data-request-filter]");
+            const link = event.target.closest(".management-pagination a");
+            if (!filter && !link) return;
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+            event.preventDefault();
+            const url = new URL(link ? link.href : location.href);
+            if (filter) { url.searchParams.set("status", filter.dataset.requestFilter); url.searchParams.delete("page"); }
+            navigate(url);
+        });
+        window.addEventListener("popstate", () => navigate(new URL(location.href), false));
+        window.addEventListener("focus", () => cache.clear());
+        window.addEventListener("pageshow", event => { if (event.persisted) { cache.clear(); navigate(new URL(location.href), false); } });
+        document.addEventListener("click", event => { if (event.target.closest("[data-cancel-request]")) cache.clear(); });
+        return;
+    }
+
     const filterButtons =
         Array.from(
             document.querySelectorAll(

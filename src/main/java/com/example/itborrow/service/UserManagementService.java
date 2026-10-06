@@ -38,6 +38,6 @@ public class UserManagementService {
     @Transactional(readOnly=true)
     public java.util.List<java.util.Map<String,Object>> history() {
         requireAdmin();
-        return jdbc.queryForList("SELECT actor_username,target_username,old_role,new_role,changed_at FROM role_audit ORDER BY id DESC LIMIT 100");
+        return jdbc.queryForList("SELECT actor_username,target_username,old_role,new_role,changed_at FROM role_audit ORDER BY id DESC LIMIT 10");
     }
 }

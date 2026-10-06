@@ -63,39 +63,35 @@
         <nav class="request-filter-tabs"
              aria-label="Filter borrow requests">
 
-            <button class="request-filter-button active"
+            <button class="request-filter-button"
                     type="button"
-                    data-request-filter="ALL" th:attr="data-total=${requestCounts != null ? requestCounts['ALL'] : 0}"
-                    aria-pressed="true">
+                    th:classappend="${requestStatus == 'ALL' ? 'active' : ''}" data-request-filter="ALL" th:attr="data-total=${requestCounts != null ? requestCounts['ALL'] : 0}"
+                    th:attrappend="aria-pressed=${requestStatus == 'ALL'}">
 
-                All Request
-            </button>
+                All Request <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['ALL'] : 0}">0</span></button>
 
             <button class="request-filter-button"
                     type="button"
-                    data-request-filter="ACTIVE" th:attr="data-total=${requestCounts != null ? requestCounts['ACTIVE'] : 0}"
-                    aria-pressed="false">
+                    th:classappend="${requestStatus == 'ACTIVE' ? 'active' : ''}" data-request-filter="ACTIVE" th:attr="data-total=${requestCounts != null ? requestCounts['ACTIVE'] : 0}"
+                    th:attrappend="aria-pressed=${requestStatus == 'ACTIVE'}">
 
-                Active
-            </button>
-
-            <button class="request-filter-button"
-                    type="button"
-                    data-request-filter="PENDING" th:attr="data-total=${requestCounts != null ? requestCounts['PENDING'] : 0}"
-                    aria-pressed="false">
-
-                Pending
-            </button>
+                Active <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['ACTIVE'] : 0}">0</span></button>
 
             <button class="request-filter-button"
                     type="button"
-                    data-request-filter="RETURNED" th:attr="data-total=${requestCounts != null ? requestCounts['RETURNED'] : 0}"
-                    aria-pressed="false">
+                    th:classappend="${requestStatus == 'PENDING' ? 'active' : ''}" data-request-filter="PENDING" th:attr="data-total=${requestCounts != null ? requestCounts['PENDING'] : 0}"
+                    th:attrappend="aria-pressed=${requestStatus == 'PENDING'}">
 
-                Returned
-            </button>
+                Pending <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['PENDING'] : 0}">0</span></button>
 
-            <button class="request-filter-button" type="button" data-request-filter="CANCELLED" th:attr="data-total=${requestCounts != null ? requestCounts['CANCELLED'] : 0}" aria-pressed="false">Cancelled</button>
+            <button class="request-filter-button"
+                    type="button"
+                    th:classappend="${requestStatus == 'RETURNED' ? 'active' : ''}" data-request-filter="RETURNED" th:attr="data-total=${requestCounts != null ? requestCounts['RETURNED'] : 0}"
+                    th:attrappend="aria-pressed=${requestStatus == 'RETURNED'}">
+
+                Returned <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['RETURNED'] : 0}">0</span></button>
+
+            <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'CANCELLED' ? 'active' : ''}" data-request-filter="CANCELLED" th:attr="data-total=${requestCounts != null ? requestCounts['CANCELLED'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'CANCELLED'}">Cancelled <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['CANCELLED'] : 0}">0</span></button>
         </nav>
 
 
@@ -106,7 +102,7 @@
              ===================================================== -->
 
         <section class="request-login-state"
-                 data-guest-only>
+                 data-guest-only th:if="${currentUser == null}">
 
             <p>
                 Please log in to view your request history.
@@ -182,15 +178,8 @@
 
                     <div class="request-card-status-area">
 
-                        <span class="request-pin"
-                              th:if="${requestPins != null and requestPins[request.id] != null}"
-                              th:text="${requestPins != null
-                                        and requestPins[request.id] != null
-                                        ? 'PIN: ' + requestPins[request.id]
-                                        : 'PIN: N/A'}">
+                        <span class="request-locker-pin" role="status" th:if="${request.status == 'APPROVED'}" th:attr="data-locker-pin=${request.id}">PIN: Loading...</span>
 
-                            PIN: N/A
-                        </span>
 
                         <span class="request-status"
                               th:classappend="${
@@ -267,7 +256,8 @@
                 </div>
 
                 <footer class="request-card-actions" th:if="${request.status == 'PENDING' or request.status == 'APPROVED' or request.status == 'RETURNED'}">
-                            <button class="request-action" type="button" th:if="${request.status == 'PENDING' or request.status == 'APPROVED'}" th:attr="data-cancel-request=${request.id},aria-label=|Cancel request #${request.id}|">Cancel request</button>
+                            <button class="request-action" type="button" th:if="${request.status == 'PENDING'}" th:attr="data-cancel-request=${request.id},aria-label=|Cancel request #${request.id}|">Cancel request</button>
+                            <button class="request-action request-pickup-action" type="button" th:if="${request.status == 'APPROVED'}" th:attr="data-confirm-pickup=${request.id}">Confirm pickup</button>
                             <button class="request-action" type="button" th:if="${request.status == 'RETURNED'}" th:attr="data-return-receipt=${request.id}">View charges</button>
                 </footer>
             </article>
@@ -347,5 +337,6 @@
 <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
 <script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
 <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
+<script src="/js/locker-access.js" th:src="@{/js/locker-access.js}"></script>
 </body>
 </html>

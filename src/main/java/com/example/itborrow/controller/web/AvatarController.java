@@ -17,7 +17,13 @@ public class AvatarController {
         return "redirect:/profile";
     }
     @GetMapping("/profile/avatar") @ResponseBody public ResponseEntity<?> image() {
-        Long id=current.require().getId();
+        return imageFor(current.require().getId());
+    }
+    @GetMapping("/admin/borrower-avatar/{id}") @ResponseBody
+    public ResponseEntity<?> borrowerImage(@PathVariable Long id) {
+        return imageFor(id);
+    }
+    private ResponseEntity<?> imageFor(Long id) {
         String url=avatars.storedUrl(id);
         if(url!=null) return ResponseEntity.status(302).cacheControl(CacheControl.noStore()).location(java.net.URI.create(url)).build();
         byte[] bytes=avatars.readLegacy(id);

@@ -305,3 +305,41 @@ avatarInput?.addEventListener("change", () => {
     avatarButton.setAttribute("aria-busy", "true");
     avatarForm.requestSubmit();
 });
+
+// Paginate loans without replacing the personal details form.
+(() => {
+    let pending;
+    let version = 0;
+    document.addEventListener('click', async event => {
+        const link = event.target.closest('.profile-loan-column .management-pagination a');
+        if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const column = document.querySelector('.profile-loan-column');
+        const id = ++version;
+        pending?.abort();
+        pending = new AbortController();
+        column.setAttribute('aria-busy', 'true');
+        const historyScroll = column.querySelector('.profile-history-list')?.scrollTop || 0;
+        const activeScroll = column.querySelector('.profile-loan-list')?.scrollTop || 0;
+        const changingHistory = link.closest('.profile-history-card') !== null;
+        try {
+            const response = await fetch(link.href, {signal: pending.signal});
+            if (!response.ok) throw new Error('Unable to load loans. Please try again.');
+            if (response.redirected) { location.assign(response.url); return; }
+            const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const updated = doc.querySelector('.profile-loan-column');
+            if (!updated) throw new Error('Unable to load loans. Please reload the page.');
+            if (id !== version) return;
+            column.replaceChildren(...updated.childNodes);
+            const historyList = column.querySelector('.profile-history-list');
+            const activeList = column.querySelector('.profile-loan-list');
+            if (historyList) historyList.scrollTop = changingHistory ? 0 : historyScroll;
+            if (activeList) activeList.scrollTop = changingHistory ? activeScroll : 0;
+            history.replaceState(null, '', response.url);
+        } catch (error) {
+            if (error.name !== 'AbortError' && id === version) window.toast?.error(error.message);
+        } finally {
+            if (id === version) column.removeAttribute('aria-busy');
+        }
+    });
+})();

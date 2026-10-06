@@ -9,7 +9,7 @@ class PostgresMigrationTest {
   String url=System.getenv("TEST_POSTGRES_URL");
   String schema="review_"+java.util.UUID.randomUUID().toString().replace("-","");
   var flyway=Flyway.configure().dataSource(url,"review_test","").schemas(schema).locations("classpath:db/migration").load();
-  assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
+  assertThat(flyway.migrate().migrationsExecuted).isEqualTo(7);
   assertThat(flyway.migrate().migrationsExecuted).isZero();
   String legacy=schema+"_legacy";
   try(var c=java.sql.DriverManager.getConnection(url,"review_test","");var st=c.createStatement()) {
@@ -18,7 +18,7 @@ class PostgresMigrationTest {
    st.execute("INSERT INTO equipment_categories(name,description) VALUES ('Retained','test')");
   }
   var upgrade=Flyway.configure().dataSource(url,"review_test","").schemas(legacy).baselineOnMigrate(true).baselineVersion("1").locations("classpath:db/migration").load();
-  assertThat(upgrade.migrate().migrationsExecuted).isEqualTo(4);
+  assertThat(upgrade.migrate().migrationsExecuted).isEqualTo(6);
   try(var c=java.sql.DriverManager.getConnection(url,"review_test","");var st=c.createStatement();var rows=st.executeQuery("SELECT count(*) FROM "+legacy+".equipment_categories WHERE name='Retained'")) { rows.next();assertThat(rows.getInt(1)).isEqualTo(1); }
  }
 }

@@ -25,7 +25,8 @@
         input.before(wrapper); wrapper.append(input); input.classList.add('picker-native'); input.tabIndex = -1;
         const trigger = document.createElement('button'); trigger.type = 'button'; trigger.className = 'picker-trigger';
         trigger.classList.toggle('picker-date-trigger', dateMode);
-        const panel = document.createElement('div'); panel.className = 'picker-panel'; panel.id = `picker-${++sequence}`; panel.setAttribute('popover','auto');
+        const panel = document.createElement('div'); panel.className = 'picker-panel';
+        if (input.closest('.user-role-form')) panel.classList.add('user-role-picker-panel'); panel.id = `picker-${++sequence}`; panel.setAttribute('popover','auto');
         trigger.setAttribute('aria-expanded','false'); trigger.setAttribute('aria-controls',panel.id);
         trigger.setAttribute('aria-haspopup', dateMode ? 'dialog' : 'listbox');
         panel.setAttribute('role', dateMode ? 'dialog' : 'listbox');
@@ -106,7 +107,7 @@
     }
     function scan() {
         if (!('showPopover' in HTMLElement.prototype)) return;
-        document.querySelectorAll('[data-admin-status-filter], #admin-category, #admin-edit-equipment-form select, #borrow-due-date').forEach(enhance);
+        document.querySelectorAll('[data-admin-status-filter], #admin-category, #admin-edit-equipment-form select, #borrow-due-date, #return-inspections select, .user-role-editor select, .user-role-form select').forEach(enhance);
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan);else scan();
     new MutationObserver(records=>{if(records.some(r=>Array.from(r.addedNodes).some(n=>n.nodeType===1&&!n.closest?.('.form-picker'))))scan();}).observe(document.documentElement,{childList:true,subtree:true});

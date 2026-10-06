@@ -13,5 +13,6 @@ public interface EquipmentService {
     Equipment getEquipmentById(Long id);
     Equipment createEquipment(Equipment equipment);
     Equipment updateEquipment(Long id, Equipment equipmentDetails);
+    boolean canDeleteEquipment(Long id);
     void deleteEquipment(Long id);
 }

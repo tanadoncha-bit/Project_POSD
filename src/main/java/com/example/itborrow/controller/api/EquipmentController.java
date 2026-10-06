@@ -19,5 +19,6 @@ public class EquipmentController {
  @GetMapping("/{id}") public EquipmentData get(@PathVariable Long id) { return EquipmentData.from(service.getEquipmentById(id)); }
  @PostMapping @ResponseStatus(HttpStatus.CREATED) public EquipmentData create(@RequestBody EquipmentData data) { return EquipmentData.from(service.createEquipment(data.toEntity())); }
  @PutMapping("/{id}") public EquipmentData update(@PathVariable Long id,@RequestBody EquipmentData data) { return EquipmentData.from(service.updateEquipment(id,data.toEntity())); }
+ @GetMapping("/{id}/deletion") public Map<String,Boolean> deletion(@PathVariable Long id) { return Map.of("allowed",service.canDeleteEquipment(id)); }
  @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void delete(@PathVariable Long id) { service.deleteEquipment(id); }
 }

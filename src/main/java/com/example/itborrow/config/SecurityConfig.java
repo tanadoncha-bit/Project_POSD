@@ -20,7 +20,7 @@ public class SecurityConfig {
             .requestMatchers("/admin/users", "/admin/users/**").hasRole("ADMIN")
             .requestMatchers(HttpMethod.DELETE, "/api/v1/equipment/**").hasRole("ADMIN")
             .requestMatchers("/api/v1/equipment/**", "/admin/**").hasAnyRole("ADMIN", "STAFF")
-            .requestMatchers("/api/v1/borrow-requests/*/approve", "/api/v1/borrow-requests/*/pickup").hasAnyRole("ADMIN", "STAFF")
+            .requestMatchers("/api/v1/borrow-requests/*/approve").hasAnyRole("ADMIN", "STAFF")
             .requestMatchers(HttpMethod.POST, "/api/v1/borrow-requests/*/return").hasAnyRole("ADMIN", "STAFF")
             .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
             .anyRequest().authenticated())
