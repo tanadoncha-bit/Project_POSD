@@ -1,0 +1,5 @@
+@view-transition { navigation: none; }
+
+body[data-authenticated="true"] [data-guest-only],
+body[data-authenticated="false"] [data-auth-only] { display: none !important; }
+.request-history-page[aria-busy="true"] { cursor: progress; }

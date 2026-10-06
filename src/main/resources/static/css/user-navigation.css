@@ -1,7 +1,0 @@
-/* Change pages without a cross-fade. */
-@view-transition { navigation: none; }
-
-/* Authentication is known in the initial HTML; do not wait for site-preview.js. */
-body[data-authenticated="true"] [data-guest-only],
-body[data-authenticated="false"] [data-auth-only] { display: none !important; }
-.request-history-page[aria-busy="true"] { cursor: progress; }
