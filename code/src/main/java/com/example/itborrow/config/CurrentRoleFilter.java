@@ -22,7 +22,7 @@ public class CurrentRoleFilter extends OncePerRequestFilter {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         return ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod())) &&
                 (path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/")
-                        || path.equals("/favicon.ico"));
+                        || path.equals("/favicon.ico") || path.equals("/favicon.svg"));
     }
 
     @Override

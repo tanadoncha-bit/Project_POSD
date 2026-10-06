@@ -18,7 +18,7 @@ public class SecurityConfig {
         http.addFilterBefore(new CurrentRoleFilter(users),
                 org.springframework.security.web.access.intercept.AuthorizationFilter.class);
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico",
+                .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg",
                         "/error", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
                         "/actuator/health", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
                 .permitAll()

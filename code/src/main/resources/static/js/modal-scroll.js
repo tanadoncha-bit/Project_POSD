@@ -13,6 +13,15 @@
         }
         root.style.setProperty("--modal-scrollbar-width", `${Math.max(0, width)}px`);
     }
+    function updateVisibleViewport() {
+        const viewport = window.visualViewport;
+        root.style.setProperty("--modal-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+        root.style.setProperty("--modal-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+    }
+    updateVisibleViewport();
+    window.addEventListener("resize", updateVisibleViewport);
+    window.visualViewport?.addEventListener("resize", updateVisibleViewport);
+    window.visualViewport?.addEventListener("scroll", updateVisibleViewport);
     updateScrollbarWidth();
     window.addEventListener("resize", updateScrollbarWidth);
     window.addEventListener("load", updateScrollbarWidth);

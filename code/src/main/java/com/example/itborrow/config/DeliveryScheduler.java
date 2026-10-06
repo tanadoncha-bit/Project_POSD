@@ -14,7 +14,7 @@ public class DeliveryScheduler {
         this.jobs = jobs;
     }
 
-    @Scheduled(fixedDelay = 60000, initialDelay = 60000)
+    @Scheduled(fixedDelayString = "${app.jobs.interval-ms:5000}", initialDelayString = "${app.jobs.interval-ms:5000}")
     public void run() {
         jobs.process();
     }
