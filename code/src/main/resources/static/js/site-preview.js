@@ -542,7 +542,7 @@ function initializeAuthenticationModals() {
         fetch('/api/v1/auth/providers').then(response => response.ok ? response.json() : {}).then(providers => {
             document.querySelectorAll('[data-google-login]').forEach(control => {
                 if (control instanceof HTMLButtonElement) control.disabled = !providers.google;
-                else control.hidden = !providers.google;
+                else control.hidden = !providers.google || (control.hasAttribute('data-google-link') && providers.googleLinked);
                 control.title = providers.google ? 'Continue securely with Google' : 'Google login is not configured yet';
                 if (providers.google) control.addEventListener('click', () => location.assign('/oauth2/authorization/google'));
             });
@@ -772,7 +772,7 @@ async function initializeSite() {
     initializeSearchOverlay();
     initializeEscapeKey();
     updateAuthenticationView();
-    if (!isStaticPreview && (new URLSearchParams(window.location.search).has("loginError") || new URLSearchParams(window.location.search).has("googleLoginError"))) {
+    if (!isStaticPreview && (new URLSearchParams(window.location.search).has("loginError") || new URLSearchParams(window.location.search).has("googleLoginError") || new URLSearchParams(window.location.search).has("credentialsSet"))) {
         setModalOpen("login-modal", true);
     }
 

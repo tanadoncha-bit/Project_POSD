@@ -253,20 +253,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const label = verifyEmailButton.querySelector('span:last-child');
         function updateVerification() {
             verifyEmailButton.disabled = verified || !configured;
-            verifyEmailButton.title = verified ? 'Email verified' : configured ? 'Send a verification code to your saved email' : 'Email verification is temporarily unavailable';
+            verifyEmailButton.title = verified ? 'Email verified' : configured ? 'Send a verification link to your saved email' : 'Email verification is temporarily unavailable';
             label.textContent = verified ? 'Email verified' : 'Verify Email';
         }
         workflowApi('/api/v1/profile/verification').then(info => {
             configured = info.configured; verified = info.verified; updateVerification();
         }).catch(() => { verifyEmailButton.disabled = true; verifyEmailButton.title = 'Unable to check email verification. Reload to try again.'; });
+        window.addEventListener('focus', () => { workflowApi('/api/v1/profile/verification').then(info => { configured=info.configured; verified=info.verified; updateVerification(); }).catch(() => {}); });
         verifyEmailButton.onclick = async () => {
             if (verifyEmailButton.disabled) return;
             verifyEmailButton.disabled = true;
             label.textContent = 'Sending...';
             try {
                 await workflowApi('/api/v1/profile/verification', {method:'POST'});
-                const done = await workflowForm('Verify email', 'Check your saved email address for a verification code. Delivery may take a moment. The code expires in 30 minutes.', 'Verification code', token => workflowApi('/api/v1/profile/verification/confirm', {method:'POST',body:JSON.stringify({token})}), {singleLine:true});
-                if (done) {verified = true; toast.success('Email verified.');}
+                toast.success('Verification email queued. Open your inbox and click the verification link.');
             } catch(error) {toast.error(error.message);}
             finally {updateVerification();}
         };

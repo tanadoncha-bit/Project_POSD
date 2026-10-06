@@ -18,17 +18,27 @@ class GoogleAccountServiceTest {
         assertThatThrownBy(()->service.signIn("sub","a@gmail.com",false,"Alice",null)).isInstanceOf(OAuth2AuthenticationException.class);
         verifyNoInteractions(users,profiles,identities);
     }
-    @Test void existingEmailCannotBeAutomaticallyLinked() {
+    @Test void unverifiedLocalEmailCannotBeAutomaticallyLinked() {
         when(users.findByEmailIgnoreCase("a@gmail.com")).thenReturn(Optional.of(new User(1L,"alice","a@gmail.com",Role.ADMIN)));
         assertThatThrownBy(()->service.signIn("sub","a@gmail.com",true,"Alice",null)).isInstanceOf(OAuth2AuthenticationException.class);
         verify(identities,never()).link(anyString(),anyString(),anyLong());
     }
-    @Test void signedInOwnerCanLinkAndKeepsExistingRole() {
+    @Test void verifiedLocalEmailAutomaticallyLinksAndKeepsExistingRole() {
         var owner=new User(1L,"alice","a@gmail.com",Role.ADMIN);
         when(users.findByEmailIgnoreCase("a@gmail.com")).thenReturn(Optional.of(owner));
-        assertThat(service.signIn("sub","a@gmail.com",true,"Alice","alice")).isSameAs(owner);
+        when(identities.emailVerified(1L,"a@gmail.com")).thenReturn(true);
+        assertThat(service.signIn("sub","a@gmail.com",true,"Alice",null)).isSameAs(owner);
         assertThat(owner.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(owner.isLocalPasswordEnabled()).isTrue();
         verify(identities).link("google","sub",1L);verify(users,never()).saveAndFlush(any());
+    }
+    @Test void existingGoogleLinkCannotBeOverwrittenByAnotherSubject() {
+        var owner=new User(1L,"alice","a@gmail.com",Role.USER);
+        when(users.findByEmailIgnoreCase("a@gmail.com")).thenReturn(Optional.of(owner));
+        when(identities.emailVerified(1L,"a@gmail.com")).thenReturn(true);
+        when(identities.googleLinked(1L)).thenReturn(true);
+        assertThatThrownBy(()->service.signIn("different-sub","a@gmail.com",true,"Alice",null)).isInstanceOf(OAuth2AuthenticationException.class);
+        verify(identities,never()).link(anyString(),anyString(),anyLong());
     }
     @Test void knownSubjectStillIdentifiesAccountAfterGoogleEmailChanges() {
         var owner=new User(1L,"alice","old@gmail.com",Role.VIP);
@@ -40,6 +50,7 @@ class GoogleAccountServiceTest {
         when(encoder.encode(anyString())).thenReturn("hashed-unusable-local-password");
         when(users.saveAndFlush(any())).thenAnswer(call->{User user=call.getArgument(0);user.setId(7L);return user;});
         var account=service.signIn("new-sub","new@gmail.com",true,"New User",null);
+        assertThat(account.isLocalPasswordEnabled()).isFalse();
         assertThat(account.getRole()).isEqualTo(Role.USER);assertThat(account.getPassword()).isEqualTo("hashed-unusable-local-password");
         verify(profiles).save(any(UserProfile.class));verify(identities).link("google","new-sub",7L);verify(identities).markEmailVerified(7L,"new@gmail.com");
     }

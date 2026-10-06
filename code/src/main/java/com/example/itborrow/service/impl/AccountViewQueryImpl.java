@@ -25,8 +25,9 @@ public class AccountViewQueryImpl implements AccountViewQuery {
             result.put("user", user);
             result.put("currentUser", user);
             result.put("profileImageUrl", avatars.url(user.getId()));
-            if (includeProfile)
-                profiles.findByUserId(user.getId()).ifPresent(profile -> result.put("profile", profile));
+            var profile=profiles.findByUserId(user.getId());
+            result.put("profileDisplayName",profile.map(p -> p.getFullName()).filter(name -> name!=null && !name.isBlank()).orElse(user.getUsername()));
+            if(includeProfile) profile.ifPresent(value -> result.put("profile",value));
         });
         return result;
     }

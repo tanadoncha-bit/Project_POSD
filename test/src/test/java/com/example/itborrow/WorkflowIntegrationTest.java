@@ -233,7 +233,7 @@ class WorkflowIntegrationTest {
                 .andExpect(status().isNoContent());
         var body = jdbc.queryForObject("SELECT payload FROM delivery_jobs WHERE recipient=?", String.class,
                 alice.getEmail());
-        var token = body.substring(body.lastIndexOf(' ') + 1);
+        var token = body.substring(body.lastIndexOf("token=") + 6);
         mvc.perform(post("/api/v1/profile/verification").with(user("alice")).with(csrf()))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/v1/profile/verification/confirm").with(user("bob")).with(csrf())
@@ -1171,6 +1171,38 @@ class WorkflowIntegrationTest {
         assertThat(avatarService.url(alice.getId())).isNull();
         mvc.perform(get("/profile/avatar").with(user("alice"))).andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("SELECT count(*) FROM information_schema.tables WHERE lower(table_name) IN ('app_migrations','user_avatars')",Integer.class)).isZero();
+    }
+    @Test
+    void emailedLinkCanBeConfirmedWithoutLoginButGetDoesNotConsumeIt() throws Exception {
+        mvc.perform(post("/api/v1/profile/verification").with(user("alice")).with(csrf())).andExpect(status().isNoContent());
+        String payload=jdbc.queryForObject("SELECT payload FROM delivery_jobs WHERE recipient=?",String.class,alice.getEmail());
+        assertThat(payload).contains("http://localhost:8080/verify-email?token=");
+        String token=payload.substring(payload.lastIndexOf("token=")+6);
+        mvc.perform(get("/verify-email").param("token",token)).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Verify your email")));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM email_verifications WHERE verified_at IS NOT NULL",Integer.class)).isZero();
+        mvc.perform(post("/verify-email").param("token",token)).andExpect(status().isForbidden());
+        mvc.perform(post("/verify-email").param("token",token).with(csrf())).andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Email verified")));
+        mvc.perform(post("/verify-email").param("token",token).with(csrf())).andExpect(content().string(org.hamcrest.Matchers.containsString("Link unavailable")));
+    }
+    @Test
+    void emailLinkCannotVerifyAnAddressChangedAfterIssuance() throws Exception {
+        mvc.perform(post("/api/v1/profile/verification").with(user("alice")).with(csrf())).andExpect(status().isNoContent());
+        String payload=jdbc.queryForObject("SELECT payload FROM delivery_jobs WHERE recipient=?",String.class,alice.getEmail());
+        String token=payload.substring(payload.lastIndexOf("token=")+6);
+        alice.setEmail("changed@example.test");users.save(alice);
+        mvc.perform(post("/verify-email").param("token",token).with(csrf())).andExpect(content().string(org.hamcrest.Matchers.containsString("Link unavailable")));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM email_verifications WHERE verified_at IS NOT NULL",Integer.class)).isZero();
+    }
+    @Autowired GoogleAccountService googleAccounts;
+    @Test
+    void verifiedEmailGoogleLoginReusesExistingAccountAndRole() {
+        long before=users.count();
+        jdbc.update("INSERT INTO email_verifications(user_id,email,requested_at,verified_at) VALUES (?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",admin.getId(),admin.getEmail());
+        var account=googleAccounts.signIn("verified-admin-google-sub",admin.getEmail(),true,"Google Name",null);
+        assertThat(account.getId()).isEqualTo(admin.getId());
+        assertThat(account.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(users.count()).isEqualTo(before);
+        assertThat(jdbc.queryForObject("SELECT user_id FROM external_identities WHERE provider='google' AND subject=?",Long.class,"verified-admin-google-sub")).isEqualTo(admin.getId());
     }
 
 }

@@ -20,7 +20,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico",
                         "/error", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/actuator/health", "/api/v1/auth/providers", "/oauth2/**", "/login/oauth2/**")
+                        "/actuator/health", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/equipment/**", "/api/v1/categories", "/api/v1/categories/*")
@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .failureHandler((request,response,error) -> {
                     String message="Unable to sign in with Google. Please try again.";
                     if(error instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthError && "account_exists".equals(oauthError.getError().getErrorCode()))
-                        message="This email already has an account. Sign in with your password, then link Google from your profile.";
+                        message="Sign in to your existing account and Verify Email first. Then use Continue with Google.";
                     request.getSession().setAttribute("googleLoginMessage",message);
                     response.sendRedirect(request.getContextPath()+"/?googleLoginError=true");
                 }));
@@ -59,7 +59,7 @@ public class SecurityConfig {
             var user = users.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
             return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-                    .password(user.getPassword()).roles(user.getRole().name()).build();
+                    .password(user.getPassword()).roles(user.getRole().name()).disabled(!user.isLocalPasswordEnabled()).build();
         };
     }
 

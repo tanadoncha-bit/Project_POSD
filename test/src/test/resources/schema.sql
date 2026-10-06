@@ -162,3 +162,5 @@ CREATE TABLE external_identities (
     PRIMARY KEY (provider,subject),
     UNIQUE (provider,user_id)
 );
+
+ALTER TABLE users ADD COLUMN local_password_enabled BOOLEAN NOT NULL DEFAULT true;

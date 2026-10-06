@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Verify email | LeadIT</title><link rel="stylesheet" th:href="@{/css/style.css}"><link rel="stylesheet" th:href="@{/css/equipment-workflows.css}"></head>
+<body class="email-verification-page"><main class="email-verification-card">
+<p class="email-verification-brand">LeadIT</p>
+<th:block th:if="${verified == true}"><h1>Email verified</h1><p>Your email address has been verified successfully.</p><a class="button button-dark" th:href="@{/profile}">Go to profile</a></th:block>
+<th:block th:unless="${verified == true}">
+<th:block th:if="${valid == true}"><h1>Verify your email</h1><p>Confirm this email address for your LeadIT account.</p><form method="post" th:action="@{/verify-email}"><input type="hidden" name="token" th:value="${token}"><button class="button button-dark" type="submit">Verify email</button></form></th:block>
+<th:block th:unless="${valid == true}"><h1>Link unavailable</h1><p>This verification link has expired, was already used, or your email address has changed. Request a new link from your profile.</p><a class="button button-dark" th:href="@{/profile}">Go to profile</a></th:block>
+</th:block></main></body></html>

@@ -12,6 +12,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     java.util.Optional<User> findByEmailIgnoreCase(String email);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select u from User u where u.id=:id")
+    java.util.Optional<User> findLockedById(@org.springframework.data.repository.query.Param("id") Long id);
+
     long countByRole(com.example.itborrow.domain.enums.Role role);
 
     boolean existsByUsername(String username);
