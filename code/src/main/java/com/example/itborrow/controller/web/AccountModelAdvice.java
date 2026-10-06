@@ -18,6 +18,6 @@ public class AccountModelAdvice {
     public void account(Principal principal, Model model, jakarta.servlet.http.HttpServletRequest request) {
         if (principal != null)
             model.addAllAttributes(accounts.account(principal.getName(),
-                    request.getRequestURI().equals(request.getContextPath() + "/profile")));
+                    (request.getRequestURI().equals(request.getContextPath() + "/profile") || request.getRequestURI().equals(request.getContextPath() + "/profile/setup-login"))));
     }
 }
