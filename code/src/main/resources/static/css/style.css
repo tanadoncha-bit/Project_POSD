@@ -907,7 +907,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
 .auth-modal {
     position: relative;
     width: min(664px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
     padding: clamp(28px, 4vh, 54px) clamp(30px, 6vw, 92px);
     overflow-y: auto;
     background: var(--white);
@@ -1186,7 +1186,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
 
 .equipment-detail-modal {
     width: min(665px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
     overflow-y: auto;
     background: var(--white);
     border-radius: 24px;
@@ -1551,7 +1551,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
 .borrow-form-modal,
 .borrow-form-preview {
     width: min(760px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
     overflow-y: auto;
     background: var(--white);
     border-radius: 26px;
@@ -3558,7 +3558,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
 
 .admin-modal {
     width: min(500px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
     overflow-y: auto;
     background: var(--white);
     border-radius: 20px;
@@ -4552,7 +4552,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
 
     .auth-modal {
         width: calc(100vw - 20px);
-        max-height: calc(100dvh - 20px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 20px);
         padding: 28px 22px;
         border-radius: 26px;
     }
@@ -4606,7 +4606,7 @@ body[data-page="requests"] .main-navigation [data-nav-page="requests"] {
     }
 
     .equipment-detail-modal {
-        max-height: calc(100dvh - 20px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 20px);
         border-radius: 20px;
     }
 
@@ -5037,7 +5037,7 @@ button:disabled {
 
 .return-receipt {
     width: min(580px, calc(100vw - 32px));
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
     border: 0;
     border-radius: 16px;
     padding: 24px;
@@ -5832,7 +5832,7 @@ button:disabled {
     border-radius: 18px;
     width: min(680px, calc(100vw - 32px));
     max-width: none;
-    max-height: calc(100dvh - 48px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 48px);
     margin: auto;
     overflow: hidden;
     color: #252525;
@@ -5848,7 +5848,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-height: calc(100dvh - 50px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 50px);
     margin: 0;
     overflow: hidden;
     border-radius: 0;
@@ -6087,12 +6087,12 @@ button:disabled {
 
 @media (max-width: 600px) {
     .borrow-dialog {
-        max-height: calc(100dvh - 24px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
         border-radius: 14px;
     }
 
     .borrow-dialog .borrow-form-modal {
-        max-height: calc(100dvh - 26px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 26px);
     }
 
     .borrow-dialog .borrow-form-header,
@@ -6446,7 +6446,7 @@ button:disabled {
 .borrow-item-dialog {
     width: min(560px, calc(100% - 32px));
     border-radius: 16px;
-    max-height: calc(100dvh - 32px);
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
 }
 
 .borrow-list-drawer::backdrop,
@@ -10062,7 +10062,7 @@ body {
     .admin-page .inventory-modal-backdrop .admin-modal {
         padding: 20px;
         width: 100%;
-        max-height: calc(100dvh - 24px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
         border-radius: 20px;
     }
 
@@ -10836,3 +10836,17 @@ body {
     font-size: 13px;
 }
 
+
+/* Keep modal controls inside the visible viewport when a mobile keyboard opens. */
+@media (max-width: 768px) {
+    .modal-backdrop, .equipment-detail-backdrop, .success-modal-backdrop,
+    .admin-modal-backdrop {
+        top: var(--modal-viewport-top, 0px);
+        bottom: auto;
+        height: var(--modal-viewport-height, 100dvh);
+    }
+    .auth-modal, .equipment-detail-modal, .admin-modal {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+}
