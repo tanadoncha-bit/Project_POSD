@@ -62,10 +62,30 @@ public class AccountService {
     @Transactional
     public void changePassword(PasswordChangeDto dto) {
         var user = current.require();
+        if (!user.isLocalPasswordEnabled())
+            throw new IllegalArgumentException("Set up your username and password first.");
         if (!encoder.matches(dto.currentPassword(), user.getPassword()))
             throw new IllegalArgumentException("Current password is incorrect.");
         validatePassword(dto.password(), dto.confirmPassword());
         user.setPassword(encoder.encode(dto.password()));
         users.save(user);
+    }
+
+    public boolean requiresLoginSetup() {
+        return !current.require().isLocalPasswordEnabled();
+    }
+
+    @Transactional
+    public void setupLogin(LoginSetupDto dto) {
+        var account = users.findLockedById(current.require().getId()).orElseThrow();
+        if (account.isLocalPasswordEnabled())
+            throw new IllegalArgumentException("Username and password are already set.");
+        validatePassword(dto.password(), dto.confirmPassword());
+        if (users.findByUsername(dto.username()).filter(user -> !user.getId().equals(account.getId())).isPresent())
+            throw new IllegalArgumentException("Username is already taken.");
+        account.setUsername(dto.username());
+        account.setPassword(encoder.encode(dto.password()));
+        account.setLocalPasswordEnabled(true);
+        users.saveAndFlush(account);
     }
 }

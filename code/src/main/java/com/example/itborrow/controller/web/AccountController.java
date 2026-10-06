@@ -56,7 +56,7 @@ public class AccountController {
 
     @GetMapping("/profile/change-password")
     public String passwordForm() {
-        return "profile/change-password";
+        return accounts.requiresLoginSetup() ? "redirect:/profile/setup-login" : "profile/change-password";
     }
 
     @PostMapping("/profile/change-password")
@@ -74,5 +74,15 @@ public class AccountController {
             flash.addFlashAttribute("accountError", ex.getMessage());
             return "redirect:/profile/change-password";
         }
+    }    @GetMapping("/profile/setup-login") public String setupForm() {return accounts.requiresLoginSetup() ? "profile/setup-login" : "redirect:/profile";}
+    @PostMapping("/profile/setup-login") public String setup(@Valid @ModelAttribute LoginSetupDto dto,BindingResult errors,RedirectAttributes flash,jakarta.servlet.http.HttpServletRequest request) {
+        if(errors.hasErrors()) {flash.addFlashAttribute("accountError","Use a username of 3-50 letters/numbers and a password of 8-72 characters.");return "redirect:/profile/setup-login";}
+        try {
+            accounts.setupLogin(dto);
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+            var session=request.getSession(false);if(session!=null)session.invalidate();
+            return "redirect:/?credentialsSet=true";
+        } catch(IllegalArgumentException|org.springframework.dao.DataIntegrityViolationException error) {flash.addFlashAttribute("accountError",error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");return "redirect:/profile/setup-login";}
     }
+
 }

@@ -2330,3 +2330,16 @@ body:has(#search-overlay:not([hidden])) .borrow-list-launcher {
 .workflow-dialog .verification-code-input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid #dedfe2; border-radius: 10px; font: inherit; font-size: 14px; }
 .workflow-dialog .verification-code-input:focus-visible { outline: 2px solid #222; outline-offset: 3px; }
 .provider-button:disabled { opacity: .5; cursor: not-allowed; }
+
+.profile-connected-account { padding: 0 36px 24px; }
+.profile-connected-account:has(a[hidden]) { display: none; }
+.email-verification-page { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: #f7f7f8; }
+.email-verification-card { width: min(100%,480px); padding: 32px; border: 1px solid #e5e5e5; border-radius: 20px; background: #fff; }
+.email-verification-brand { font-weight: 600; color: #ff7625; margin: 0 0 24px; }
+.email-verification-card h1 { font-size: 24px; margin: 0 0 12px; }
+.email-verification-card p { line-height: 1.6; }
+.email-verification-card .button { margin-top: 16px; }
+
+.login-setup-form { display: grid; gap: 14px; }
+.login-setup-form label { display: grid; gap: 6px; font-size: 13px; }
+.login-setup-form input { padding: 11px 12px; border: 1px solid #ddd; border-radius: 10px; font: inherit; width: 100%; }

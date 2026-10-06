@@ -25,6 +25,11 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String password;
 
+    @Column(name="local_password_enabled", nullable=false)
+    private boolean localPasswordEnabled=true;
+    public boolean isLocalPasswordEnabled() {return localPasswordEnabled;}
+    public void setLocalPasswordEnabled(boolean value) {localPasswordEnabled=value;}
+
     public String getPassword() {
         return password;
     }

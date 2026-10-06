@@ -313,6 +313,7 @@
 
             <p data-toast="error" class="form-feedback" role="alert" th:if="${param.loginError != null}">Incorrect username or password.</p>
             <p data-toast="error" class="form-feedback" role="alert" th:if="${param.googleLoginError != null}" th:text="${session.googleLoginMessage}"></p>
+            <p role="status" th:if="${param.credentialsSet != null}">Login details saved. Sign in with your new username or Google.</p>
             <form class="login-form"
                   id="preview-login-form"
                   action="/login"
