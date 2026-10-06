@@ -19,7 +19,7 @@ public class CurrentRoleFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
+        String path = request.getRequestURI().substring(request.getContextPath().length());
         return ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod())) &&
                 (path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/")
                         || path.equals("/favicon.ico"));
@@ -34,6 +34,19 @@ public class CurrentRoleFilter extends OncePerRequestFilter {
             if (account.isEmpty())
                 SecurityContextHolder.clearContext();
             else {
+                String path = request.getRequestURI().substring(request.getContextPath().length());
+                if (!account.get().isLocalPasswordEnabled()
+                        && !path.equals("/profile/setup-login") && !path.equals("/logout")
+                        && !path.equals("/error") && !path.equals("/actuator/health")) {
+                    if (path.startsWith("/api/")) {
+                        response.setStatus(403);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"message\":\"Complete registration first.\",\"redirect\":\"/profile/setup-login\"}");
+                    } else {
+                        response.sendRedirect(request.getContextPath() + "/profile/setup-login");
+                    }
+                    return;
+                }
                 var updated = UsernamePasswordAuthenticationToken.authenticated(auth.getPrincipal(), null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + account.get().getRole().name())));
                 updated.setDetails(auth.getDetails());

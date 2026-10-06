@@ -33,4 +33,25 @@ class GoogleOAuthIntegrationTest {
         mvc.perform(get("/login/oauth2/code/google").param("code","invalid").param("state","invalid"))
             .andExpect(redirectedUrl("/?googleLoginError=true"));
     }
+
+    @Autowired com.example.itborrow.service.GoogleAccountService accounts;
+    @Test void incompleteAccountMustFinishSignupAndCannotChangeGoogleEmail() throws Exception {
+        var account = accounts.signIn("signup-flow-sub", "signup-flow@example.test", true, "New Member", null);
+        var auth = org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(account.getUsername());
+        mvc.perform(get("/profile").with(auth)).andExpect(redirectedUrl("/profile/setup-login"));
+        mvc.perform(get("/api/v1/auth/providers").with(auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/profile/setup-login").with(auth)).andExpect(status().isOk())
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("signup-flow@example.test")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("readonly")));
+        mvc.perform(post("/profile/setup-login").with(auth)
+            .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
+            .param("username", "completed_google_user").param("password", "chosen-password")
+            .param("confirmPassword", "chosen-password").param("email", "attacker@example.test"))
+            .andExpect(redirectedUrl("/?credentialsSet=true"));
+        var saved = accounts.signIn("signup-flow-sub", "signup-flow@example.test", true, "New Member", null);
+        org.assertj.core.api.Assertions.assertThat(saved.getUsername()).isEqualTo("completed_google_user");
+        org.assertj.core.api.Assertions.assertThat(saved.getEmail()).isEqualTo("signup-flow@example.test");
+        mvc.perform(get("/profile").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(saved.getUsername())))
+            .andExpect(status().isOk());
+    }
 }
