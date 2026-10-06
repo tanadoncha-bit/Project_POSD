@@ -1,0 +1,31 @@
+services:
+  database:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: leadit
+      POSTGRES_USER: leadit
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:?Set LOCAL_DB_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadit -d leadit"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/leadit
+      DB_USERNAME: leadit
+      DB_PASSWORD: ${LOCAL_DB_PASSWORD:?Set LOCAL_DB_PASSWORD in .env}
+      APP_PROFILE: migrations
+      APP_JOBS_ENABLED: "false"
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+volumes:
+  postgres-data:

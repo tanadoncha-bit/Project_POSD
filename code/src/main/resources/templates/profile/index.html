@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>My Profile | LeadIT</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../../static/css/style.css"
+          th:href="@{/css/style.css}">
+<link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
+    <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+</head>
+
+<body class="profile-page"
+      data-page="profile" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
+    <!-- =====================================================
+         PROFILE HEADER
+         ===================================================== -->
+
+    <div id="site-header" th:replace="~{fragments/site :: siteHeader}"></div>
+
+    <main class="profile-main">
+        <p data-toast="error" class="form-feedback" role="alert" th:if="${param.uploadError != null}">Choose a JPG or PNG image up to 2 MB.</p>
+        <p data-toast="error" class="form-feedback" role="alert" th:if="${accountError != null}" th:text="${accountError}"></p>
+        <p data-toast="success" class="form-feedback success" role="status" th:if="${accountMessage != null}" th:text="${accountMessage}"></p>
+
+
+        <!-- =====================================================
+             PROFILE COVER
+             ===================================================== -->
+
+        <section class="profile-overview">
+            <div class="profile-cover">
+
+                <div class="profile-cover-placeholder"
+                     aria-hidden="true">
+                </div>
+
+                <img class="profile-cover-image"
+                     src=""
+                     alt=""
+                     hidden
+                     th:if="${coverImageUrl != null and !coverImageUrl.isBlank()}"
+                     th:src="${coverImageUrl}"
+                     th:attr="hidden=${null}">
+            </div>
+
+            <div class="profile-overview-content">
+
+                <button class="profile-avatar profile-avatar-edit" id="change-avatar-button" type="button" aria-label="Change profile picture" title="Change profile picture">
+                    <img src=""
+                         alt="Profile picture"
+                         hidden
+                         th:if="${profileImageUrl != null and !profileImageUrl.isBlank()}"
+                         th:src="${profileImageUrl}"
+                         th:attr="hidden=${null}">
+
+                    <span class="profile-avatar-placeholder" th:if="${profileImageUrl == null}"
+                          aria-hidden="true">
+
+                        <span th:text="${currentUser != null ? #strings.substring(currentUser.username,0,1) : 'U'}">U</span>
+                        <!-- วาง SVG ไอคอน UserRound ตรงนี้ -->
+
+                    </span>
+                    <span class="avatar-edit-overlay" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h4l2-3h4l2 3h4v14H4z"/><circle cx="12" cy="12" r="4"/></svg>
+                        <span>Change photo</span>
+                    </span>
+                </button>
+
+                <div class="profile-identity">
+                    <h1 th:text="${user != null and user.username != null
+                                 ? user.username
+                                 : 'User'}">
+                        User
+                    </h1>
+
+                    <p th:text="${user != null ? user.email : ''}"></p>
+                </div>
+
+                <button class="profile-verify-button"
+                        type="button"
+                        id="verify-email-button" disabled title="Email verification is not configured">
+
+                    <span class="profile-button-icon"
+                          aria-hidden="true">
+
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/></svg>
+                        <!-- วาง SVG ไอคอน BadgeCheck ตรงนี้ -->
+
+                    </span>
+
+                    <span>Verify Email</span>
+                </button>
+            </div>
+        <form class="avatar-upload-form" method="post" enctype="multipart/form-data" th:action="@{/profile/avatar}" hidden>
+            <input id="avatar-image" type="file" name="image" accept="image/jpeg,image/png" aria-label="Choose profile picture" required>
+        </form>
+        <p id="avatar-upload-message" class="avatar-upload-message" role="status" hidden></p>
+        </section>
+
+        <!-- =====================================================
+             PROFILE CONTENT
+             ===================================================== -->
+
+        <p><a class="button" href="/oauth2/authorization/google" data-google-login hidden>Link Google account</a></p>
+        <div class="profile-content-grid">
+
+            <!-- =================================================
+                 PERSONAL DETAILS
+                 ================================================= -->
+
+            <section class="profile-details-card">
+                <header class="profile-section-header">
+                    <h2>Personal details</h2>
+
+                    <button class="profile-edit-button"
+                            id="profile-edit-button"
+                            type="button">
+
+                        <span aria-hidden="true">
+
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6zM14 5l5 5"/></svg>
+                            <!-- วาง SVG ไอคอน Pencil ตรงนี้ -->
+
+                        </span>
+
+                        <span id="profile-edit-label">
+                            Edit
+                        </span>
+                    </button>
+                </header>
+
+                <form class="profile-details-form"
+                      id="profile-details-form"
+                      method="post"
+                      action="/profile"
+                      th:action="@{/profile}">
+
+                    <input type="hidden"
+                           th:if="${_csrf != null}"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <div class="profile-form-grid">
+
+                        <div class="profile-form-field">
+                            <label for="profile-username">
+                                Username
+                            </label>
+
+                            <input id="profile-username"
+                                   name="username"
+                                   type="text"
+                                   value=""
+                                   th:value="${user != null and user.username != null
+                                             ? user.username
+                                             : ''}"
+                                   autocomplete="username"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-email">
+                                Email
+                            </label>
+
+                            <input id="profile-email"
+                                   name="email"
+                                   type="email"
+                                   value=""
+                                   th:value="${user != null and user.email != null
+                                             ? user.email
+                                             : ''}"
+                                   autocomplete="email"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-full-name">
+                                Full Name
+                            </label>
+
+                            <input id="profile-full-name"
+                                   name="fullName"
+                                   type="text"
+                                   value=""
+                                   th:value="${profile != null and profile.fullName != null
+                                             ? profile.fullName
+                                             : ''}"
+                                   autocomplete="name"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label>
+                                Password
+                            </label>
+
+                            <button class="profile-password-button"
+                                    id="change-password-button"
+                                    type="button">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+                                <span>Change password</span>
+                            </button>
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-phone">
+                                Phone
+                            </label>
+
+                            <input id="profile-phone"
+                                   name="phone"
+                                   type="tel"
+                                   value=""
+                                   th:value="${profile != null and profile.phone != null
+                                             ? profile.phone
+                                             : ''}"
+                                   autocomplete="tel"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field profile-form-spacer"
+                             aria-hidden="true">
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-role">
+                                Role
+                            </label>
+
+                            <input id="profile-role"
+                                   name="role"
+                                   type="text"
+                                   value=""
+                                   th:value="${user != null and user.role != null
+                                             ? user.role
+                                             : ''}"
+                                   readonly>
+                        </div>
+
+                        <div class="profile-form-field profile-form-spacer"
+                             aria-hidden="true">
+                        </div>
+
+                        <div class="profile-form-field">
+                            <label for="profile-department">
+                                Department
+                            </label>
+
+                            <input id="profile-department"
+                                   name="department"
+                                   type="text"
+                                   value=""
+                                   th:value="${profile != null and profile.department != null
+                                             ? profile.department
+                                             : ''}"
+                                   readonly>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions-slot">
+                    <div class="profile-form-actions"
+                         id="profile-form-actions"
+                         hidden>
+
+                        <button class="profile-cancel-button"
+                                id="profile-cancel-button"
+                                type="button">
+                            Cancel
+                        </button>
+
+                        <button class="profile-save-button"
+                                type="submit">
+                            Save Changes
+                        </button>
+                    </div>
+
+                    </div>
+
+                    <p class="profile-form-message"
+                       id="profile-form-message"
+                       role="status"
+                       hidden>
+                    </p>
+                </form>
+            </section>
+
+            <!-- =================================================
+                 LOAN AND HISTORY
+                 ================================================= -->
+
+            <div class="profile-loan-column">
+
+                <!-- =============================================
+                     ACTIVE LOANS
+                     ============================================= -->
+
+                <section class="profile-list-card">
+                    <header class="profile-list-header">
+                        <h2>Active Loans</h2>
+                    </header>
+
+                    <div class="profile-loan-list">
+
+                        <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
+
+
+                        <!-- ข้อมูลจริงจาก Spring Boot -->
+                        <th:block th:if="${activeLoans != null and !activeLoans.isEmpty()}">
+                            <th:block th:each="loan : ${activeLoans}">
+                                <article class="profile-loan-item"
+                                         th:each="item : ${loan.items}">
+
+                                    <div class="profile-loan-image">
+                                        <img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}"
+                                             th:src="${item.imageUrl}"
+                                             th:alt="${item.equipmentName}">
+
+                                        <span th:unless="${item.imageUrl != null and !item.imageUrl.isBlank()}">
+                                            LeadIT
+                                        </span>
+                                    </div>
+
+                                    <div class="profile-loan-information">
+                                        <h3 th:text="${item.equipmentName}">
+                                            Equipment name
+                                        </h3>
+
+                                        <p>
+                                            จำนวน:
+                                            <span th:text="${item.quantity}">
+                                                1
+                                            </span>
+                                        </p>
+
+                                        <span class="profile-locker-location">
+
+                                            <span aria-hidden="true">
+                                                <!-- Lucide icon: MapPin -->
+                                            </span>
+
+                                            <span th:text="${equipmentLockers != null
+                                                           and equipmentLockers[item.equipmentId] != null
+                                                           ? equipmentLockers[item.equipmentId]
+                                                           : 'Locker pending'}">
+                                                Locker pending
+                                            </span>
+                                        </span>
+                                    </div>
+
+                                    <span class="profile-loan-status" th:attr="data-status=${loan.status}"
+                                          th:text="${loan.status}">
+                                        In Use
+                                    </span>
+                                </article>
+                            </th:block>
+                        </th:block>
+
+                        <!-- ไม่มีข้อมูลจาก Admin -->
+                        <div class="profile-list-empty"
+                             hidden
+                             th:if="${activeLoans == null or activeLoans.isEmpty()}"
+                             th:attr="hidden=${null}">
+
+                            <span class="profile-empty-icon"
+                                  aria-hidden="true">
+
+                                <!-- Lucide icon: PackageOpen -->
+                                <!-- วาง SVG ไอคอน PackageOpen ตรงนี้ -->
+
+                            </span>
+
+                            <h3>No active loans</h3>
+
+                            <p>
+                                Your currently borrowed equipment
+                                will appear here.
+                            </p>
+                        </div>
+                    </div>
+                <nav class="management-pagination" aria-label="Active loan pages" th:if="${activeLoanPage != null and activeLoanPage.totalPages > 1}"><a th:if="${activeLoanPage.hasPrevious()}" th:href="@{/profile(activePage=${activeLoanPage.number - 1},historyPage=${borrowHistoryPage.number})}">Previous</a><span th:text="|Page ${activeLoanPage.number + 1} of ${activeLoanPage.totalPages}|"></span><a th:if="${activeLoanPage.hasNext()}" th:href="@{/profile(activePage=${activeLoanPage.number + 1},historyPage=${borrowHistoryPage.number})}">Next</a></nav></section>
+
+                <!-- =============================================
+                     BORROW HISTORY
+                     ============================================= -->
+
+                <section class="profile-list-card profile-history-card">
+                    <header class="profile-list-header">
+                        <h2>My Borrow History</h2>
+
+                        <a href="../borrow/my-history.html"
+                           th:href="@{/my-requests}">
+                            View All
+                        </a>
+                    </header>
+
+                    <div class="profile-history-list">
+
+                        <!-- ตัวอย่างสำหรับ Live Server เท่านั้น -->
+
+
+
+
+                        <!-- ข้อมูลจริงจาก Spring Boot -->
+                        <th:block th:if="${borrowHistory != null and !borrowHistory.isEmpty()}">
+                            <th:block th:each="request : ${borrowHistory}">
+                                <article class="profile-loan-item"
+                                         th:each="item : ${request.items}">
+
+                                    <div class="profile-loan-image">
+                                        <img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}"
+                                             th:src="${item.imageUrl}"
+                                             th:alt="${item.equipmentName}">
+
+                                        <span th:unless="${item.imageUrl != null and !item.imageUrl.isBlank()}">
+                                            LeadIT
+                                        </span>
+                                    </div>
+
+                                    <div class="profile-loan-information">
+                                        <h3 th:text="${item.equipmentName}">
+                                            Equipment name
+                                        </h3>
+
+                                        <p>
+                                            จำนวน:
+                                            <span th:text="${item.quantity}">
+                                                1
+                                            </span>
+                                        </p>
+
+                                        <span class="profile-locker-location">
+
+                                            <span aria-hidden="true">
+                                                <!-- Lucide icon: MapPin -->
+                                            </span>
+
+                                            <span th:text="${equipmentLockers != null
+                                                           and equipmentLockers[item.equipmentId] != null
+                                                           ? equipmentLockers[item.equipmentId]
+                                                           : 'Locker unavailable'}">
+                                                Locker unavailable
+                                            </span>
+                                        </span>
+                                    </div>
+                                </article>
+                            </th:block>
+                        </th:block>
+
+                        <!-- ไม่มีประวัติการยืม -->
+                        <div class="profile-list-empty"
+                             hidden
+                             th:if="${borrowHistory == null or borrowHistory.isEmpty()}"
+                             th:attr="hidden=${null}">
+
+                            <span class="profile-empty-icon"
+                                  aria-hidden="true">
+
+                                <!-- Lucide icon: History -->
+                                <!-- วาง SVG ไอคอน History ตรงนี้ -->
+
+                            </span>
+
+                            <h3>No borrow history</h3>
+
+                            <p>
+                                Completed and previous requests
+                                will appear here.
+                            </p>
+                        </div>
+                    </div>
+                <nav class="management-pagination" aria-label="Loan history pages" th:if="${borrowHistoryPage != null and borrowHistoryPage.totalPages > 1}"><a th:if="${borrowHistoryPage.hasPrevious()}" th:href="@{/profile(historyPage=${borrowHistoryPage.number - 1},activePage=${activeLoanPage.number})}">Previous</a><span th:text="|Page ${borrowHistoryPage.number + 1} of ${borrowHistoryPage.totalPages}|"></span><a th:if="${borrowHistoryPage.hasNext()}" th:href="@{/profile(historyPage=${borrowHistoryPage.number + 1},activePage=${activeLoanPage.number})}">Next</a></nav></section>
+            </div>
+        </div>
+    </main>
+
+    <div id="site-footer" th:replace="~{fragments/site :: siteFooter}"></div>
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+    <script src="../../static/js/site-preview.js" th:src="@{/js/site-preview.js}"></script>
+    <script src="../../static/js/workflow-actions.js" th:src="@{/js/workflow-actions.js}"></script>
+<script src="../../static/js/profile.js"
+            th:src="@{/js/profile.js}"></script>
+<script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+<script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
+</body>
+</html>

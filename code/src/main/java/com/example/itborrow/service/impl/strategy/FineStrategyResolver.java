@@ -1,0 +1,27 @@
+package com.example.itborrow.service.impl.strategy;
+
+import com.example.itborrow.domain.enums.Role;
+import com.example.itborrow.service.FineStrategyService;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class FineStrategyResolver {
+
+    private final List<FineStrategyService> strategies;
+
+    public FineStrategyResolver(List<FineStrategyService> strategies) {
+        this.strategies = strategies;
+    }
+
+    public FineStrategyService resolve(Role role) {
+        return strategies.stream()
+                .filter(s -> s.supports(role))
+                .findFirst()
+                .orElseGet(() -> strategies.stream()
+                        .filter(s -> s.supports(Role.USER))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("ไม่พบ FineStrategyService เริ่มต้น")));
+    }
+}

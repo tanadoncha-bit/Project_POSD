@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User management - LeadIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Noto+Sans+Thai:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
+  <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+</head>
+
+<body>
+  <section class="user-management" th:fragment="content">
+    <header class="user-management-heading">
+      <div>
+        <h1>User management</h1>
+        <p>Find accounts and manage access to your equipment system.</p>
+      </div><span class="user-total-count" th:text="|${accounts.totalElements} users|">0 users</span>
+    </header>
+    <p data-toast="success" class="form-feedback success" role="status" th:if="${message}" th:text="${message}"></p>
+    <p data-toast="error" class="form-feedback" role="alert" th:if="${error}" th:text="${error}"></p>
+    <form class="user-search" method="get" action="/admin/users" data-user-search><label><span class="visually-hidden">Find a user</span><svg class="user-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 4 4" />
+        </svg><input type="search" name="keyword" placeholder="Search by username or email..." th:value="${userKeyword}"></label><button type="submit">Search</button><a class="user-search-clear" th:if="${!#strings.isEmpty(userKeyword)}" href="/admin/users">Clear search</a></form>
+    <div data-user-results>
+      <div class="user-table-scroll">
+        <table class="user-accounts-table">
+          <thead>
+            <tr>
+              <th>Account</th>
+              <th>Current role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="account : ${accounts.content}">
+              <td>
+                <div class="user-account-identity"><span class="user-account-avatar" aria-hidden="true"><span th:text="${#strings.toUpperCase(#strings.substring(account.username,0,1))}"></span><img th:src="@{/admin/borrower-avatar/{id}(id=${account.id})}" alt="" loading="lazy" decoding="async" data-borrower-avatar></span><div><strong th:text="${account.username}"></strong><span class="user-account-email" th:text="${account.email}"></span></div></div></td>
+            <td><span class="user-role-badge" th:attr="data-role=${account.role}" th:text="${account.role}"></span></td>
+            <td>
+                <form class="user-role-form" method="post" th:action="@{/admin/users/{id}/role(id=${account.id})}">
+                  <label><span class="visually-hidden" th:text="|Role for ${account.username}|"></span><select name="role">
+                      <option th:each="role : ${roles}" th:value="${role}" th:text="${role}" th:selected="${role == account.role}"></option>
+                    </select></label>
+                  <button type="submit">Save</button>
+                </form>
+            </td>
+          </tr>
+          <tr th:if="${accounts.empty}"><td colspan="3" class="user-empty-state">No users found. Try another username or email.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="user-pagination-bar">
+      <span class="user-results-range" th:text="${accounts.empty ? '0 users' : 'Showing ' + (accounts.number * accounts.size + 1) + ' - ' + (accounts.number * accounts.size + accounts.numberOfElements) + ' of ' + accounts.totalElements + ' users'}"></span>
+      <nav aria-label="User pages" th:if="${accounts.totalPages > 1}">
+        <a th:if="${accounts.hasPrevious()}" th:href="@{/admin/users(page=${accounts.number - 1},keyword=${userKeyword})}" aria-label="Previous page">Previous</a>
+        <span class="user-page-disabled" th:unless="${accounts.hasPrevious()}">Previous</span>
+        <a th:each="pageNumber : ${#numbers.sequence(T(java.lang.Math).max(0, accounts.number - 2), T(java.lang.Math).min(accounts.totalPages - 1, accounts.number + 2))}" th:href="@{/admin/users(page=${pageNumber},keyword=${userKeyword})}" th:text="${pageNumber + 1}" th:classappend="${pageNumber == accounts.number ? 'active' : ''}" th:attr="aria-current=${pageNumber == accounts.number ? 'page' : null}"></a>
+        <a th:if="${accounts.hasNext()}" th:href="@{/admin/users(page=${accounts.number + 1},keyword=${userKeyword})}" aria-label="Next page">Next</a>
+        <span class="user-page-disabled" th:unless="${accounts.hasNext()}">Next</span>
+      </nav>
+    </div>
+    </div>
+    <details class="user-history-panel"><summary>Recent role changes <span>Latest 10 changes</span></summary>
+    <p>Recorded using server time.</p>
+    <div class="user-table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Changed by</th>
+            <th>Account</th>
+            <th>From</th>
+            <th>To</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="entry : ${history}">
+            <td th:text="${entry['changed_at']}"></td>
+            <td th:text="${entry['actor_username']}"></td>
+            <td th:text="${entry['target_username']}"></td>
+            <td th:text="${entry['old_role']}"></td>
+            <td th:text="${entry['new_role']}"></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(history)}"><td colspan="5" class="user-empty-state">No role changes yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    </details>
+  </section>
+</body>
+
+</html>

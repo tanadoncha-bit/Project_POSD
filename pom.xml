@@ -16,9 +16,14 @@
 
 	<properties>
 		<java.version>17</java.version>
+        <build.output.directory>target</build.output.directory>
 	</properties>
 
 	<dependencies>
+        <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security-oauth2-client</artifactId></dependency>
+        <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-flyway</artifactId></dependency>
+        <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
+        <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-mail</artifactId></dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
@@ -42,7 +47,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.8.5</version>
+			<version>3.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -84,9 +89,23 @@
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId><artifactId>h2</artifactId><scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
+        <directory>${build.output.directory}</directory>
+        <sourceDirectory>code/src/main/java</sourceDirectory>
+        <testSourceDirectory>test/src/test/java</testSourceDirectory>
+        <resources>
+            <resource><directory>code/src/main/resources</directory></resource>
+            <resource><directory>img</directory><targetPath>static/images</targetPath></resource>
+        </resources>
+        <testResources><testResource><directory>test/src/test/resources</directory></testResource></testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

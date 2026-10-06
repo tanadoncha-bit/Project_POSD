@@ -1,0 +1,355 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const profileForm =
+        document.getElementById("profile-details-form");
+
+    const editButton =
+        document.getElementById("profile-edit-button");
+
+    const editLabel =
+        document.getElementById("profile-edit-label");
+
+    const formActions =
+        document.getElementById("profile-form-actions");
+
+    const cancelButton =
+        document.getElementById("profile-cancel-button");
+
+    const formMessage =
+        document.getElementById("profile-form-message");
+
+    const verifyEmailButton =
+        document.getElementById("verify-email-button");
+
+    const changePasswordButton =
+        document.getElementById("change-password-button");
+
+    const editableInputs = [
+        document.getElementById("profile-email"),
+        document.getElementById("profile-full-name"),
+        document.getElementById("profile-phone"),
+        document.getElementById("profile-department")
+    ].filter(Boolean);
+
+    const originalValues = new Map();
+
+    let editing = false;
+
+    function isLiveServerPreview() {
+        return (
+            window.location.port === "5500" ||
+            window.location.port === "5501" ||
+            window.location.protocol === "file:"
+        );
+    }
+
+    function rememberOriginalValues() {
+        editableInputs.forEach((input) => {
+            originalValues.set(input.id, input.value);
+        });
+    }
+
+    function restoreOriginalValues() {
+        editableInputs.forEach((input) => {
+            const originalValue =
+                originalValues.get(input.id);
+
+            if (originalValue !== undefined) {
+                input.value = originalValue;
+            }
+        });
+    }
+
+    function setFormMessage(message, type = "success") {
+        if (formMessage) formMessage.hidden = true;
+        if (message) toast[type === "error" ? "error" : type === "success" ? "success" : "info"](message);
+    }
+
+    function clearFormMessage() {
+        if (!formMessage) {
+            return;
+        }
+
+        formMessage.textContent = "";
+        formMessage.removeAttribute("data-type");
+        formMessage.hidden = true;
+    }
+
+    function setEditingState(nextEditingState) {
+        editing = nextEditingState;
+
+        editableInputs.forEach((input) => {
+            input.readOnly = !editing;
+            input.classList.toggle(
+                "profile-input-editing",
+                editing
+            );
+        });
+
+        if (formActions) {
+            formActions.hidden = !editing;
+        }
+
+        if (editLabel) {
+            editLabel.textContent =
+                editing ? "Editing" : "Edit";
+        }
+
+        if (editButton) {
+            editButton.setAttribute(
+                "aria-pressed",
+                String(editing)
+            );
+
+            editButton.disabled = editing;
+        }
+
+        if (editing && editableInputs.length > 0) {
+            editableInputs[0].focus({ preventScroll: true });
+        }
+    }
+
+    function savePreviewProfile() {
+        const profileData = {};
+
+        editableInputs.forEach((input) => {
+            profileData[input.name] = input.value.trim();
+        });
+
+        sessionStorage.setItem(
+            "leaditPreviewProfile",
+            JSON.stringify(profileData)
+        );
+
+        rememberOriginalValues();
+        setEditingState(false);
+
+        setFormMessage(
+            "Profile information updated successfully."
+        );
+    }
+
+    function restorePreviewProfile() {
+        if (!isLiveServerPreview()) {
+            return;
+        }
+
+        const savedProfile =
+            sessionStorage.getItem("leaditPreviewProfile");
+
+        if (!savedProfile) {
+            return;
+        }
+
+        try {
+            const profileData =
+                JSON.parse(savedProfile);
+
+            editableInputs.forEach((input) => {
+                const savedValue =
+                    profileData[input.name];
+
+                if (typeof savedValue === "string") {
+                    input.value = savedValue;
+                }
+            });
+        } catch (error) {
+            console.error(
+                "Unable to restore preview profile.",
+                error
+            );
+        }
+    }
+
+    function validateProfileForm() {
+        const emailInput =
+            document.getElementById("profile-email");
+
+        const fullNameInput =
+            document.getElementById("profile-full-name");
+
+        if (
+            emailInput &&
+            !emailInput.value.trim()
+        ) {
+            setFormMessage(
+                "Please enter your email.",
+                "error"
+            );
+
+            emailInput.focus();
+
+            return false;
+        }
+
+        if (
+            emailInput &&
+            !emailInput.validity.valid
+        ) {
+            setFormMessage(
+                "Please enter a valid email address.",
+                "error"
+            );
+
+            emailInput.focus();
+
+            return false;
+        }
+
+        if (
+            fullNameInput &&
+            !fullNameInput.value.trim()
+        ) {
+            setFormMessage(
+                "Please enter your full name.",
+                "error"
+            );
+
+            fullNameInput.focus();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    if (editButton) {
+        editButton.addEventListener("click", () => {
+            clearFormMessage();
+            rememberOriginalValues();
+            setEditingState(true);
+        });
+    }
+
+    if (cancelButton) {
+        cancelButton.addEventListener("click", () => {
+            restoreOriginalValues();
+            clearFormMessage();
+            setEditingState(false);
+            editButton?.focus({ preventScroll: true });
+        });
+    }
+
+    if (profileForm) {
+        profileForm.addEventListener(
+            "submit",
+            (event) => {
+                if (!validateProfileForm()) {
+                    event.preventDefault();
+
+                    return;
+                }
+
+                if (isLiveServerPreview()) {
+                    event.preventDefault();
+                    savePreviewProfile();
+                }
+            }
+        );
+    }
+
+    if (verifyEmailButton) {
+        let configured = false;
+        let verified = false;
+        const label = verifyEmailButton.querySelector('span:last-child');
+        function updateVerification() {
+            verifyEmailButton.disabled = verified || !configured;
+            verifyEmailButton.title = verified ? 'Email verified' : configured ? 'Send a verification code to your saved email' : 'Email verification is temporarily unavailable';
+            label.textContent = verified ? 'Email verified' : 'Verify Email';
+        }
+        workflowApi('/api/v1/profile/verification').then(info => {
+            configured = info.configured; verified = info.verified; updateVerification();
+        }).catch(() => { verifyEmailButton.disabled = true; verifyEmailButton.title = 'Unable to check email verification. Reload to try again.'; });
+        verifyEmailButton.onclick = async () => {
+            if (verifyEmailButton.disabled) return;
+            verifyEmailButton.disabled = true;
+            label.textContent = 'Sending...';
+            try {
+                await workflowApi('/api/v1/profile/verification', {method:'POST'});
+                const done = await workflowForm('Verify email', 'Check your saved email address for a verification code. Delivery may take a moment. The code expires in 30 minutes.', 'Verification code', token => workflowApi('/api/v1/profile/verification/confirm', {method:'POST',body:JSON.stringify({token})}), {singleLine:true});
+                if (done) {verified = true; toast.success('Email verified.');}
+            } catch(error) {toast.error(error.message);}
+            finally {updateVerification();}
+        };
+    }
+
+    if (changePasswordButton) {
+        changePasswordButton.addEventListener(
+            "click",
+            () => {
+                if (isLiveServerPreview()) {
+                    setFormMessage(
+                        "Password changes will be available after connecting Spring Security.",
+                        "information"
+                    );
+
+                    return;
+                }
+
+                window.location.href =
+                    "/profile/change-password";
+            }
+        );
+    }
+
+    restorePreviewProfile();
+    rememberOriginalValues();
+    setEditingState(false);
+});
+// Clicking the portrait opens the picker; selecting a valid image submits the existing upload form.
+const avatarButton = document.getElementById("change-avatar-button");
+const avatarInput = document.getElementById("avatar-image");
+const avatarForm = document.querySelector(".avatar-upload-form");
+const avatarMessage = document.getElementById("avatar-upload-message");
+avatarButton?.addEventListener("click", () => avatarInput.click());
+avatarInput?.addEventListener("change", () => {
+    const file = avatarInput.files[0];
+    if (!file) return;
+    let error = "";
+    if (file.size > 2 * 1024 * 1024) error = "Choose an image up to 2 MB.";
+    else if (!["image/jpeg", "image/png"].includes(file.type)) error = "Choose a JPG or PNG image.";
+    avatarMessage.hidden = Boolean(error);
+    avatarMessage.textContent = error || "Saving profile picture...";
+    avatarMessage.classList.toggle("form-feedback", Boolean(error));
+    if (error) { toast.error(error); avatarInput.value = ""; avatarButton.focus(); return; }
+    avatarButton.disabled = true;
+    avatarButton.setAttribute("aria-busy", "true");
+    avatarForm.requestSubmit();
+});
+
+// Paginate loans without replacing the personal details form.
+(() => {
+    let pending;
+    let version = 0;
+    document.addEventListener('click', async event => {
+        const link = event.target.closest('.profile-loan-column .management-pagination a');
+        if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const column = document.querySelector('.profile-loan-column');
+        const id = ++version;
+        pending?.abort();
+        pending = new AbortController();
+        column.setAttribute('aria-busy', 'true');
+        const historyScroll = column.querySelector('.profile-history-list')?.scrollTop || 0;
+        const activeScroll = column.querySelector('.profile-loan-list')?.scrollTop || 0;
+        const changingHistory = link.closest('.profile-history-card') !== null;
+        try {
+            const response = await fetch(link.href, { signal: pending.signal });
+            if (!response.ok) throw new Error('Unable to load loans. Please try again.');
+            if (response.redirected) { location.assign(response.url); return; }
+            const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+            const updated = doc.querySelector('.profile-loan-column');
+            if (!updated) throw new Error('Unable to load loans. Please reload the page.');
+            if (id !== version) return;
+            column.replaceChildren(...updated.childNodes);
+            const historyList = column.querySelector('.profile-history-list');
+            const activeList = column.querySelector('.profile-loan-list');
+            if (historyList) historyList.scrollTop = changingHistory ? 0 : historyScroll;
+            if (activeList) activeList.scrollTop = changingHistory ? activeScroll : 0;
+            history.replaceState(null, '', response.url);
+        } catch (error) {
+            if (error.name !== 'AbortError' && id === version) window.toast?.error(error.message);
+        } finally {
+            if (id === version) column.removeAttribute('aria-busy');
+        }
+    });
+})();
