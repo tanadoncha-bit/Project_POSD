@@ -39,6 +39,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 class WorkflowIntegrationTest {
+    @Test void missingStaticResourcesReturn404AndPagesUseTheExistingErrorView() throws Exception {
+        mvc.perform(get("/css/does-not-exist.css")).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+        mvc.perform(get("/api/v1/does-not-exist").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
+        mvc.perform(get("/does-not-exist").with(user("admin").roles("ADMIN")).accept("text/html"))
+                .andExpect(status().isNotFound()).andExpect(view().name("error/404"));
+    }
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     com.example.itborrow.service.storage.ImageStorage imageStorage;
     @org.springframework.test.context.bean.override.mockito.MockitoBean

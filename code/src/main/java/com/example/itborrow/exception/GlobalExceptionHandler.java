@@ -21,6 +21,19 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), req);
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public Object handleMissingResource(HttpServletRequest req) {
+        String path = req.getRequestURI().substring(req.getContextPath().length());
+        String accept = req.getHeader("Accept");
+        if (!path.startsWith("/api/") && !path.startsWith("/css/") && !path.startsWith("/js/")
+                && !path.startsWith("/images/") && accept != null && accept.contains("text/html")) {
+            var page = new org.springframework.web.servlet.ModelAndView("error/404");
+            page.setStatus(HttpStatus.NOT_FOUND);
+            return page;
+        }
+        return buildResponse(HttpStatus.NOT_FOUND, "The requested resource was not found.", req);
+    }
+
     @ExceptionHandler(InvalidBorrowStateException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidState(InvalidBorrowStateException ex, HttpServletRequest req) {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), req);
