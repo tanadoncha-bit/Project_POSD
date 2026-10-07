@@ -18,7 +18,6 @@ public class GlobalExceptionHandler {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-
     @ExceptionHandler(ResourceNotFoundException.class)
     public Object handleNotFound(
             ResourceNotFoundException ex,
@@ -67,7 +66,6 @@ public class GlobalExceptionHandler {
                 req);
     }
 
-
     @ExceptionHandler(InvalidBorrowStateException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidState(
             InvalidBorrowStateException ex,
@@ -89,7 +87,6 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 req);
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Object handleValidation(
@@ -199,13 +196,12 @@ public class GlobalExceptionHandler {
                 req);
     }
 
-
     @ExceptionHandler(com.example.itborrow.service.storage.StorageException.class)
-    public ResponseEntity<ErrorResponseDto> storageUnavailable(
+    public Object storageUnavailable(
             Exception ex,
             HttpServletRequest req) {
 
-        return buildResponse(
+        return buildHtmlOrJson(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 ex.getMessage(),
                 req);
@@ -239,7 +235,6 @@ public class GlobalExceptionHandler {
                 req);
     }
 
-
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public Object uploadTooLarge(HttpServletRequest request) {
 
@@ -256,10 +251,7 @@ public class GlobalExceptionHandler {
                 "redirect:/profile?uploadError=size");
     }
 
-
-
-
-    //ตรวจสอบว่า request ต้องการ HTML หรือไม่
+    // ตรวจสอบว่า request ต้องการ HTML หรือไม่
 
     private boolean wantsHtml(HttpServletRequest req) {
 
@@ -273,9 +265,8 @@ public class GlobalExceptionHandler {
                 && accept.contains("text/html");
     }
 
+    // ถ้าเป็นหน้าเว็บ -> แสดง error HTML ถ้าเป็น API -> ส่ง JSON
 
-    //ถ้าเป็นหน้าเว็บ -> แสดง error HTML ถ้าเป็น API -> ส่ง JSON
-  
     private Object buildHtmlOrJson(
             HttpStatus status,
             String message,
@@ -297,8 +288,7 @@ public class GlobalExceptionHandler {
                 req);
     }
 
-
-    //สร้าง JSON Error Response
+    // สร้าง JSON Error Response
 
     private ResponseEntity<ErrorResponseDto> buildResponse(
             HttpStatus status,

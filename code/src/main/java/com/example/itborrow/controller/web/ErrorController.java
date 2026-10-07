@@ -45,4 +45,14 @@ public class ErrorController {
 
         return page;
     }
+
+    @GetMapping("/error/503")
+    public ModelAndView serviceUnavailable() {
+
+        ModelAndView page = new ModelAndView("error/503");
+
+        page.setStatus(HttpStatus.SERVICE_UNAVAILABLE);
+
+        return page;
+    }
 }
