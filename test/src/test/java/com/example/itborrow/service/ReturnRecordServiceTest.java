@@ -60,7 +60,7 @@ class ReturnRecordServiceTest {
     private com.example.itborrow.config.FeePolicyProperties fees = new com.example.itborrow.config.FeePolicyProperties();
 
     @org.mockito.Spy
-    java.time.Clock clock = java.time.Clock.system(java.time.ZoneId.of("Asia/Bangkok"));
+    java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("2026-10-07T17:10:00Z"), java.time.ZoneId.of("Asia/Bangkok"));
 
     @InjectMocks
     private ReturnRecordServiceImpl service;
@@ -85,7 +85,7 @@ class ReturnRecordServiceTest {
         borrowRequest = new BorrowRequest();
         borrowRequest.setId(1L);
         borrowRequest.setUser(user);
-        borrowRequest.setDueDate(LocalDate.now().minusDays(2)); // เลยกำหนดมาแล้ว 2 วัน
+        borrowRequest.setDueDate(LocalDate.now(clock).minusDays(2)); // เลยกำหนดมาแล้ว 2 วัน
         borrowRequest.setStatus(BorrowStatus.OVERDUE);
         borrowRequest.addItem(item);
     }
@@ -93,7 +93,7 @@ class ReturnRecordServiceTest {
     @Test
     void returnEquipment_success_callsStateAndStrategyThenSavesRecord() {
         ReturnRequestDto dto = new ReturnRequestDto();
-        dto.setReturnDate(LocalDate.now());
+        dto.setReturnDate(LocalDate.now(clock));
         dto.setCondition("GOOD");
 
         when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(borrowRequest));
@@ -117,7 +117,7 @@ class ReturnRecordServiceTest {
     @Test
     void returnEquipment_throwsException_whenBorrowRequestNotFound() {
         ReturnRequestDto dto = new ReturnRequestDto();
-        dto.setReturnDate(LocalDate.now());
+        dto.setReturnDate(LocalDate.now(clock));
 
         when(borrowRequestRepository.findLockedById(99L)).thenReturn(Optional.empty());
 
@@ -129,11 +129,11 @@ class ReturnRecordServiceTest {
 
     @Test
     void returnEquipment_noFine_whenReturnedOnTime() {
-        borrowRequest.setDueDate(LocalDate.now().plusDays(1));
+        borrowRequest.setDueDate(LocalDate.now(clock).plusDays(1));
         borrowRequest.setStatus(BorrowStatus.BORROWED);
 
         ReturnRequestDto dto = new ReturnRequestDto();
-        dto.setReturnDate(LocalDate.now());
+        dto.setReturnDate(LocalDate.now(clock));
         dto.setCondition("GOOD");
 
         when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(borrowRequest));

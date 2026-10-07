@@ -39,6 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 class WorkflowIntegrationTest {
+    @Autowired
+    java.time.Clock clock;
     @Test void missingStaticResourcesReturn404AndPagesUseTheExistingErrorView() throws Exception {
         mvc.perform(get("/css/does-not-exist.css")).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
@@ -128,8 +130,8 @@ class WorkflowIntegrationTest {
     BorrowRequest loan(User owner, BorrowStatus status, Equipment asset) {
         var b = new BorrowRequest();
         b.setUser(owner);
-        b.setBorrowDate(LocalDate.now());
-        b.setDueDate(LocalDate.now().plusDays(3));
+        b.setBorrowDate(LocalDate.now(clock));
+        b.setDueDate(LocalDate.now(clock).plusDays(3));
         b.setStatus(status);
         var item = new BorrowItem();
         item.setEquipment(asset);
@@ -144,7 +146,7 @@ class WorkflowIntegrationTest {
     }
 
     String borrowJson(long claimedUser, String dueDate) {
-        return "{\"userId\":" + claimedUser + ",\"borrowDate\":\"" + LocalDate.now() + "\",\"dueDate\":\"" + dueDate
+        return "{\"userId\":" + claimedUser + ",\"borrowDate\":\"" + LocalDate.now(clock) + "\",\"dueDate\":\"" + dueDate
                 + "\",\"items\":[{\"equipmentId\":" + asset.getId() + ",\"quantity\":1}]}";
     }
 
@@ -156,8 +158,8 @@ class WorkflowIntegrationTest {
         equipment.save(second);
         auth("alice");
         var dto = new BorrowRequestDto();
-        dto.setBorrowDate(LocalDate.now());
-        dto.setDueDate(LocalDate.now().plusDays(1));
+        dto.setBorrowDate(LocalDate.now(clock));
+        dto.setDueDate(LocalDate.now(clock).plusDays(1));
         dto.setItems(List.of(new BorrowItemRequestDto(asset.getId(), 1), new BorrowItemRequestDto(second.getId(), 1)));
         long id = borrowing.createBorrowRequest(dto).getId();
         auth("admin");
@@ -165,8 +167,8 @@ class WorkflowIntegrationTest {
         auth("alice");
         borrowing.pickUpEquipment(id);
         var request = requests.findById(id).orElseThrow();
-        request.setBorrowDate(LocalDate.now().minusDays(4));
-        request.setDueDate(LocalDate.now().minusDays(2));
+        request.setBorrowDate(LocalDate.now(clock).minusDays(4));
+        request.setDueDate(LocalDate.now(clock).minusDays(2));
         requests.save(request);
         alice.setRole(Role.VIP);
         users.save(alice);
@@ -336,7 +338,7 @@ class WorkflowIntegrationTest {
     void borrowedIdentityComesFromLoginAndListIsPrivate() throws Exception {
         loan(bob, BorrowStatus.PENDING, asset);
         mvc.perform(post("/api/v1/borrow-requests").with(user("alice")).with(csrf()).contentType("application/json")
-                .content(borrowJson(bob.getId(), LocalDate.now().plusDays(2).toString())))
+                .content(borrowJson(bob.getId(), LocalDate.now(clock).plusDays(2).toString())))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.userId").value(alice.getId()));
         mvc.perform(get("/api/v1/borrow-requests").with(user("alice"))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
@@ -536,7 +538,7 @@ class WorkflowIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT count(*) FROM borrow_workflow_audit WHERE request_id=?", Long.class,
                 request.getId())).isEqualTo(1L);
         request = requests.findById(request.getId()).orElseThrow();
-        request.setDueDate(LocalDate.now().minusDays(1));
+        request.setDueDate(LocalDate.now(clock).minusDays(1));
         requests.save(request);
         SecurityContextHolder.clearContext();
         borrowing.checkAndMarkOverdue();
@@ -587,16 +589,16 @@ class WorkflowIntegrationTest {
         mvc.perform(patch(url).with(user("admin").roles("ADMIN")).with(csrf())).andExpect(status().isForbidden());
         mvc.perform(patch(url).with(user("alice"))).andExpect(status().isForbidden());
         request = requests.findById(request.getId()).orElseThrow();
-        request.setBorrowDate(LocalDate.now().plusDays(1));
-        request.setDueDate(LocalDate.now().plusDays(2));
+        request.setBorrowDate(LocalDate.now(clock).plusDays(1));
+        request.setDueDate(LocalDate.now(clock).plusDays(2));
         requests.save(request);
         mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isBadRequest());
-        request.setBorrowDate(LocalDate.now().minusDays(2));
-        request.setDueDate(LocalDate.now().minusDays(1));
+        request.setBorrowDate(LocalDate.now(clock).minusDays(2));
+        request.setDueDate(LocalDate.now(clock).minusDays(1));
         requests.save(request);
         mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isBadRequest());
-        request.setBorrowDate(LocalDate.now());
-        request.setDueDate(LocalDate.now().plusDays(1));
+        request.setBorrowDate(LocalDate.now(clock));
+        request.setDueDate(LocalDate.now(clock).plusDays(1));
         requests.save(request);
         mvc.perform(patch(url).with(user("alice")).with(csrf())).andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("BORROWED"));
@@ -664,12 +666,12 @@ class WorkflowIntegrationTest {
         asset.setStatus(EquipmentStatus.IN_USE);
         equipment.save(asset);
         var b = loan(alice, BorrowStatus.BORROWED, asset);
-        b.setBorrowDate(LocalDate.now().minusDays(4));
-        b.setDueDate(LocalDate.now().minusDays(2));
+        b.setBorrowDate(LocalDate.now(clock).minusDays(4));
+        b.setDueDate(LocalDate.now(clock).minusDays(2));
         requests.save(b);
         String url = "/api/v1/borrow-requests/" + b.getId() + "/return";
         mvc.perform(post(url).with(user("admin").roles("ADMIN")).with(csrf()).contentType("application/json")
-                .content("{\"condition\":\"GOOD\",\"returnDate\":\"" + LocalDate.now().minusDays(2) + "\"}"))
+                .content("{\"condition\":\"GOOD\",\"returnDate\":\"" + LocalDate.now(clock).minusDays(2) + "\"}"))
                 .andExpect(status().isBadRequest());
         mvc.perform(post(url).with(user("alice")).with(csrf()).contentType("application/json")
                 .content("{\"condition\":\"GOOD\"}")).andExpect(status().isForbidden());
@@ -677,7 +679,7 @@ class WorkflowIntegrationTest {
                 .content("{\"condition\":\"DAMAGED\",\"remark\":\"Broken screen\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.fineAmount").value(100))
                 .andExpect(jsonPath("$.damageAmount").value(500)).andExpect(jsonPath("$.totalAmount").value(600))
-                .andExpect(jsonPath("$.returnDate").value(LocalDate.now().toString()));
+                .andExpect(jsonPath("$.returnDate").value(LocalDate.now(clock).toString()));
         assertThat(equipment.findById(asset.getId()).orElseThrow().getStatus()).isEqualTo(EquipmentStatus.MAINTENANCE);
         mvc.perform(post(url).with(user("admin").roles("ADMIN")).with(csrf()).contentType("application/json")
                 .content("{\"condition\":\"GOOD\"}")).andExpect(status().isConflict());
@@ -687,12 +689,12 @@ class WorkflowIntegrationTest {
     @Test
     void invalidDatesAndDuplicateAssetsAreRejected() throws Exception {
         mvc.perform(post("/api/v1/borrow-requests").with(user("alice")).with(csrf()).contentType("application/json")
-                .content(borrowJson(alice.getId(), LocalDate.now().minusDays(1).toString())))
+                .content(borrowJson(alice.getId(), LocalDate.now(clock).minusDays(1).toString())))
                 .andExpect(status().isBadRequest());
         auth("alice");
         var dto = new BorrowRequestDto();
-        dto.setBorrowDate(LocalDate.now());
-        dto.setDueDate(LocalDate.now().plusDays(1));
+        dto.setBorrowDate(LocalDate.now(clock));
+        dto.setDueDate(LocalDate.now(clock).plusDays(1));
         dto.setItems(List.of(new BorrowItemRequestDto(asset.getId(), 1), new BorrowItemRequestDto(asset.getId(), 1)));
         assertThatThrownBy(() -> borrowing.createBorrowRequest(dto)).isInstanceOf(IllegalArgumentException.class);
     }
@@ -700,10 +702,10 @@ class WorkflowIntegrationTest {
     @Test
     void overdueJobExpiresUncollectedRequestsAndIsRepeatable() {
         var b = loan(alice, BorrowStatus.BORROWED, asset);
-        b.setDueDate(LocalDate.now().minusDays(1));
+        b.setDueDate(LocalDate.now(clock).minusDays(1));
         requests.save(b);
         var pending = loan(bob, BorrowStatus.PENDING, asset);
-        pending.setDueDate(LocalDate.now().minusDays(1));
+        pending.setDueDate(LocalDate.now(clock).minusDays(1));
         requests.save(pending);
         borrowing.checkAndMarkOverdue();
         borrowing.checkAndMarkOverdue();
@@ -728,7 +730,7 @@ class WorkflowIntegrationTest {
         asset.setImageUrl("/images/original.png");
         equipment.saveAndFlush(asset);
         mvc.perform(post("/api/v1/borrow-requests").with(user("alice")).with(csrf()).contentType("application/json")
-                .content(borrowJson(alice.getId(), LocalDate.now().plusDays(2).toString())))
+                .content(borrowJson(alice.getId(), LocalDate.now(clock).plusDays(2).toString())))
                 .andExpect(status().isCreated());
         var id = requests.findAll().get(0).getId();
         var accessory = categories.save(new EquipmentCategory("Accessory", "Test"));
