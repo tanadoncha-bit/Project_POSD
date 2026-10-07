@@ -21,4 +21,11 @@ public class ErrorController {
         page.setStatus(HttpStatus.BAD_REQUEST);
         return page;
     }
+
+    @GetMapping("/error/403")
+    public ModelAndView forbidden() {
+        ModelAndView page = new ModelAndView("error/403");
+        page.setStatus(HttpStatus.FORBIDDEN);
+        return page;
+    }
 }
