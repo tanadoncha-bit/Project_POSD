@@ -11,8 +11,12 @@ public class WorkflowOperationsController {
     private final RequestRejectionService rejections;
     private final SettlementService settlements;
     private final EquipmentRepairService repairs;
-    public WorkflowOperationsController(RequestRejectionService rejections,SettlementService settlements,EquipmentRepairService repairs) {
-        this.rejections=rejections;this.settlements=settlements;this.repairs=repairs;
+
+    public WorkflowOperationsController(RequestRejectionService rejections, SettlementService settlements,
+            EquipmentRepairService repairs) {
+        this.rejections = rejections;
+        this.settlements = settlements;
+        this.repairs = repairs;
     }
 
     public record Action(String reason, String reference, BigDecimal amount) {

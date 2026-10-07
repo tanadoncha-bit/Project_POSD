@@ -18,10 +18,12 @@ public class EquipmentController {
     }
 
     @GetMapping
-    public com.example.itborrow.dto.response.PageResponse<EquipmentData> list(@RequestParam(defaultValue = "") String keyword,
+    public com.example.itborrow.dto.response.PageResponse<EquipmentData> list(
+            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) EquipmentStatus status, Pageable pageable) {
         var page = PageRequest.of(pageable.getPageNumber(), Math.min(100, pageable.getPageSize()), pageable.getSort());
-        return com.example.itborrow.dto.response.PageResponse.from(service.searchInventory(keyword, status, page).map(EquipmentData::from));
+        return com.example.itborrow.dto.response.PageResponse
+                .from(service.searchInventory(keyword, status, page).map(EquipmentData::from));
     }
 
     @GetMapping("/summary")
