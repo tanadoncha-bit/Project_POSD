@@ -21,7 +21,7 @@ public class SecurityConfig {
                 org.springframework.security.web.access.intercept.AuthorizationFilter.class);
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg",
-                        "/error", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                        "/error", "/error/401", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
                         "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
@@ -38,9 +38,14 @@ public class SecurityConfig {
                         .failureUrl("/?loginError=true").permitAll())
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/").invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"))
-                .exceptionHandling(errors -> errors.defaultAuthenticationEntryPointFor(
-                        (request, response, exception) -> response.sendError(401),
-                        request -> request.getRequestURI().startsWith("/api/")));
+                .exceptionHandling(errors -> errors
+                    .defaultAuthenticationEntryPointFor(
+                            (request, response, exception) -> response.sendError(401),
+                            request -> request.getRequestURI().startsWith("/api/"))
+                    .defaultAuthenticationEntryPointFor(
+                            (request, response, exception) ->
+                                    response.sendRedirect(request.getContextPath() + "/error/401"),
+                            request -> !request.getRequestURI().startsWith("/api/")));
         if(registrations.getIfAvailable()!=null) {
             http.oauth2Login(oauth -> oauth.loginPage("/").userInfoEndpoint(info -> info.oidcUserService(googleUsers))
                 .successHandler((request, response, authentication) -> {
