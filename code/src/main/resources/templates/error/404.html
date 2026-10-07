@@ -1,91 +1,39 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-
+<html lang="th">
 <head>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
-    <link rel="alternate icon" href="/favicon.ico" th:href="@{/favicon.ico}">
-  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
-  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
-  <meta charset="UTF-8">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Page Not Found | LeadIT</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
-  <link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
-  <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Not Found | LeadIT</title>
+    <link rel="stylesheet" href="/css/error.css">
 </head>
+<body>
 
-<body class="error-page" data-page="error" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
+<main class="error-page">
+    <div class="error-card">
 
-  <header class="error-header">
-    <a class="error-brand" href="../dashboard/index.html" th:href="@{/}">
+        <div class="error-icon">!</div>
 
-      <span class="error-brand-icon" aria-hidden="true">
-      </span>
+        <div class="error-code">404</div>
 
-      <span>LeadIT</span>
-    </a>
-  </header>
+        <h1>Not Found</h1>
 
-  <main class="error-main">
+        <p>
+            ไม่พบหน้าที่คุณกำลังค้นหา
+        </p>
 
-    <section class="error-content">
+        <div class="error-actions">
+            <a href="/" class="error-button">
+                กลับหน้าหลัก
+            </a>
 
-      <div class="error-illustration" aria-hidden="true">
+        </div>
 
-        <span class="error-illustration-icon">
-        </span>
-      </div>
+        <div class="error-help">
+            หน้าที่คุณต้องการอาจถูกลบ เปลี่ยนที่อยู่ หรือไม่มีอยู่ในระบบ
+        </div>
 
-      <p class="error-code">
-        404
-      </p>
+    </div>
+</main>
 
-      <h1>Page not found</h1>
-
-      <p class="error-description">
-        The page you are looking for may have been moved,
-        removed, or is temporarily unavailable.
-      </p>
-
-      <div class="error-actions">
-
-        <button class="button error-back-button" type="button" onclick="history.back()">
-
-          <span aria-hidden="true">
-
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m12 19-7-7 7-7M5 12h14"/></svg>
-
-          </span>
-
-          Go Back
-        </button>
-
-        <a class="button button-primary" href="../dashboard/index.html" th:href="@{/}">
-
-          <span aria-hidden="true">
-
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></svg>
-
-          </span>
-
-          Back to Home
-        </a>
-      </div>
-
-      <p class="error-help">
-        If the problem continues, please contact the IT Helpdesk.
-      </p>
-    </section>
-  </main>
 </body>
-
 </html>

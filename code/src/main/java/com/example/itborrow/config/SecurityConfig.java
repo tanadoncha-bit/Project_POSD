@@ -26,7 +26,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico",
                         "/favicon.svg",
-                        "/error", "/error/401", "/error/400", "/error/403", "/register", "/swagger-ui/**",
+                        "/error", "/error/401", "/error/400", "/error/403","/error/404", "/register", "/swagger-ui/**",
                         "/swagger-ui.html", "/v3/api-docs/**",
                         "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email",
                         "/oauth2/**", "/login/oauth2/**")

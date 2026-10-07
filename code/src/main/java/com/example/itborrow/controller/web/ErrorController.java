@@ -28,4 +28,11 @@ public class ErrorController {
         page.setStatus(HttpStatus.FORBIDDEN);
         return page;
     }
+
+    @GetMapping("/error/404")
+    public ModelAndView notFound() {
+        ModelAndView page = new ModelAndView("error/404");
+        page.setStatus(HttpStatus.NOT_FOUND);
+        return page;
+    }
 }
