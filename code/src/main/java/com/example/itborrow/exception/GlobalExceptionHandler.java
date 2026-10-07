@@ -16,23 +16,28 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final org.slf4j.Logger log =
-            org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // =========================
-    // 404 NOT FOUND
-    // =========================
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleNotFound(
+    public Object handleNotFound(
             ResourceNotFoundException ex,
             HttpServletRequest req) {
 
+        // ถ้าเป็นหน้าเว็บ → แสดง 404.html
+        if (wantsHtml(req)) {
+
+            var page = new ModelAndView("error/404");
+            page.setStatus(HttpStatus.NOT_FOUND);
+
+            return page;
+        }
+
+        // ถ้าเป็น API → ส่ง JSON
         return buildResponse(
                 HttpStatus.NOT_FOUND,
                 ex.getMessage(),
-                req
-        );
+                req);
     }
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
@@ -59,13 +64,9 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.NOT_FOUND,
                 "The requested resource was not found.",
-                req
-        );
+                req);
     }
 
-    // =========================
-    // 409 CONFLICT
-    // =========================
 
     @ExceptionHandler(InvalidBorrowStateException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidState(
@@ -75,8 +76,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
-                req
-        );
+                req);
     }
 
     @ExceptionHandler(EquipmentNotAvailableException.class)
@@ -87,13 +87,9 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
-                req
-        );
+                req);
     }
 
-    // =========================
-    // 400 BAD REQUEST
-    // =========================
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Object handleValidation(
@@ -114,18 +110,16 @@ public class GlobalExceptionHandler {
         List<String> details = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(err ->
-                        ((FieldError) err).getField()
-                                + ": "
-                                + err.getDefaultMessage())
+                .map(err -> ((FieldError) err).getField()
+                        + ": "
+                        + err.getDefaultMessage())
                 .collect(Collectors.toList());
 
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 "ข้อมูลที่ส่งมาไม่ถูกต้อง",
-                req.getRequestURI()
-        );
+                req.getRequestURI());
 
         body.setDetails(details);
 
@@ -142,8 +136,7 @@ public class GlobalExceptionHandler {
         return buildHtmlOrJson(
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
-                req
-        );
+                req);
     }
 
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
@@ -154,36 +147,36 @@ public class GlobalExceptionHandler {
         return buildHtmlOrJson(
                 HttpStatus.BAD_REQUEST,
                 "Invalid request data",
-                req
-        );
+                req);
     }
 
-    // =========================
-    // 500 INTERNAL SERVER ERROR
-    // =========================
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleUnexpected(
+    public Object handleUnexpected(
             Exception ex,
             HttpServletRequest req) {
 
         String id = java.util.UUID.randomUUID().toString();
 
         var origin = java.util.Arrays.stream(ex.getStackTrace())
-                .filter(frame ->
-                        frame.getClassName()
-                                .startsWith("com.example.itborrow."))
+                .filter(frame -> frame.getClassName()
+                        .startsWith("com.example.itborrow."))
                 .findFirst()
                 .map(Object::toString)
                 .orElse("framework");
 
-        log.error(
-                "Request {} failed: {} at {}",
-                id,
-                ex.getClass().getName(),
-                origin
-        );
+        log.error("Request {} failed: {} at {}",
+                id, ex.getClass().getName(), origin);
 
+        // ถ้าเป็นหน้าเว็บ → แสดงหน้า 500
+        if (wantsHtml(req)) {
+
+            var page = new ModelAndView("error/500");
+            page.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+
+            return page;
+        }
+
+        // ถ้าเป็น API → ส่ง JSON เหมือนเดิม
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .header("X-Request-ID", id)
@@ -192,18 +185,10 @@ public class GlobalExceptionHandler {
                                 500,
                                 "Internal Server Error",
                                 "An unexpected error occurred. Reference: " + id,
-                                req.getRequestURI()
-                        )
-                );
+                                req.getRequestURI()));
     }
 
-    // =========================
-    // 403 FORBIDDEN
-    // =========================
-
-    @ExceptionHandler(
-            org.springframework.security.access.AccessDeniedException.class
-    )
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDto> denied(
             Exception ex,
             HttpServletRequest req) {
@@ -211,17 +196,11 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.FORBIDDEN,
                 "Access denied",
-                req
-        );
+                req);
     }
 
-    // =========================
-    // 503 SERVICE UNAVAILABLE
-    // =========================
 
-    @ExceptionHandler(
-            com.example.itborrow.service.storage.StorageException.class
-    )
+    @ExceptionHandler(com.example.itborrow.service.storage.StorageException.class)
     public ResponseEntity<ErrorResponseDto> storageUnavailable(
             Exception ex,
             HttpServletRequest req) {
@@ -229,13 +208,8 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 ex.getMessage(),
-                req
-        );
+                req);
     }
-
-    // =========================
-    // 409 DATA CONFLICT
-    // =========================
 
     @ExceptionHandler({
             org.springframework.dao.DataIntegrityViolationException.class,
@@ -245,37 +219,28 @@ public class GlobalExceptionHandler {
             Exception ex,
             HttpServletRequest req) {
 
-        for (Throwable cause = ex;
-             cause != null;
-             cause = cause.getCause()) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
 
             if (cause.getMessage() != null
                     && cause.getMessage()
-                    .toLowerCase(java.util.Locale.ROOT)
-                    .contains("uq_equipment_storage_slot")) {
+                            .toLowerCase(java.util.Locale.ROOT)
+                            .contains("uq_equipment_storage_slot")) {
 
                 return buildResponse(
                         HttpStatus.CONFLICT,
                         "This storage slot is already assigned to another asset. Choose a different slot.",
-                        req
-                );
+                        req);
             }
         }
 
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "Data conflicts with an existing record. Refresh and retry.",
-                req
-        );
+                req);
     }
 
-    // =========================
-    // 413 PAYLOAD TOO LARGE
-    // =========================
 
-    @ExceptionHandler(
-            org.springframework.web.multipart.MaxUploadSizeExceededException.class
-    )
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public Object uploadTooLarge(HttpServletRequest request) {
 
         if (request.getRequestURI()
@@ -284,22 +249,18 @@ public class GlobalExceptionHandler {
             return buildResponse(
                     HttpStatus.PAYLOAD_TOO_LARGE,
                     "Choose a JPG or PNG image up to 2 MB.",
-                    request
-            );
+                    request);
         }
 
         return new ModelAndView(
-                "redirect:/profile?uploadError=size"
-        );
+                "redirect:/profile?uploadError=size");
     }
 
-    // =========================
-    // HELPER
-    // =========================
 
-    /**
-     * ตรวจสอบว่า request ต้องการ HTML หรือไม่
-     */
+
+
+    //ตรวจสอบว่า request ต้องการ HTML หรือไม่
+
     private boolean wantsHtml(HttpServletRequest req) {
 
         String path = req.getRequestURI()
@@ -312,10 +273,9 @@ public class GlobalExceptionHandler {
                 && accept.contains("text/html");
     }
 
-    /**
-     * ถ้าเป็นหน้าเว็บ -> แสดง error HTML
-     * ถ้าเป็น API -> ส่ง JSON
-     */
+
+    //ถ้าเป็นหน้าเว็บ -> แสดง error HTML ถ้าเป็น API -> ส่ง JSON
+  
     private Object buildHtmlOrJson(
             HttpStatus status,
             String message,
@@ -324,8 +284,7 @@ public class GlobalExceptionHandler {
         if (wantsHtml(req)) {
 
             var page = new ModelAndView(
-                    "error/" + status.value()
-            );
+                    "error/" + status.value());
 
             page.setStatus(status);
 
@@ -335,13 +294,12 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 status,
                 message,
-                req
-        );
+                req);
     }
 
-    /**
-     * สร้าง JSON Error Response
-     */
+
+    //สร้าง JSON Error Response
+
     private ResponseEntity<ErrorResponseDto> buildResponse(
             HttpStatus status,
             String message,
@@ -351,8 +309,7 @@ public class GlobalExceptionHandler {
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                req.getRequestURI()
-        );
+                req.getRequestURI());
 
         return ResponseEntity
                 .status(status)

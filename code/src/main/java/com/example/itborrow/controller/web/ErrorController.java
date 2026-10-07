@@ -35,4 +35,14 @@ public class ErrorController {
         page.setStatus(HttpStatus.NOT_FOUND);
         return page;
     }
+
+    @GetMapping("/error/500")
+    public ModelAndView internalServerError() {
+
+        ModelAndView page = new ModelAndView("error/500");
+
+        page.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return page;
+    }
 }
