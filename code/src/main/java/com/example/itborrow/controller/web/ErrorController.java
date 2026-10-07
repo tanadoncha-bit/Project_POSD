@@ -14,4 +14,11 @@ public class ErrorController {
         page.setStatus(HttpStatus.UNAUTHORIZED);
         return page;
     }
+
+    @GetMapping("/error/400")
+    public ModelAndView badRequest() {
+        ModelAndView page = new ModelAndView("error/400");
+        page.setStatus(HttpStatus.BAD_REQUEST);
+        return page;
+    }
 }

@@ -21,7 +21,7 @@ public class SecurityConfig {
                 org.springframework.security.web.access.intercept.AuthorizationFilter.class);
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg",
-                        "/error", "/error/401", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                        "/error", "/error/401","/error/400","/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
                         "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
