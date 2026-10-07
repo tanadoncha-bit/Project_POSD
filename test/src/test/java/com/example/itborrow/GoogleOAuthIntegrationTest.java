@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 class GoogleOAuthIntegrationTest {
-    @org.springframework.test.context.bean.override.mockito.MockitoBean com.example.itborrow.service.avatar.ImageStorage images;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean com.example.itborrow.service.storage.ImageStorage images;
     @org.springframework.test.context.bean.override.mockito.MockitoBean org.springframework.mail.javamail.JavaMailSender mail;
     @Autowired MockMvc mvc;
     @Test void configuredGoogleProviderIsPubliclyDiscoverable() throws Exception {
@@ -51,7 +51,7 @@ class GoogleOAuthIntegrationTest {
         var saved = accounts.signIn("signup-flow-sub", "signup-flow@example.test", true, "New Member", null);
         org.assertj.core.api.Assertions.assertThat(saved.getUsername()).isEqualTo("completed_google_user");
         org.assertj.core.api.Assertions.assertThat(saved.getEmail()).isEqualTo("signup-flow@example.test");
-        mvc.perform(get("/profile").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(saved.getUsername())))
+        mvc.perform(get("/profile").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(new com.example.itborrow.security.AccountPrincipal(saved))))
             .andExpect(status().isOk());
     }
 }

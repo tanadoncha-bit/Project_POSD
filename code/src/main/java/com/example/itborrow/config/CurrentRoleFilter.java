@@ -31,8 +31,16 @@ public class CurrentRoleFilter extends OncePerRequestFilter {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
             var account = users.findByUsername(auth.getName());
-            if (account.isEmpty())
+            long version = auth.getPrincipal() instanceof com.example.itborrow.security.AccountPrincipal principal
+                    ? principal.getSecurityVersion()
+                    : auth.getPrincipal() instanceof org.springframework.security.oauth2.core.oidc.user.OidcUser oidc
+                        && oidc.getClaim("local_security_version") instanceof Number value ? value.longValue() : 0;
+            if (account.isEmpty() || account.get().getSecurityVersion() != version)
+                {
                 SecurityContextHolder.clearContext();
+                var session = request.getSession(false);
+                if (session != null) session.invalidate();
+            }
             else {
                 String path = request.getRequestURI().substring(request.getContextPath().length());
                 if (!account.get().isLocalPasswordEnabled()

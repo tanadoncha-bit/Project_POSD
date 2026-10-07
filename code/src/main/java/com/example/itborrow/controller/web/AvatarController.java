@@ -22,7 +22,7 @@ public class AvatarController {
         try {
             avatars.save(current.require().getId(), image);
             flash.addFlashAttribute("accountMessage", "Profile picture updated.");
-        } catch (IllegalArgumentException | com.example.itborrow.service.avatar.StorageException ex) {
+        } catch (IllegalArgumentException | com.example.itborrow.service.storage.StorageException ex) {
             flash.addFlashAttribute("accountError", ex.getMessage());
         }
         return "redirect:/profile";

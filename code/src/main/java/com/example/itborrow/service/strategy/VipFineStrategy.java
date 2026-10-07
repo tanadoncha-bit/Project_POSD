@@ -1,4 +1,4 @@
-package com.example.itborrow.service.impl.strategy;
+package com.example.itborrow.service.strategy;
 
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.domain.enums.Role;

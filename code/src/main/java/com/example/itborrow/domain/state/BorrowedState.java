@@ -9,6 +9,12 @@ import java.time.LocalDate;
 
 @Component
 public class BorrowedState implements BorrowState {
+    private final java.time.Clock clock;
+    public BorrowedState(java.time.Clock clock) { this.clock = clock; }
+    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
+        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.BORROWED);
+    }
+
 
     @Override
     public void approve(BorrowRequest request) {
@@ -35,7 +41,7 @@ public class BorrowedState implements BorrowState {
 
     @Override
     public void markOverdue(BorrowRequest request) {
-        if (request.getDueDate().isBefore(LocalDate.now())) {
+        if (request.getDueDate().isBefore(LocalDate.now(clock))) {
             request.setStatus(BorrowStatus.OVERDUE);
         }
     }

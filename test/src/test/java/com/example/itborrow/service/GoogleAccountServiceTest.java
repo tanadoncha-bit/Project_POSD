@@ -13,7 +13,7 @@ class GoogleAccountServiceTest {
     private final UserProfileRepository profiles=mock(UserProfileRepository.class);
     private final ExternalIdentityRepository identities=mock(ExternalIdentityRepository.class);
     private final PasswordEncoder encoder=mock(PasswordEncoder.class);
-    private final GoogleAccountService service=new GoogleAccountService(users,profiles,identities,encoder);
+    private final GoogleAccountService service=new com.example.itborrow.service.impl.GoogleAccountServiceImpl(users,profiles,identities,encoder);
     @Test void unverifiedEmailCannotCreateOrLinkAccount() {
         assertThatThrownBy(()->service.signIn("sub","a@gmail.com",false,"Alice",null)).isInstanceOf(OAuth2AuthenticationException.class);
         verifyNoInteractions(users,profiles,identities);

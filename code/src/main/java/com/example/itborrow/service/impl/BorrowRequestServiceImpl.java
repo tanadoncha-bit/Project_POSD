@@ -28,6 +28,7 @@ import java.util.List;
 
 @Service
 public class BorrowRequestServiceImpl implements BorrowRequestService {
+    private final java.time.Clock clock;
     private final com.example.itborrow.config.FeePolicyProperties fees;
 
 
@@ -44,8 +45,9 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
             BorrowStateResolver stateResolver,
             BorrowRequestMapper mapper,
             ApplicationEventPublisher eventPublisher, com.example.itborrow.service.CurrentUser current,
-            com.example.itborrow.repository.EquipmentCategoryRepository categories, com.example.itborrow.config.FeePolicyProperties fees) {
+            com.example.itborrow.repository.EquipmentCategoryRepository categories, com.example.itborrow.config.FeePolicyProperties fees, java.time.Clock clock) {
         this.fees=fees;
+        this.clock = clock;
         this.current = current;
         this.categories = categories;
         this.borrowRequestRepository = borrowRequestRepository;
@@ -59,7 +61,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Transactional
     public BorrowResponseDto createBorrowRequest(BorrowRequestDto dto) {
         User user = current.require();
-        if (dto.getBorrowDate() == null || dto.getDueDate() == null || dto.getBorrowDate().isBefore(LocalDate.now())
+        if (dto.getBorrowDate() == null || dto.getDueDate() == null || dto.getBorrowDate().isBefore(LocalDate.now(clock))
                 || dto.getDueDate().isBefore(dto.getBorrowDate()))
             throw new IllegalArgumentException("Invalid borrow/due dates.");
         if (dto.getItems() == null || dto.getItems().isEmpty())
@@ -116,7 +118,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
         current.requireOperator();
         BorrowRequest request = findLockedById(id);
         current.requireIndependentOperator(request);
-        if (request.getDueDate().isBefore(LocalDate.now()))
+        if (request.getDueDate().isBefore(LocalDate.now(clock)))
             throw new IllegalArgumentException("This borrowing period has expired.");
         for (var item : request.getItems().stream()
                 .sorted(java.util.Comparator.comparing(i -> i.getEquipment().getId())).toList()) {
@@ -140,7 +142,7 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
         if (!current.require().getId().equals(request.getUser().getId()))
             throw new org.springframework.security.access.AccessDeniedException(
                     "Only the borrower can confirm pickup.");
-        if (LocalDate.now().isBefore(request.getBorrowDate()) || LocalDate.now().isAfter(request.getDueDate()))
+        if (LocalDate.now(clock).isBefore(request.getBorrowDate()) || LocalDate.now(clock).isAfter(request.getDueDate()))
             throw new IllegalArgumentException("Pickup must be within the requested borrowing period.");
         stateResolver.resolve(request.getStatus()).pickUp(request);
 
@@ -190,14 +192,14 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
     @Transactional
     public void checkAndMarkOverdue() {
         for (var expired : borrowRequestRepository.findExpiredForUpdate(
-                java.util.List.of(BorrowStatus.PENDING, BorrowStatus.APPROVED), LocalDate.now())) {
+                java.util.List.of(BorrowStatus.PENDING, BorrowStatus.APPROVED), LocalDate.now(clock))) {
             expired.setStatus(BorrowStatus.CANCELLED);
             borrowRequestRepository.save(expired);
             eventPublisher.publishEvent(
                     new com.example.itborrow.common.event.BorrowWorkflowEvent(expired.getId(), "EXPIRED"));
         }
         List<BorrowRequest> overdueCandidates = borrowRequestRepository
-                .findOverdueForUpdate(BorrowStatus.BORROWED, LocalDate.now());
+                .findOverdueForUpdate(BorrowStatus.BORROWED, LocalDate.now(clock));
 
         for (BorrowRequest request : overdueCandidates) {
             stateResolver.resolve(request.getStatus()).markOverdue(request);

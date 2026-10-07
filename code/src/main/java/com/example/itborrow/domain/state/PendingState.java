@@ -7,6 +7,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PendingState implements BorrowState {
+    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
+        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.PENDING);
+    }
+
 
     @Override
     public void approve(BorrowRequest request) {

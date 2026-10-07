@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, 'profile', ~{::content})}">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
+    <link rel="alternate icon" href="/favicon.ico" th:href="@{/favicon.ico}"><title>Change email | LeadIT</title></head>
+<body>
+<main class="password-settings-page" th:fragment="content">
+    <a class="password-back-link" th:href="@{/profile}" href="/profile">
+        <span aria-hidden="true">&larr;</span> Back to profile
+    </a>
+    <section class="password-settings-card" aria-labelledby="password-settings-title">
+        <header class="password-settings-heading">
+            <h1 id="password-settings-title">Change email</h1>
+            <p>Enter your new email and current password. Your email changes after you confirm the link we send.</p>
+        </header>
+        <p data-toast="error" role="alert" th:if="${accountError}" th:text="${accountError}"></p>
+        <form class="password-settings-form" method="post" th:action="@{/profile/change-email}">
+            <div class="password-settings-field">
+                <label for="current-password">Current password</label>
+                <input id="current-password" type="password" name="currentPassword" autocomplete="current-password" required>
+            </div>
+            <div class="password-settings-field">
+                <label for="new-email">New email</label>
+                <input id="new-email" type="email" name="email" autocomplete="email" maxlength="100" required>
+            </div>
+            <div class="password-settings-actions">
+                <a class="password-settings-cancel" th:href="@{/profile}" href="/profile">Cancel</a>
+                <button class="password-settings-save" type="submit">Send confirmation</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -60,6 +60,9 @@ class BorrowRequestServiceTest {
     @org.mockito.Spy
     private com.example.itborrow.config.FeePolicyProperties fees = new com.example.itborrow.config.FeePolicyProperties();
 
+    @org.mockito.Spy
+    java.time.Clock clock = java.time.Clock.system(java.time.ZoneId.of("Asia/Bangkok"));
+
     @InjectMocks
     private BorrowRequestServiceImpl service;
 

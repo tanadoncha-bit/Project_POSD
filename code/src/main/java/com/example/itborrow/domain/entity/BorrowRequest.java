@@ -37,7 +37,7 @@ public class BorrowRequest {
     private String note;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(java.time.ZoneOffset.UTC);
 
     @org.hibernate.annotations.BatchSize(size = 20)
     @OneToMany(mappedBy = "borrowRequest", cascade = CascadeType.ALL, orphanRemoval = true)

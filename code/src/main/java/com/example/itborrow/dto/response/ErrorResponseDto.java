@@ -13,11 +13,11 @@ public class ErrorResponseDto {
     private List<String> details;
 
     public ErrorResponseDto() {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(java.time.ZoneOffset.UTC);
     }
 
     public ErrorResponseDto(int status, String error, String message, String path) {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(java.time.ZoneOffset.UTC);
         this.status = status;
         this.error = error;
         this.message = message;

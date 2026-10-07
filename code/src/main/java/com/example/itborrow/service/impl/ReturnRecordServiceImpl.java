@@ -14,7 +14,7 @@ import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.repository.ReturnRecordRepository;
 import com.example.itborrow.service.FineStrategyService;
 import com.example.itborrow.service.ReturnRecordService;
-import com.example.itborrow.service.impl.strategy.FineStrategyResolver;
+import com.example.itborrow.service.strategy.FineStrategyResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 
 @Service
 public class ReturnRecordServiceImpl implements ReturnRecordService {
+    private final java.time.Clock clock;
     private final com.example.itborrow.config.FeePolicyProperties fees;
 
 
@@ -38,8 +39,9 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
             EquipmentRepository equipmentRepository,
             BorrowStateResolver stateResolver,
             FineStrategyResolver fineStrategyResolver, com.example.itborrow.service.CurrentUser current,
-            org.springframework.context.ApplicationEventPublisher events, com.example.itborrow.config.FeePolicyProperties fees) {
+            org.springframework.context.ApplicationEventPublisher events, com.example.itborrow.config.FeePolicyProperties fees, java.time.Clock clock) {
         this.fees=fees;
+        this.clock = clock;
         this.current = current;
         this.events = events;
         this.returnRecordRepository = returnRecordRepository;
@@ -61,7 +63,7 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
         // 1) เปลี่ยนสถานะผ่าน State Pattern (BORROWED/OVERDUE -> RETURNED)
         // ถ้าสถานะปัจจุบันคืนไม่ได้ (เช่น ยังเป็น PENDING) ตัวนี้จะ throw
         // InvalidBorrowStateException ให้เอง
-        var today = java.time.LocalDate.now();
+        var today = java.time.LocalDate.now(clock);
         if (dto.getReturnDate() != null && !dto.getReturnDate().equals(today))
             throw new IllegalArgumentException("Return date must be today.");
         if (request.getBorrowDate() != null && today.isBefore(request.getBorrowDate()))
@@ -169,7 +171,7 @@ public class ReturnRecordServiceImpl implements ReturnRecordService {
                 .condition(record.getCondition())
                 .fineAmount(record.getFineAmount())
                 .damageAmount(record.getDamageAmount())
-                .items(java.util.List.copyOf(record.getInspections()))
+                .items(record.getInspections().stream().map(com.example.itborrow.dto.response.ReturnInspectionResponseDto::from).toList())
                 .remark(record.getRemark())
                 .build();
     }

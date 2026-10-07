@@ -30,6 +30,11 @@ public class User {
     public boolean isLocalPasswordEnabled() {return localPasswordEnabled;}
     public void setLocalPasswordEnabled(boolean value) {localPasswordEnabled=value;}
 
+    @Column(name="security_version", nullable=false)
+    private long securityVersion;
+    public long getSecurityVersion() { return securityVersion; }
+    public void revokeSessions() { securityVersion++; }
+
     public String getPassword() {
         return password;
     }

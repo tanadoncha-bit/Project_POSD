@@ -370,11 +370,22 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedEquipmentId = details.closest(".admin-equipment-card").dataset.id;
             const item = equipments.get(selectedEquipmentId);
             const deleteButton = document.querySelector("[data-admin-delete]");
-            if (deleteButton) deleteButton.hidden = true;
+            if (deleteButton) {
+                deleteButton.hidden = false;
+                deleteButton.disabled = true;
+                deleteButton.textContent = "Delete equipment";
+                deleteButton.title = "Checking whether this equipment can be deleted...";
+            }
             const inspectedId = selectedEquipmentId;
             if (deleteButton) requestJson(`/api/v1/equipment/${inspectedId}/deletion`).then(result => {
-                if (selectedEquipmentId === inspectedId) deleteButton.hidden = !result.allowed;
-            }).catch(() => { deleteButton.hidden = true; });
+                if (selectedEquipmentId !== inspectedId) return;
+                deleteButton.disabled = !result.allowed;
+                deleteButton.title = result.allowed ? "Delete this equipment" : "Equipment with loan history cannot be deleted.";
+            }).catch(() => {
+                if (selectedEquipmentId !== inspectedId) return;
+                deleteButton.disabled = true;
+                deleteButton.title = "Unable to check deletion availability. Reopen details to try again.";
+            });
             document.getElementById("admin-equipment-title").textContent = item.name;
             document.getElementById("admin-equipment-code").textContent = item.assetCode;
             document.getElementById("admin-equipment-image").innerHTML = imageMarkup(item.id);
@@ -452,7 +463,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     for (const mode of ["add", "edit"]) document.getElementById(`admin-${mode}-equipment-form`).addEventListener("submit", async event => {
-        event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const button = form.querySelector('[type="submit"]'); button.disabled = true;
+        event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const button = form.querySelector('[type="submit"]');
+        const originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = "Saving...";
+        form.setAttribute("aria-busy", "true");
         const payload = mode === "add" ? { name: data.get("name"), assetCode: data.get("assetCode"), categoryId: Number(data.get("categoryId")), status: "AVAILABLE" } : { name: data.get("name"), categoryId: Number(data.get("categoryId")), status: data.get("status") };
         // Uploaded photos belong to the image endpoint, not the equipment JSON payload.
         payload.specifications = data.get("specifications").trim();
@@ -464,6 +479,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (mode === 'add') form.dataset.savedEquipmentId = saved.id;
             const file = data.get('image');
             if (file?.size) {
+                button.textContent = 'Uploading photo...';
                 const body = new FormData(); body.append('image', file);
                 const header = document.querySelector('meta[name="_csrf_header"]').content;
                 const token = document.querySelector('meta[name="_csrf"]').content;
@@ -476,9 +492,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             delete form.dataset.savedEquipmentId;
             form.elements.image.value = ''; form.querySelector('.equipment-upload-preview').hidden = true;
-            if (mode === 'add') form.reset(); await loadData(); success('Equipment saved.');
+            success('Equipment saved.');
+            if (mode === 'add') form.reset();
+            try { await loadData(); }
+            catch (error) { showError(`Equipment saved, but the list could not refresh. ${error.message}`); }
         }
-        catch (error) { showError(error.message); } finally { button.disabled = false; }
+        catch (error) { showError(error.message); }
+        finally { button.disabled = false; button.textContent = originalLabel; form.removeAttribute("aria-busy"); }
     });
     document.querySelector("[data-admin-logout]")?.addEventListener("click", () => {
         const form = document.createElement("form"); form.method = "POST"; form.action = "/logout";
