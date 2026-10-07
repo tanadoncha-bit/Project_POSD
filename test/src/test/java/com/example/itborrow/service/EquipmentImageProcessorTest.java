@@ -2,7 +2,7 @@ package com.example.itborrow.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
-import com.example.itborrow.service.avatar.EquipmentImageProcessor;
+import com.example.itborrow.service.storage.EquipmentImageProcessor;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;

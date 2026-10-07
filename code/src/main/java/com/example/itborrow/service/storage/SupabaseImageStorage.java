@@ -1,4 +1,4 @@
-package com.example.itborrow.service.avatar;
+package com.example.itborrow.service.storage;
 
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;

@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("change-password-button");
 
     const editableInputs = [
-        document.getElementById("profile-email"),
         document.getElementById("profile-full-name"),
         document.getElementById("profile-phone"),
         document.getElementById("profile-department")

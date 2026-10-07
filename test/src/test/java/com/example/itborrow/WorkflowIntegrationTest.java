@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties = {
-        "app.mail.provider=smtp", "app.mail.brevo-api-key=", "app.public-base-url=http://localhost:8080",
+        "app.security.login-limit=1000", "app.security.registration-limit=1000", "app.mail.provider=smtp", "app.mail.brevo-api-key=", "app.public-base-url=http://localhost:8080",
         "spring.datasource.url=jdbc:h2:mem:workflow;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=5000",
         "spring.datasource.driver-class-name=org.h2.Driver", "spring.datasource.username=sa",
         "spring.datasource.password=",
@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class WorkflowIntegrationTest {
     @org.springframework.test.context.bean.override.mockito.MockitoBean
-    com.example.itborrow.service.avatar.ImageStorage imageStorage;
+    com.example.itborrow.service.storage.ImageStorage imageStorage;
     @org.springframework.test.context.bean.override.mockito.MockitoBean
     org.springframework.mail.javamail.JavaMailSender mailSender;
     @Autowired
@@ -300,7 +300,7 @@ class WorkflowIntegrationTest {
                 .param("fullName", "Web User").param("phone", "").param("department", "IT"))
                 .andExpect(redirectedUrl("/"));
         assertThat(users.findByUsername("webuser")).isPresent();
-        mvc.perform(post("/profile").with(user("alice")).with(csrf()).param("email", "changed@example.test")
+        mvc.perform(post("/profile").with(user("alice")).with(csrf()).param("email", "alice@example.test")
                 .param("fullName", "Alice Updated").param("phone", "456").param("department", "IT")
                 .param("role", "ADMIN"))
                 .andExpect(redirectedUrl("/profile"));
@@ -1129,7 +1129,7 @@ class WorkflowIntegrationTest {
     void storageFailureKeepsExistingAvatarAndShowsError() throws Exception {
         jdbc.update("INSERT INTO user_profiles(user_id,full_name,avatar_path) VALUES (?,?,?)", alice.getId(), "Alice",
                 "old.png");
-        org.mockito.Mockito.doThrow(new com.example.itborrow.service.avatar.StorageException()).when(imageStorage)
+        org.mockito.Mockito.doThrow(new com.example.itborrow.service.storage.StorageException()).when(imageStorage)
                 .upload(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
         var image = new java.awt.image.BufferedImage(4, 4, java.awt.image.BufferedImage.TYPE_INT_RGB);
         var bytes = new java.io.ByteArrayOutputStream();
@@ -1208,4 +1208,82 @@ class WorkflowIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT user_id FROM external_identities WHERE provider='google' AND subject=?",Long.class,"verified-admin-google-sub")).isEqualTo(admin.getId());
     }
 
+
+    @Autowired com.example.itborrow.service.EmailChangeService emailChanges;
+    @Autowired com.example.itborrow.repository.DeliveryJobRepository deliveryRepository;
+
+    @Test void directProfileEmailReplacementIsRejected() throws Exception {
+        mvc.perform(post("/profile").with(user("alice")).with(csrf()).param("email","attacker@example.test")
+                .param("fullName","Alice")).andExpect(flash().attributeExists("accountError"));
+        assertThat(users.findById(alice.getId()).orElseThrow().getEmail()).isEqualTo("alice@example.test");
+    }
+
+    @Test void emailChangeRequiresPasswordAndExplicitConfirmationAndIsOneTime() throws Exception {
+        mvc.perform(post("/profile/change-email").with(user("alice")).with(csrf()).param("email","new@example.test")
+                .param("currentPassword","wrong")).andExpect(flash().attributeExists("accountError"));
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM email_changes",Long.class)).isZero();
+        mvc.perform(post("/profile/change-email").with(user("alice")).with(csrf()).param("email","new@example.test")
+                .param("currentPassword","Password123!")).andExpect(redirectedUrl("/profile"));
+        assertThat(users.findById(alice.getId()).orElseThrow().getEmail()).isEqualTo("alice@example.test");
+        String body=jdbc.queryForObject("SELECT payload FROM delivery_jobs WHERE subject='Confirm your new LeadIT email'",String.class);
+        String token=body.substring(body.lastIndexOf("token=")+6);
+        mvc.perform(get("/confirm-email-change").param("token",token)).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Confirm email change")));
+        assertThat(users.findById(alice.getId()).orElseThrow().getEmail()).isEqualTo("alice@example.test");
+        mvc.perform(post("/confirm-email-change").param("token",token)).andExpect(status().isForbidden());
+        mvc.perform(post("/confirm-email-change").with(csrf()).param("token",token)).andExpect(status().isOk());
+        var changed=users.findById(alice.getId()).orElseThrow();
+        assertThat(changed.getEmail()).isEqualTo("new@example.test");
+        assertThat(changed.getSecurityVersion()).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM email_verifications WHERE user_id=? AND email='new@example.test' AND verified_at IS NOT NULL",Long.class,alice.getId())).isEqualTo(1);
+        assertThatThrownBy(() -> emailChanges.confirm(token)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test void passwordChangeCancelsPendingEmailChangeAndRevokesOtherRealSessions() throws Exception {
+        var first=mvc.perform(post("/login").with(csrf()).param("username","alice").param("password","Password123!"))
+                .andReturn().getRequest().getSession(false);
+        var second=mvc.perform(post("/login").with(csrf()).param("username","alice").param("password","Password123!"))
+                .andReturn().getRequest().getSession(false);
+        mvc.perform(post("/profile/change-email").session((MockHttpSession) first).with(csrf())
+                .param("email","pending@example.test").param("currentPassword","Password123!"));
+        String body=jdbc.queryForObject("SELECT payload FROM delivery_jobs WHERE subject='Confirm your new LeadIT email'",String.class);
+        String token=body.substring(body.lastIndexOf("token=")+6);
+        mvc.perform(post("/profile/change-password").session((MockHttpSession) first).with(csrf())
+                .param("currentPassword","Password123!").param("password","NewPassword123!").param("confirmPassword","NewPassword123!"))
+                .andExpect(redirectedUrl("/profile"));
+        mvc.perform(get("/profile").session((MockHttpSession) first)).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/borrow-requests").session((MockHttpSession) second)).andExpect(status().isUnauthorized());
+        assertThat(emailChanges.valid(token)).isFalse();
+        assertThatThrownBy(() -> emailChanges.confirm(token)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test void deliveryDoesNotHoldTransactionDuringExternalCallAndIgnoresStaleLease() {
+        org.mockito.Mockito.when(mailSender.createMimeMessage()).thenAnswer(call ->
+                new jakarta.mail.internet.MimeMessage(jakarta.mail.Session.getInstance(new java.util.Properties())));
+        org.mockito.Mockito.doAnswer(call -> {
+            assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+            return null;
+        }).when(mailSender).send(org.mockito.ArgumentMatchers.any(jakarta.mail.internet.MimeMessage.class));
+        jobs.email("alice@example.test","Test","Body");
+        var lease=deliveryRepository.claim(true);
+        long id=((Number)lease.get("id")).longValue();
+        assertThat(deliveryRepository.claim(true)).isEmpty();
+        assertThat(deliveryRepository.complete(id,"stale-worker")).isFalse();
+        jdbc.update("UPDATE delivery_jobs SET lease_until=DATE '2000-01-01' WHERE id=?",id);
+        jobs.process();
+        assertThat(jdbc.queryForObject("SELECT completed FROM delivery_jobs WHERE id=?",Boolean.class,id)).isTrue();
+    }
+
+    @Test void failedDeliveryOperationsAreAdminOnlyAndDoNotExposeMessagePayloads() throws Exception {
+        jobs.email("alice@example.test","Test","secret-body");
+        jdbc.update("UPDATE delivery_jobs SET attempts=10,last_error='MailSendException'");
+        mvc.perform(get("/api/v1/admin/delivery-jobs/failed").with(user("alice"))).andExpect(status().isForbidden());
+        var result=mvc.perform(get("/api/v1/admin/delivery-jobs/failed").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(result).doesNotContain("secret-body","alice@example.test");
+        long id=jdbc.queryForObject("SELECT id FROM delivery_jobs",Long.class);
+        mvc.perform(post("/api/v1/admin/delivery-jobs/"+id+"/retry").with(user("admin").roles("ADMIN")).with(csrf()))
+                .andExpect(status().isNoContent());
+        assertThat(jdbc.queryForObject("SELECT attempts FROM delivery_jobs",Integer.class)).isZero();
+    }
 }

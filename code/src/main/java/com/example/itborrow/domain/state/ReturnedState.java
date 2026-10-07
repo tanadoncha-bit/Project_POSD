@@ -6,6 +6,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ReturnedState implements BorrowState {
+    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
+        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.RETURNED, com.example.itborrow.domain.enums.BorrowStatus.CANCELLED);
+    }
+
 
     @Override
     public void approve(BorrowRequest request) {

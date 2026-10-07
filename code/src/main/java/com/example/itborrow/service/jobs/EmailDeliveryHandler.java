@@ -28,7 +28,8 @@ public class EmailDeliveryHandler implements DeliveryJobHandler {
         String subject = (String) job.get("subject");
         String body = (String) job.get("payload");
         if ("brevo".equals(provider)) {
-            brevo.send(from, recipient, subject, body, html(subject, body));
+            brevo.send(from, recipient, subject, body, html(subject, body),
+                    job.get("delivery_key") == null ? java.util.UUID.randomUUID().toString() : (String) job.get("delivery_key"));
             return;
         }
         try {
@@ -47,7 +48,7 @@ public class EmailDeliveryHandler implements DeliveryJobHandler {
 
     static String html(String subject, String body) {
         String content = "<p style='line-height:1.7;white-space:pre-wrap'>" + HtmlUtils.htmlEscape(body) + "</p>";
-        if ("Verify your LeadIT email".equals(subject)) {
+        if (("Verify your LeadIT email".equals(subject) || "Confirm your new LeadIT email".equals(subject))) {
             String link = body.substring(body.lastIndexOf("\n") + 1).trim();
             var uri = java.net.URI.create(link);
             if (!java.util.Set.of("https", "http").contains(uri.getScheme()) || uri.getHost() == null)

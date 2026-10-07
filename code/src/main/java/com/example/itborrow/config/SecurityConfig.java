@@ -14,13 +14,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository users, org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> registrations, com.example.itborrow.security.GoogleOidcUserService googleUsers) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository users, org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> registrations, com.example.itborrow.security.GoogleOidcUserService googleUsers, com.example.itborrow.security.AuthenticationThrottle throttle) throws Exception {
+        http.addFilterBefore(new com.example.itborrow.security.AuthenticationThrottleFilter(throttle),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new CurrentRoleFilter(users),
                 org.springframework.security.web.access.intercept.AuthorizationFilter.class);
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg",
                         "/error", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/actuator/health", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
+                        "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/equipment/**", "/api/v1/categories", "/api/v1/categories/*")
@@ -62,8 +64,7 @@ public class SecurityConfig {
         return username -> {
             var user = users.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
-            return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-                    .password(user.getPassword()).roles(user.getRole().name()).disabled(!user.isLocalPasswordEnabled()).build();
+            return new com.example.itborrow.security.AccountPrincipal(user);
         };
     }
 

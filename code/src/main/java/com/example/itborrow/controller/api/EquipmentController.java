@@ -18,10 +18,10 @@ public class EquipmentController {
     }
 
     @GetMapping
-    public Page<EquipmentData> list(@RequestParam(defaultValue = "") String keyword,
+    public com.example.itborrow.dto.response.PageResponse<EquipmentData> list(@RequestParam(defaultValue = "") String keyword,
             @RequestParam(required = false) EquipmentStatus status, Pageable pageable) {
         var page = PageRequest.of(pageable.getPageNumber(), Math.min(100, pageable.getPageSize()), pageable.getSort());
-        return service.searchInventory(keyword, status, page).map(EquipmentData::from);
+        return com.example.itborrow.dto.response.PageResponse.from(service.searchInventory(keyword, status, page).map(EquipmentData::from));
     }
 
     @GetMapping("/summary")
@@ -36,12 +36,12 @@ public class EquipmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EquipmentData create(@RequestBody EquipmentData data) {
+    public EquipmentData create(@jakarta.validation.Valid @RequestBody EquipmentData data) {
         return EquipmentData.from(service.createEquipment(data.toEntity()));
     }
 
     @PutMapping("/{id}")
-    public EquipmentData update(@PathVariable Long id, @RequestBody EquipmentData data) {
+    public EquipmentData update(@PathVariable Long id, @jakarta.validation.Valid @RequestBody EquipmentData data) {
         return EquipmentData.from(service.updateEquipment(id, data.toEntity()));
     }
 

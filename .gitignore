@@ -34,3 +34,6 @@ build/
 /tmp/
 /test_report/
 *.log
+
+# Local database snapshots; never publish personal data.
+/backups/

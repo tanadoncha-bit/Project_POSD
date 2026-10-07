@@ -1,6 +1,6 @@
 package com.example.itborrow.service;
 
-import com.example.itborrow.service.avatar.*;
+import com.example.itborrow.service.storage.*;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 import java.net.InetSocketAddress;

@@ -19,7 +19,7 @@ public class GoogleOidcUserService implements OAuth2UserService<OidcUserRequest,
         var auth=SecurityContextHolder.getContext().getAuthentication();
         String linkingUsername=auth!=null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken) ? auth.getName() : null;
         var account=accounts.signIn(google.getSubject(),google.getEmail(),Boolean.TRUE.equals(google.getEmailVerified()),google.getFullName(),linkingUsername);
-        Map<String,Object> claims=new HashMap<>(google.getClaims());claims.put("local_username",account.getUsername());
+        Map<String,Object> claims=new HashMap<>(google.getClaims());claims.put("local_username",account.getUsername());claims.put("local_security_version",account.getSecurityVersion());
         return new DefaultOidcUser(List.of(new SimpleGrantedAuthority("ROLE_"+account.getRole().name())),google.getIdToken(),new OidcUserInfo(claims),"local_username");
     }
 }

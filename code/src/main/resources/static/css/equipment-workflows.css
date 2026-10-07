@@ -2343,3 +2343,161 @@ body:has(#search-overlay:not([hidden])) .borrow-list-launcher {
 .login-setup-form { display: grid; gap: 14px; }
 .login-setup-form label { display: grid; gap: 6px; font-size: 13px; }
 .login-setup-form input { padding: 11px 12px; border: 1px solid #ddd; border-radius: 10px; font: inherit; width: 100%; }
+
+/* Background actions must not cover or intercept dialog controls. */
+body.modal-open .borrow-list-launcher {
+    display: none;
+}
+
+/* Mobile tasks use the available screen instead of a narrow desktop card. */
+@media (max-width: 600px) {
+    body :is(input:not([type=checkbox]):not([type=radio]), select, textarea, .picker-trigger) {
+        font-size: 16px;
+    }
+    :is(.registration-grid, .signup-actions) { grid-template-columns: 1fr; }
+    :is(.modal-backdrop, .equipment-detail-backdrop, .admin-page .admin-modal-backdrop) {
+        padding: 0;
+    }
+    #register-modal .registration-modal,
+    .equipment-detail-backdrop .equipment-detail-modal,
+    .admin-page .admin-modal-backdrop .admin-modal {
+        width: 100%;
+        max-width: none;
+        height: var(--modal-viewport-height, 100dvh);
+        max-height: var(--modal-viewport-height, 100dvh);
+        margin: 0;
+        border-radius: 0;
+        border: 0;
+        box-sizing: border-box;
+        padding: max(16px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+        overscroll-behavior: contain;
+        scroll-padding-block: 72px 100px;
+    }
+    #register-modal .registration-modal { padding-top: max(24px, env(safe-area-inset-top)); }
+    #register-modal .registration-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    #register-modal h2 { margin-bottom: 24px; padding-right: 44px; font-size: 24px; }
+    #register-modal .registration-form input { min-height: 48px; font-size: 16px; }
+    .login-modal-backdrop .login-modal {
+        width: calc(100% - 24px);
+        padding: 28px 24px;
+        border-radius: 24px;
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
+    }
+    :is(.modal-close, .login-modal-close, .equipment-modal-close),
+    .admin-page .admin-modal-backdrop .admin-modal>header>button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    .admin-page .admin-modal-backdrop .admin-modal>header {
+        padding: 0 0 16px;
+        gap: 12px;
+    }
+    .admin-page .admin-modal-backdrop .admin-modal>header h2 { font-size: 22px; line-height: 1.3; }
+    .admin-page .admin-modal-backdrop :is(input, select, textarea) { font-size: 16px; }
+    .admin-page .admin-form-modal form { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .admin-page .admin-form-modal form>label { min-width: 0; }
+    #register-modal .registration-actions,
+    .equipment-detail-modal .equipment-modal-actions,
+    .admin-page .admin-modal-backdrop .admin-modal footer {
+        position: sticky;
+        bottom: calc(-1 * max(20px, env(safe-area-inset-bottom)));
+        z-index: 3;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: 12px 0 max(16px, env(safe-area-inset-bottom));
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    #register-modal .registration-actions button,
+    .equipment-detail-modal .equipment-modal-actions :is(button, .button),
+    .admin-page .admin-modal-backdrop .admin-modal footer button {
+        flex: 1 1 130px;
+        min-height: 48px;
+        margin: 0;
+        font-size: 15px;
+    }
+    .admin-page .admin-modal-backdrop .admin-modal footer button[hidden] { display: none; }
+    .admin-page .admin-return-modal .return-field-pair { grid-template-columns: minmax(0, 1fr); }
+    .admin-page .admin-return-modal .return-borrower-summary { padding: 8px 0; }
+    .equipment-modal-image { height: 200px; }
+    .borrow-dialog {
+        inset: var(--modal-viewport-top, 0px) 0 auto;
+        width: 100%;
+        height: var(--modal-viewport-height, 100dvh);
+        max-height: var(--modal-viewport-height, 100dvh);
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+    .borrow-dialog .borrow-form-modal {
+        height: 100%;
+        max-height: 100%;
+    }
+    .borrow-dialog :is(.borrow-form-header, .borrow-form-actions) { padding: 16px 20px; }
+    .borrow-dialog .borrow-form-actions { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+    .borrow-dialog .borrow-form-header h1 { font-size: 22px; }
+    :is(.profile-page, .equipment-page, .request-history-page) :is(button, .button, .picker-trigger) {
+        min-height: 44px;
+    }
+    .management-pagination { flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .management-pagination :is(a, button) { min-height: 44px; display: inline-flex; align-items: center; }
+    .inventory-heading { flex-wrap: wrap; gap: 16px; }
+    .inventory-heading>button { width: 100%; min-height: 48px; justify-content: center; }
+    .profile-hero :is(h1, p), .admin-modal :is(h2, dd) { overflow-wrap: anywhere; }
+
+    #register-modal .registration-actions,
+    .equipment-detail-modal .equipment-modal-actions,
+    .admin-page .admin-modal-backdrop .admin-modal footer {
+        flex-direction: row;
+    }
+    #register-modal .registration-actions button {
+        width: auto;
+        height: 48px;
+        padding: 12px 16px;
+    }
+
+    .admin-page .admin-modal-backdrop .admin-modal footer {
+        margin-inline: 0;
+        width: 100%;
+    }
+    .profile-page .profile-form-field input { font-size: 16px; }
+    .profile-page .profile-actions-slot:not(:has(.profile-form-actions:not([hidden]))) {
+        min-height: 0;
+        padding-top: 0;
+    }
+    .profile-page .profile-identity :is(h1, p) { overflow-wrap: anywhere; }
+    .profile-page .password-back-link { display: inline-flex; align-items: center; min-height: 44px; }
+    .site-footer { padding: 32px 20px max(24px, env(safe-area-inset-bottom)); }
+    .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+    .footer-grid a { display: inline-block; padding-block: 8px; }
+    .borrow-dialog .borrow-form-actions { flex-direction: row; gap: 10px; }
+    .borrow-dialog .borrow-form-actions button { width: auto; flex: 1; min-height: 48px; }
+}
+@media (max-width: 600px) {
+    :is(.borrow-item-dialog, .borrow-list-drawer) {
+        inset: var(--modal-viewport-top, 0px) 0 auto;
+        width: 100%;
+        max-width: 100%;
+        height: var(--modal-viewport-height, 100dvh);
+        max-height: var(--modal-viewport-height, 100dvh);
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+    :is(.borrow-item-dialog, .borrow-list-drawer)>header {
+        padding: max(12px, env(safe-area-inset-top)) 20px 12px;
+    }
+    :is(.borrow-item-dialog, .borrow-list-drawer)>header>button {
+        min-width: 44px;
+        min-height: 44px;
+        flex-shrink: 0;
+    }
+    .borrow-item-dialog .borrow-list-body { padding: 20px; overscroll-behavior: contain; }
+    .borrow-item-dialog .borrow-detail-media { height: 200px; aspect-ratio: auto; }
+    :is(.borrow-item-dialog, .borrow-list-drawer)>footer {
+        padding: 12px 20px max(16px, env(safe-area-inset-bottom));
+    }
+    :is(.borrow-item-dialog, .borrow-list-drawer)>footer button { width: 100%; min-height: 48px; }
+}

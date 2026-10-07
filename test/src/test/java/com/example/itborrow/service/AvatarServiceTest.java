@@ -1,7 +1,7 @@
 package com.example.itborrow.service;
 
 import com.example.itborrow.repository.AvatarRepository;
-import com.example.itborrow.service.avatar.*;
+import com.example.itborrow.service.storage.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.SimpleTransactionStatus;
@@ -14,7 +14,7 @@ class AvatarServiceTest {
     void profileUrlReusesSignatureButNewImageGetsNewUrl() {
         var repository = mock(AvatarRepository.class);
         var storage = mock(ImageStorage.class);
-        var service = new AvatarService(repository, storage, mock(AvatarImageProcessor.class),
+        var service = new com.example.itborrow.service.impl.AvatarServiceImpl(repository, storage, mock(AvatarImageProcessor.class),
                 mock(PlatformTransactionManager.class));
         when(repository.path(1L)).thenReturn("1/old.png", "1/old.png", "1/new.png");
         when(storage.readUrl("1/old.png")).thenReturn("old-signed-url");
@@ -36,7 +36,7 @@ class AvatarServiceTest {
         when(manager.getTransaction(any())).thenReturn(status);
         when(processor.process(any())).thenReturn(new byte[] { 1 });
         doThrow(new IllegalStateException("Database unavailable")).when(repository).setPath(eq(1L), anyString());
-        var service = new AvatarService(repository, storage, processor, manager);
+        var service = new com.example.itborrow.service.impl.AvatarServiceImpl(repository, storage, processor, manager);
         assertThatThrownBy(() -> service.save(1L, new MockMultipartFile("image", new byte[] { 1 })))
                 .isInstanceOf(IllegalStateException.class);
         var path = org.mockito.ArgumentCaptor.forClass(String.class);

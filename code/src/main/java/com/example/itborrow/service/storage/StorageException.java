@@ -1,4 +1,4 @@
-package com.example.itborrow.service.avatar;
+package com.example.itborrow.service.storage;
 
 public class StorageException extends RuntimeException {
     public StorageException() {

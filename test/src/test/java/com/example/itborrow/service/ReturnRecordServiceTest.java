@@ -16,7 +16,7 @@ import com.example.itborrow.repository.BorrowRequestRepository;
 import com.example.itborrow.repository.EquipmentRepository;
 import com.example.itborrow.repository.ReturnRecordRepository;
 import com.example.itborrow.service.impl.ReturnRecordServiceImpl;
-import com.example.itborrow.service.impl.strategy.FineStrategyResolver;
+import com.example.itborrow.service.strategy.FineStrategyResolver;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,6 +58,9 @@ class ReturnRecordServiceTest {
     org.springframework.context.ApplicationEventPublisher events;
     @org.mockito.Spy
     private com.example.itborrow.config.FeePolicyProperties fees = new com.example.itborrow.config.FeePolicyProperties();
+
+    @org.mockito.Spy
+    java.time.Clock clock = java.time.Clock.system(java.time.ZoneId.of("Asia/Bangkok"));
 
     @InjectMocks
     private ReturnRecordServiceImpl service;

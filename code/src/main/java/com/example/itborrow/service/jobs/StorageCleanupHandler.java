@@ -1,5 +1,5 @@
 package com.example.itborrow.service.jobs;
-import com.example.itborrow.service.avatar.ImageStorage;
+import com.example.itborrow.service.storage.ImageStorage;
 import com.example.itborrow.repository.EquipmentImageReferenceRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Qualifier;

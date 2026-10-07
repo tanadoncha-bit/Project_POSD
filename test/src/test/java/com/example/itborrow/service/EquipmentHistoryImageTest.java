@@ -2,7 +2,7 @@ package com.example.itborrow.service;
 
 import com.example.itborrow.domain.entity.Equipment;
 import com.example.itborrow.repository.*;
-import com.example.itborrow.service.avatar.*;
+import com.example.itborrow.service.storage.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -30,7 +30,7 @@ class EquipmentHistoryImageTest {
         when(processor.process(any())).thenReturn(new byte[] { 1, 2, 3 });
         when(history.existsBySnapshotImageUrl("/images/equipment/1/old.png")).thenReturn(true);
         when(storage.readUrl("1/old.png")).thenReturn("https://storage.test/old.png");
-        var service = new EquipmentImageService(processor, equipment, current, manager, storage, history,
+        var service = new com.example.itborrow.service.impl.EquipmentImageServiceImpl(processor, equipment, current, manager, storage, history,
                 mock(PersistentJobs.class));
         service.save(1L, new MockMultipartFile("image", "photo.png", "image/png", new byte[] { 1 }));
         assertThat(asset.getImageUrl()).isNotEqualTo("/images/equipment/1/old.png");

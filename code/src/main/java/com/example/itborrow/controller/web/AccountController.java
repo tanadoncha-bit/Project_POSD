@@ -61,14 +61,16 @@ public class AccountController {
 
     @PostMapping("/profile/change-password")
     public String password(@Valid @ModelAttribute PasswordChangeDto dto, BindingResult errors,
-            RedirectAttributes flash) {
+            RedirectAttributes flash, jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) {
         if (errors.hasErrors()) {
             flash.addFlashAttribute("accountError", "Password must have 8 to 72 characters.");
             return "redirect:/profile/change-password";
         }
         try {
-            accounts.changePassword(dto);
-            flash.addFlashAttribute("accountMessage", "Password changed.");
+            var account = accounts.changePassword(dto);
+            saveAuthentication(account, request, response);
+            flash.addFlashAttribute("accountMessage", "Password changed. Other sessions have been signed out.");
             return "redirect:/profile";
         } catch (IllegalArgumentException ex) {
             flash.addFlashAttribute("accountError", ex.getMessage());
@@ -95,18 +97,24 @@ public class AccountController {
         }
         try {
             var account = accounts.setupLogin(dto);
-            var authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(
-                    account.getUsername(), null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
-            var context = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authentication);
-            org.springframework.security.core.context.SecurityContextHolder.setContext(context);
-            if (request.getSession(false) != null) request.changeSessionId();
-            new org.springframework.security.web.context.HttpSessionSecurityContextRepository().saveContext(context, request, response);
+            saveAuthentication(account, request, response);
             flash.addFlashAttribute("accountMessage", "Registration complete.");
             return "redirect:/profile";
         } catch (IllegalArgumentException | org.springframework.dao.DataIntegrityViolationException error) {
             flash.addFlashAttribute("accountError", error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");
             return "redirect:/profile/setup-login";
         }
+    }
+    private void saveAuthentication(com.example.itborrow.domain.entity.User account,
+            jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        var principal = new com.example.itborrow.security.AccountPrincipal(account);
+        principal.eraseCredentials();
+        var auth = org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(
+                principal, null, principal.getAuthorities());
+        var context = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(auth);
+        org.springframework.security.core.context.SecurityContextHolder.setContext(context);
+        if (request.getSession(false) != null) request.changeSessionId();
+        new org.springframework.security.web.context.HttpSessionSecurityContextRepository().saveContext(context, request, response);
     }
 }

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleNotFound(ResourceNotFoundException ex, HttpServletRequest req) {
@@ -49,7 +50,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleUnexpected(Exception ex, HttpServletRequest req) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", req);
+        String id = java.util.UUID.randomUUID().toString();
+        var origin = java.util.Arrays.stream(ex.getStackTrace()).filter(frame -> frame.getClassName().startsWith("com.example.itborrow.")).findFirst().map(Object::toString).orElse("framework");
+        log.error("Request {} failed: {} at {}", id, ex.getClass().getName(), origin);
+        return ResponseEntity.status(500).header("X-Request-ID", id).body(
+                new ErrorResponseDto(500, "Internal Server Error", "An unexpected error occurred. Reference: " + id, req.getRequestURI()));
     }
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
@@ -57,7 +62,7 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, "Access denied", req);
     }
 
-    @ExceptionHandler(com.example.itborrow.service.avatar.StorageException.class)
+    @ExceptionHandler(com.example.itborrow.service.storage.StorageException.class)
     public ResponseEntity<ErrorResponseDto> storageUnavailable(Exception ex, HttpServletRequest req) {
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req);
     }
@@ -85,7 +90,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-    public org.springframework.web.servlet.ModelAndView uploadTooLarge() {
+    public Object uploadTooLarge(HttpServletRequest request) {
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/api/"))
+            return buildResponse(HttpStatus.PAYLOAD_TOO_LARGE, "Choose a JPG or PNG image up to 2 MB.", request);
         return new org.springframework.web.servlet.ModelAndView("redirect:/profile?uploadError=size");
     }
 

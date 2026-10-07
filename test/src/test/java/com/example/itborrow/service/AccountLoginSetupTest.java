@@ -14,7 +14,7 @@ class AccountLoginSetupTest {
     private final UserRepository users = mock(UserRepository.class);
     private final CurrentUser current = mock(CurrentUser.class);
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final AccountService service = new AccountService(users, mock(UserProfileRepository.class), encoder, current);
+    private final AccountService service = new com.example.itborrow.service.impl.AccountServiceImpl(users, mock(UserProfileRepository.class), encoder, current, new com.example.itborrow.security.PasswordPolicy());
 
     private User account(boolean enabled) {
         var user = new User(7L, "google_original", "owner@gmail.com", Role.USER);

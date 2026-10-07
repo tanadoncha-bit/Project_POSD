@@ -1,0 +1,78 @@
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const fs = require('fs');
+const base = process.argv[2] || 'http://127.0.0.1:8089';
+if (!['localhost', '127.0.0.1'].includes(new URL(base).hostname)) throw Error('Use a disposable localhost app.');
+(async () => {
+ const browser = await chromium.launch();
+ const errors = [];
+ fs.mkdirSync('tmp/mobile-results', {recursive:true});
+ try {
+  for (const width of [360,390,600,1280]) {
+   const page = await browser.newPage({viewport:{width,height:844},reducedMotion:'reduce'});
+   page.on('pageerror', e => errors.push(e.message));
+   await page.goto(base);
+   await page.locator('[data-open-login]').click();
+   await page.locator('[data-open-register]').click();
+   const modal = page.locator('#register-modal .registration-modal');
+   await modal.waitFor({state:'visible'});
+   const button = page.locator('#register-modal button[type=submit]');
+   const b = await button.boundingBox();
+   if (width <=600 && (b.height >60 || b.height <44 || b.y+b.height>845)) throw Error('Invalid signup action size '+JSON.stringify(b));
+   await page.screenshot({path:`tmp/mobile-results/signup-${width}.png`});
+   await page.setViewportSize({width,height:430});
+   await page.locator('#register-phone').scrollIntoViewIfNeeded();
+   await page.locator('#register-phone').focus();
+   await button.scrollIntoViewIfNeeded();
+   const small = await button.boundingBox();
+   if(small.y+small.height>431) throw Error('Signup action obscured');
+   await page.setViewportSize({width,height:844});
+   await page.goto(base);
+   await page.locator('[data-open-login]').click();
+   await page.locator('#preview-login-form [name=username]').fill('admin');
+   await page.locator('#preview-login-form [name=password]').fill('Password123!');
+   await Promise.all([page.waitForResponse(r=>r.url()===base+'/login'&&r.request().method()==='POST'),page.locator('#preview-login-form button[type=submit]').click()]);
+   await page.goto(base+'/admin#inventory');
+
+   await page.locator('[data-open-admin-modal=add-equipment-modal]').click();
+   const add = page.locator('#add-equipment-modal .admin-modal');
+   await add.waitFor({state:'visible'});
+   const bounds = await add.boundingBox();
+   if(bounds.x<0||bounds.x+bounds.width>width+1||bounds.height>845) throw Error('Equipment form overflows');
+   await page.screenshot({path:`tmp/mobile-results/add-${width}.png`});
+   await page.locator('#add-equipment-modal textarea').scrollIntoViewIfNeeded();
+   await page.setViewportSize({width,height:430});
+   const save=page.locator('#add-equipment-modal button[type=submit]');
+   await save.scrollIntoViewIfNeeded();
+   const s=await save.boundingBox();
+   if(s.y+s.height>431) throw Error('Save action obscured');
+   await page.setViewportSize({width,height:844});
+   await page.locator('#add-equipment-modal [data-close-admin-modal]').first().click();
+   await page.locator('[data-open-equipment-admin]').first().click();
+   await page.locator('#equipment-admin-modal').waitFor({state:'visible'});
+   await page.screenshot({path:`tmp/mobile-results/detail-${width}.png`});
+   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Admin horizontal overflow');
+   await page.goto(base+'/profile');
+   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Profile horizontal overflow');
+   await page.screenshot({path:`tmp/mobile-results/profile-${width}.png`,fullPage:true});
+   await page.goto(base+'/equipment');
+   await page.locator('[data-equipment-card]').first().click();
+   await page.locator('.borrow-item-dialog .borrow-list-body[aria-busy=false]').waitFor({state:'visible'});
+   await page.screenshot({path:`tmp/mobile-results/catalog-detail-${width}.png`});
+   await page.locator('.borrow-item-dialog>header>button').click();
+   await page.evaluate(() => window.openBorrowModal());
+   const borrow = page.locator('.borrow-dialog[open]');
+   await borrow.waitFor({state:'visible'});
+   const bb = await borrow.boundingBox();
+   if(bb.x<0||bb.x+bb.width>width+1||bb.height>845) throw Error('Borrow form overflows');
+   await page.screenshot({path:`tmp/mobile-results/borrow-${width}.png`});
+   await page.setViewportSize({width,height:430});
+   const borrowButton=page.locator('#borrow-submit-button');
+   await borrowButton.scrollIntoViewIfNeeded();
+   const sb=await borrowButton.boundingBox();
+   if(sb.y+sb.height>431) throw Error('Borrow submit obscured');
+   await page.close();
+  }
+  if(errors.length) throw Error(errors.join('\n'));
+  console.log('Mobile layout checks passed: signup, equipment add/details, profile, catalog details, borrowing, reduced viewport, desktop at 4 widths.');
+ } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exit(1)});
