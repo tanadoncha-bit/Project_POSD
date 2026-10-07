@@ -2501,3 +2501,4 @@ body.modal-open .borrow-list-launcher {
     }
     :is(.borrow-item-dialog, .borrow-list-drawer)>footer button { width: 100%; min-height: 48px; }
 }
+
