@@ -45,8 +45,7 @@ public class BorrowRequestController {
     @Operation(summary = "ดูคำขอยืมทั้งหมด พร้อม pagination และ sorting")
     @GetMapping
     public ResponseEntity<com.example.itborrow.dto.response.PageResponse<BorrowResponseDto>> getAll(Pageable pageable) {
-        return ResponseEntity
-                .ok(com.example.itborrow.dto.response.PageResponse.from(borrowRequestService.findAll(pageable)));
+        return ResponseEntity.ok(com.example.itborrow.dto.response.PageResponse.from(borrowRequestService.findAll(pageable)));
     }
 
     @Operation(summary = "Admin อนุมัติคำขอยืม: PENDING -> APPROVED")

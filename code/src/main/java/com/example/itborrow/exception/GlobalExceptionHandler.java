@@ -64,13 +64,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleUnexpected(Exception ex, HttpServletRequest req) {
         String id = java.util.UUID.randomUUID().toString();
-        var origin = java.util.Arrays.stream(ex.getStackTrace())
-                .filter(frame -> frame.getClassName().startsWith("com.example.itborrow.")).findFirst()
-                .map(Object::toString).orElse("framework");
+        var origin = java.util.Arrays.stream(ex.getStackTrace()).filter(frame -> frame.getClassName().startsWith("com.example.itborrow.")).findFirst().map(Object::toString).orElse("framework");
         log.error("Request {} failed: {} at {}", id, ex.getClass().getName(), origin);
         return ResponseEntity.status(500).header("X-Request-ID", id).body(
-                new ErrorResponseDto(500, "Internal Server Error", "An unexpected error occurred. Reference: " + id,
-                        req.getRequestURI()));
+                new ErrorResponseDto(500, "Internal Server Error", "An unexpected error occurred. Reference: " + id, req.getRequestURI()));
     }
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
