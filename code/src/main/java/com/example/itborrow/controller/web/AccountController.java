@@ -82,6 +82,7 @@ public class AccountController {
     public String setupForm() {
         return accounts.requiresLoginSetup() ? "profile/setup-login" : "redirect:/profile";
     }
+
     @PostMapping("/profile/setup-login")
     public String setup(@Valid @ModelAttribute LoginSetupDto dto, BindingResult errors,
             RedirectAttributes flash, jakarta.servlet.http.HttpServletRequest request,
@@ -101,10 +102,12 @@ public class AccountController {
             flash.addFlashAttribute("accountMessage", "Registration complete.");
             return "redirect:/profile";
         } catch (IllegalArgumentException | org.springframework.dao.DataIntegrityViolationException error) {
-            flash.addFlashAttribute("accountError", error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");
+            flash.addFlashAttribute("accountError",
+                    error instanceof IllegalArgumentException ? error.getMessage() : "Username is already taken.");
             return "redirect:/profile/setup-login";
         }
     }
+
     private void saveAuthentication(com.example.itborrow.domain.entity.User account,
             jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
         var principal = new com.example.itborrow.security.AccountPrincipal(account);
@@ -114,7 +117,9 @@ public class AccountController {
         var context = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         org.springframework.security.core.context.SecurityContextHolder.setContext(context);
-        if (request.getSession(false) != null) request.changeSessionId();
-        new org.springframework.security.web.context.HttpSessionSecurityContextRepository().saveContext(context, request, response);
+        if (request.getSession(false) != null)
+            request.changeSessionId();
+        new org.springframework.security.web.context.HttpSessionSecurityContextRepository().saveContext(context,
+                request, response);
     }
 }

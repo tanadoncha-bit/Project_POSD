@@ -13,12 +13,11 @@ import com.example.itborrow.service.EquipmentService;
 public class EquipmentPageController {
     private final com.example.itborrow.config.PaginationProperties pagination;
 
-
     private final EquipmentService equipmentService;
 
     public EquipmentPageController(
             EquipmentService equipmentService, com.example.itborrow.config.PaginationProperties pagination) {
-        this.pagination=pagination;
+        this.pagination = pagination;
         this.equipmentService = equipmentService;
     }
 
