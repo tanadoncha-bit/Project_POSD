@@ -27,7 +27,7 @@ LeadIT เป็นระบบสำหรับจัดการอุปก�
 - Spring MVC
 - Spring Data JPA
 - Spring Security
-- Spring Validation
+- Spring Boot Validation
 - Thymeleaf
 
 ### Database
@@ -37,7 +37,7 @@ LeadIT เป็นระบบสำหรับจัดการอุปก�
 
 ### API
 - REST API
-- OpenAPI 3
+- Springdoc OpenAPI 3.1.1
 - Swagger UI
 
 ### Testing
@@ -75,29 +75,42 @@ PostgreSQL Database
 ```
 
 ### รายละเอียดแต่ละ Layer
-- Controller
-รับ HTTP Request จากผู้ใช้งาน และส่ง Response กลับไปยัง Client
+- **Controller**  
+  รับ HTTP Request จากผู้ใช้งาน และส่ง Response กลับไปยัง Client
 
-- Service
-จัดการ Business Logic และกระบวนการทำงานหลักของระบบ
+- **Service**  
+  จัดการ Business Logic และกระบวนการทำงานหลักของระบบ
 
-- Repository
-ทำหน้าที่ติดต่อและจัดการข้อมูลใน Database
+- **Repository**  
+  ทำหน้าที่ติดต่อและจัดการข้อมูลใน Database
 
-- Domain / Entity
-แทนข้อมูลหลักของระบบและความสัมพันธ์ระหว่างข้อมูล
+- **Domain / Entity**  
+  แทนข้อมูลหลักของระบบและความสัมพันธ์ระหว่างข้อมูล
 
-- DTO / Mapper
-ใช้สำหรับรับส่งและแปลงข้อมูลระหว่าง API กับ Entity
+- **DTO / Mapper**  
+  ใช้สำหรับรับส่งและแปลงข้อมูลระหว่าง API กับ Entity
 
-- Security
-จัดการ Authentication และ Authorization รวมถึงสิทธิ์ของผู้ใช้งาน
+- **Security**  
+  จัดการ Authentication และ Authorization รวมถึงสิทธิ์ของผู้ใช้งาน
 
-- Thymeleaf
-ใช้สำหรับสร้างหน้า Web Application
+- **Thymeleaf**  
+  ใช้สำหรับสร้างหน้า Web Application
 ---
 ## Database Design (ER Diagram)
 
+ระบบใช้ PostgreSQL เป็นฐานข้อมูลหลัก และใช้ Flyway สำหรับจัดการ Database Migration
+
+ความสัมพันธ์หลักของระบบประกอบด้วย
+
+- User และ UserProfile เป็นความสัมพันธ์แบบ One-to-One
+- User และ BorrowRequest เป็นความสัมพันธ์แบบ One-to-Many
+- BorrowRequest และ BorrowItem เป็นความสัมพันธ์แบบ One-to-Many
+- BorrowRequest และ ReturnRecord เป็นความสัมพันธ์แบบ One-to-Zero-or-One
+- EquipmentCategory และ Equipment เป็นความสัมพันธ์แบบ One-to-Many
+
+Database Migration อยู่ที่
+
+`code/src/main/resources/db/migration/`
 
 ---
 ## Installation & Setup
@@ -115,4 +128,131 @@ PostgreSQL Database
 
 ```bash
 git clone https://github.com/tanadoncha-bit/Project_POSD.git
-cd Project_POSD ```
+cd Project_POSD
+```
+### Environment Variables
+คัดลอกไฟล์ `.env.example` เป็น `.env`
+
+```text
+.env.example → .env
+```
+จากนั้นกำหนดค่าที่จำเป็นสำหรับ Database และ Service ต่าง ๆ
+### Database Setup
+สร้าง PostgreSQL Database และกำหนดค่าการเชื่อมต่อ Database ให้ตรงกับค่าที่กำหนดไว้ใน `.env`
+ระบบใช้ Flyway สำหรับ Database Migration
+
+---
+## How to Run
+### Windows
+
+```bash
+./mvnw.cmd spring-boot:run
+```
+
+### Linux / macOS
+```bash
+./mvnw spring-boot:run
+```
+### Docker
+
+```bash
+docker compose up --build
+```
+จากนั้นเปิด Browser และเข้า
+```text
+http://localhost:8080
+```
+
+---
+## API Documentation
+
+ระบบมี API Documentation ผ่าน Swagger UI และ OpenAPI
+
+### Swagger UI
+```text
+http://localhost:8080/swagger-ui.html
+```
+### OpenAPI
+```text
+http://localhost:8080/v3/api-docs
+```
+### API หลัก
+- **User Management** — จัดการข้อมูลผู้ใช้งาน
+- **Equipment Management** — GET, POST, PUT, DELETE
+- **Equipment Category Management** — GET, POST, PUT, DELETE
+- **Borrow Request** — Create Request, Approve, Pickup, Cancel
+- **Return** — Return Equipment, Settlement
+---
+
+## How to Run Tests
+
+### Windows
+
+```bash
+./mvnw.cmd test
+```
+Test Reports สามารถดูได้ที่
+```bash
+target/surefire-reports/
+```
+### Linux / macOS
+
+```bash
+./mvnw test
+```
+---
+
+## Deployment URL
+
+https://leadit-4img.onrender.com/
+
+---
+
+## Project Structure
+```text
+Project_POSD/
+│
+├── code/
+│   └── src/
+│       └── main/
+│           ├── java/
+│           │   └── com/example/itborrow/
+│           │       ├── controller/
+│           │       │   ├── api/
+│           │       │   └── web/
+│           │       ├── service/
+│           │       │   ├── impl/
+│           │       │   ├── storage/
+│           │       │   ├── strategy/
+│           │       │   └── jobs/
+│           │       ├── repository/
+│           │       ├── domain/
+│           │       ├── dto/
+│           │       ├── mapper/
+│           │       ├── config/
+│           │       └── security/
+│           │
+│           └── resources/
+│               ├── templates/
+│               ├── static/
+│               └── db/
+│                   └── migration/
+│
+├── test/
+│   └── src/
+│       └── test/
+│           └── java/
+│
+├── doc/
+│
+├── img/
+│
+├── .env.example
+├── Dockerfile
+├── docker-compose.yml
+├── pom.xml
+├── render.yaml
+├── mvnw
+├── mvnw.cmd
+└── README.md
+```
