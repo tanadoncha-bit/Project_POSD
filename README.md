@@ -56,20 +56,44 @@ LeadIT เป็นระบบสำหรับจัดการอุปก�
 
 ## System Architecture
 
-ระบบใช้สถาปัตยกรรมแบบแบ่งเป็น Layer เพื่อแยกหน้าที่ของแต่ละส่วน
-และทำให้ระบบสามารถพัฒนา แก้ไข และดูแลรักษาได้ง่าย
-
+ระบบใช้ Layered Architecture โดยแบ่งระบบออกเป็นหลาย Layer
+เพื่อแยกหน้าที่ของแต่ละส่วนและทำให้ระบบสามารถดูแลและพัฒนาต่อได้ง่าย
 ```text
-User / Client
-     |
-     v
+Client
+  |
+  v
 Controller
-     |
-     v
+  |
+  v
 Service
-     |
-     v
+  |
+  v
 Repository
-     |
-     v
-PostgreSQL
+  |
+  v
+PostgreSQL Database 
+```
+
+### รายละเอียดแต่ละ Layer
+- Controller
+รับ HTTP Request จากผู้ใช้งาน และส่ง Response กลับไปยัง Client
+
+- Service
+จัดการ Business Logic และกระบวนการทำงานหลักของระบบ
+
+- Repository
+ทำหน้าที่ติดต่อและจัดการข้อมูลใน Database
+
+- Domain / Entity
+แทนข้อมูลหลักของระบบและความสัมพันธ์ระหว่างข้อมูล
+
+- DTO / Mapper
+ใช้สำหรับรับส่งและแปลงข้อมูลระหว่าง API กับ Entity
+
+- Security
+จัดการ Authentication และ Authorization รวมถึงสิทธิ์ของผู้ใช้งาน
+
+- Thymeleaf
+ใช้สำหรับสร้างหน้า Web Application
+---
+## Database Design (ER Diagram)
