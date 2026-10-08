@@ -10837,7 +10837,6 @@ body {
 }
 
 
-/* Keep modal controls inside the visible viewport when a mobile keyboard opens. */
 @media (max-width: 768px) {
     .modal-backdrop, .equipment-detail-backdrop, .success-modal-backdrop,
     .admin-modal-backdrop {
@@ -10848,5 +10847,129 @@ body {
     .auth-modal, .equipment-detail-modal, .admin-modal {
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
+    }
+}
+
+.user-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.user-accounts-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.user-accounts-table th,
+.user-accounts-table td {
+    padding: 10px 8px;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.user-accounts-table th,
+.user-accounts-table td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+
+.user-accounts-table th:first-child,
+.user-accounts-table td:first-child {
+    min-width: 300px;
+}
+
+
+.user-accounts-table th:nth-child(2),
+.user-accounts-table td:nth-child(2) {
+    min-width: 140px;
+}
+
+
+.user-accounts-table th:nth-child(3),
+.user-accounts-table td:nth-child(3) {
+    min-width: 240px;
+}
+
+
+.user-account-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.user-account-identity > div {
+    min-width: 0;
+}
+
+.user-account-identity strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-account-email {
+    display: block;
+    max-width: 240px;
+    margin-top: 3px;
+    overflow: hidden;
+    color: #777;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-role-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.user-role-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 12px;
+    width: max-content;
+    margin: 0;
+}
+
+.user-role-form label {
+    flex: 0 0 130px;
+    margin: 0;
+}
+
+.user-role-form select {
+    width: 130px;
+    min-width: 130px;
+}
+
+.user-role-form button {
+    flex: 0 0 auto;
+    min-width: 70px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+
+    .user-management {
+        width: calc(100% - 24px);
+        margin: 20px auto;
+        padding: 16px;
+    }
+
+    .user-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .user-accounts-table {
+        min-width: 760px;
     }
 }

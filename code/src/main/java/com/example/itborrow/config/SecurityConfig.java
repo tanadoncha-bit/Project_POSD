@@ -1,5 +1,6 @@
 package com.example.itborrow.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import com.example.itborrow.repository.UserRepository;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
@@ -14,15 +15,21 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository users, org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> registrations, com.example.itborrow.security.GoogleOidcUserService googleUsers, com.example.itborrow.security.AuthenticationThrottle throttle) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository users,
+            org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> registrations,
+            com.example.itborrow.security.GoogleOidcUserService googleUsers,
+            com.example.itborrow.security.AuthenticationThrottle throttle) throws Exception {
         http.addFilterBefore(new com.example.itborrow.security.AuthenticationThrottleFilter(throttle),
                 org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new CurrentRoleFilter(users),
                 org.springframework.security.web.access.intercept.AuthorizationFilter.class);
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/favicon.svg",
-                        "/error", "/register", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email", "/oauth2/**", "/login/oauth2/**")
+                .requestMatchers("/", "/Dashboard", "/equipment/**", "/css/**", "/js/**", "/images/**", "/favicon.ico",
+                        "/favicon.svg",
+                        "/error", "/error/401", "/error/400", "/error/403","/error/404","/error/500","/error/503", "/register", "/swagger-ui/**",
+                        "/swagger-ui.html", "/v3/api-docs/**",
+                        "/actuator/health", "/confirm-email-change", "/api/v1/auth/providers", "/verify-email",
+                        "/oauth2/**", "/login/oauth2/**")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/equipment/**", "/api/v1/categories", "/api/v1/categories/*")
@@ -38,23 +45,55 @@ public class SecurityConfig {
                         .failureUrl("/?loginError=true").permitAll())
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/").invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID"))
-                .exceptionHandling(errors -> errors.defaultAuthenticationEntryPointFor(
-                        (request, response, exception) -> response.sendError(401),
-                        request -> request.getRequestURI().startsWith("/api/")));
-        if(registrations.getIfAvailable()!=null) {
+                .exceptionHandling(errors -> errors
+                        .defaultAuthenticationEntryPointFor(
+                                (request, response, exception) -> response.sendError(401),
+                                request -> request.getRequestURI().startsWith("/api/"))
+                        .defaultAuthenticationEntryPointFor(
+                                (request, response, exception) -> response.sendRedirect(
+                                        request.getContextPath() + "/error/401"),
+                                request -> !request.getRequestURI().startsWith("/api/"))
+                        .accessDeniedHandler((request, response, exception) -> {
+
+                            // ถ้าเป็น API → ส่ง JSON
+                            if (request.getRequestURI().startsWith("/api/")) {
+
+                                response.setStatus(
+                                        org.springframework.http.HttpStatus.FORBIDDEN.value());
+
+                                response.setContentType("application/json");
+                                response.setCharacterEncoding("UTF-8");
+
+                                response.getWriter().write("""
+                                        {
+                                            "status": 403,
+                                            "error": "Forbidden",
+                                            "message": "Access denied"
+                                        }
+                                        """);
+
+                            } else {
+
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                request.getRequestDispatcher("/error/403")
+                                        .forward(request, response);
+                            }
+                        }));
+        if (registrations.getIfAvailable() != null) {
             http.oauth2Login(oauth -> oauth.loginPage("/").userInfoEndpoint(info -> info.oidcUserService(googleUsers))
-                .successHandler((request, response, authentication) -> {
-                    var account = users.findByUsername(authentication.getName()).orElseThrow();
-                    String destination = account.isLocalPasswordEnabled() ? "/profile" : "/profile/setup-login";
-                    response.sendRedirect(request.getContextPath() + destination);
-                })
-                .failureHandler((request,response,error) -> {
-                    String message="Unable to sign in with Google. Please try again.";
-                    if(error instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthError && "account_exists".equals(oauthError.getError().getErrorCode()))
-                        message="Sign in to your existing account and Verify Email first. Then use Continue with Google.";
-                    request.getSession().setAttribute("googleLoginMessage",message);
-                    response.sendRedirect(request.getContextPath()+"/?googleLoginError=true");
-                }));
+                    .successHandler((request, response, authentication) -> {
+                        var account = users.findByUsername(authentication.getName()).orElseThrow();
+                        String destination = account.isLocalPasswordEnabled() ? "/profile" : "/profile/setup-login";
+                        response.sendRedirect(request.getContextPath() + destination);
+                    })
+                    .failureHandler((request, response, error) -> {
+                        String message = "Unable to sign in with Google. Please try again.";
+                        if (error instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthError
+                                && "account_exists".equals(oauthError.getError().getErrorCode()))
+                            message = "Sign in to your existing account and Verify Email first. Then use Continue with Google.";
+                        request.getSession().setAttribute("googleLoginMessage", message);
+                        response.sendRedirect(request.getContextPath() + "/?googleLoginError=true");
+                    }));
         }
         return http.build();
     }
