@@ -97,3 +97,22 @@ PostgreSQL Database
 ใช้สำหรับสร้างหน้า Web Application
 ---
 ## Database Design (ER Diagram)
+
+
+---
+## Installation & Setup
+
+### Requirements
+
+ก่อนเริ่มใช้งานระบบต้องติดตั้ง
+
+- JDK 17
+- PostgreSQL
+- Git
+- Docker และ Docker Compose (กรณีต้องการรันด้วย Docker)
+
+### Clone Project
+
+```bash
+git clone https://github.com/tanadoncha-bit/Project_POSD.git
+cd Project_POSD ```
