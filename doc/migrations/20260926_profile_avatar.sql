@@ -1,6 +1,0 @@
-BEGIN;
-CREATE TABLE IF NOT EXISTS user_avatars (
-    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    image_data BYTEA NOT NULL
-);
-COMMIT;

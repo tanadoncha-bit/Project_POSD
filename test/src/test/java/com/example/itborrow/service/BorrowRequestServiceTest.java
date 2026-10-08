@@ -61,7 +61,7 @@ class BorrowRequestServiceTest {
     private com.example.itborrow.config.FeePolicyProperties fees = new com.example.itborrow.config.FeePolicyProperties();
 
     @org.mockito.Spy
-    java.time.Clock clock = java.time.Clock.system(java.time.ZoneId.of("Asia/Bangkok"));
+    java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("2026-10-07T17:10:00Z"), java.time.ZoneId.of("Asia/Bangkok"));
 
     @InjectMocks
     private BorrowRequestServiceImpl service;
@@ -85,7 +85,7 @@ class BorrowRequestServiceTest {
     @Test
     void createBorrowRequest_success_whenEquipmentAvailable() {
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
-        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), "ยืมไปประชุม", List.of(itemDto));
+        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now(clock).plusDays(7), "ยืมไปประชุม", List.of(itemDto));
 
         when(current.require()).thenReturn(testUser);
         when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
@@ -104,7 +104,7 @@ class BorrowRequestServiceTest {
         fees.setStandardDailyFine(new java.math.BigDecimal("85.00"));
         fees.setStandardGraceDays(3);
         fees.setScratchRate(new java.math.BigDecimal("0.15"));
-        var dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), null,
+        var dto = buildBorrowRequestDto(1L, LocalDate.now(clock).plusDays(7), null,
                 List.of(new BorrowItemRequestDto(10L, 1)));
         when(current.require()).thenReturn(testUser);
         when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
@@ -125,7 +125,7 @@ class BorrowRequestServiceTest {
         testEquipment.setStatus(EquipmentStatus.IN_USE);
 
         BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
-        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now().plusDays(7), null, List.of(itemDto));
+        BorrowRequestDto dto = buildBorrowRequestDto(1L, LocalDate.now(clock).plusDays(7), null, List.of(itemDto));
 
         when(current.require()).thenReturn(testUser);
         when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
@@ -139,7 +139,7 @@ class BorrowRequestServiceTest {
 
     @Test
     void createBorrowRequest_throwsException_whenUnauthenticated() {
-        BorrowRequestDto dto = buildBorrowRequestDto(999L, LocalDate.now().plusDays(7), null, Collections.emptyList());
+        BorrowRequestDto dto = buildBorrowRequestDto(999L, LocalDate.now(clock).plusDays(7), null, Collections.emptyList());
         when(current.require()).thenThrow(new org.springframework.security.access.AccessDeniedException("Sign in"));
 
         assertThatThrownBy(() -> service.createBorrowRequest(dto))
@@ -188,7 +188,7 @@ class BorrowRequestServiceTest {
     @Test
     void checkAndMarkOverdue_publishesEventForEachOverdueRequest() {
         BorrowRequest overdueCandidate = buildBorrowRequest(BorrowStatus.BORROWED);
-        overdueCandidate.setDueDate(LocalDate.now().minusDays(3));
+        overdueCandidate.setDueDate(LocalDate.now(clock).minusDays(3));
 
         when(borrowRequestRepository.findOverdueForUpdate(eq(BorrowStatus.BORROWED), any(LocalDate.class)))
                 .thenReturn(List.of(overdueCandidate));
@@ -215,7 +215,7 @@ class BorrowRequestServiceTest {
             List<BorrowItemRequestDto> items) {
         BorrowRequestDto dto = new BorrowRequestDto();
         dto.setUserId(userId);
-        dto.setBorrowDate(LocalDate.now());
+        dto.setBorrowDate(LocalDate.now(clock));
         dto.setDueDate(dueDate);
         dto.setNote(note);
         dto.setItems(items);
@@ -226,8 +226,8 @@ class BorrowRequestServiceTest {
         BorrowRequest request = new BorrowRequest();
         request.setId(1L);
         request.setUser(testUser);
-        request.setBorrowDate(LocalDate.now());
-        request.setDueDate(LocalDate.now().plusDays(7));
+        request.setBorrowDate(LocalDate.now(clock));
+        request.setDueDate(LocalDate.now(clock).plusDays(7));
         request.setStatus(status);
         return request;
     }
