@@ -594,6 +594,37 @@ class WorkflowIntegrationTest {
     }
 
     @Test
+    void approvalReservesAssetUntilCancellation() throws Exception {
+        var first = loan(alice, BorrowStatus.PENDING, asset);
+        var second = loan(bob, BorrowStatus.PENDING, asset);
+        second.setBorrowDate(LocalDate.now(clock).plusDays(10));
+        second.setDueDate(LocalDate.now(clock).plusDays(11));
+        requests.save(second);
+        auth("admin");
+        borrowing.approveBorrowRequest(first.getId());
+        mvc.perform(get("/api/v1/equipment/" + asset.getId()).with(user("bob")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reserved").value(true));
+        auth("admin");
+        assertThatThrownBy(() -> borrowing.approveBorrowRequest(second.getId()))
+                .isInstanceOf(EquipmentNotAvailableException.class);
+        auth("bob");
+        var dto = new BorrowRequestDto();
+        dto.setBorrowDate(LocalDate.now(clock).plusDays(10));
+        dto.setDueDate(LocalDate.now(clock).plusDays(11));
+        dto.setItems(List.of(new BorrowItemRequestDto(asset.getId(), 1)));
+        assertThatThrownBy(() -> borrowing.createBorrowRequest(dto))
+                .isInstanceOf(EquipmentNotAvailableException.class);
+        auth("alice");
+        borrowing.cancelBorrowRequest(first.getId());
+        mvc.perform(get("/api/v1/equipment/" + asset.getId()).with(user("bob")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reserved").value(false));
+        auth("bob");
+        assertThat(borrowing.createBorrowRequest(dto).getStatus()).isEqualTo("PENDING");
+    }
+
+    @Test
     void overlappingApprovalIsRejectedAndSlotReachesHistory() throws Exception {
         asset.setStorageSlot("A-4");
         asset.setImageUrl("/images/test-equipment.png");

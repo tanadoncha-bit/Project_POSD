@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function setModalStatus(status) {
         const available = isAvailableStatus(status);
 
-        const label = { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[status] || "Unknown";
+        const label = { RESERVED: "Reserved", AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[status] || "Unknown";
         if (modalStatusText) modalStatusText.textContent = label;
 
         if (modalStatusBadge) {

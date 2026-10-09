@@ -35,7 +35,7 @@
                 if (response.status === 404) return item.id;
                 if (!response.ok) return null; // Preserve selections during network/server failures.
                 const equipment = await response.json();
-                return equipment.status === 'AVAILABLE' ? null : item.id;
+                return equipment.status === 'AVAILABLE' && !equipment.reserved ? null : item.id;
             } catch { return null; }
         }));
         const invalid = new Set(checks.filter(id => id !== null));
@@ -74,7 +74,7 @@
         return response.json();
     }
     function add(equipment) {
-        if (!authenticated() || equipment.status !== "AVAILABLE") return;
+        if (!authenticated() || (equipment.status !== "AVAILABLE" || equipment.reserved)) return;
         if (!items.some(x => x.id === equipment.id)) items.push({ id: equipment.id, name: equipment.name, assetCode: equipment.assetCode });
         save();
     }
@@ -116,15 +116,15 @@
             window.renderEquipmentSpecs(specRows, equipment.specifications);
             specs.append(node("h4", "Specifications"), specRows);
             const identity = node("div", "", "borrow-detail-identity");
-            const badge = node("span", { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[equipment.status] || "Unknown", "borrow-detail-status");
+            const badge = node("span", equipment.reserved ? "Reserved" : { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[equipment.status] || "Unknown", "borrow-detail-status");
             badge.dataset.status = equipment.status;
-            badge.dataset.available = String(equipment.status === "AVAILABLE");
+            badge.dataset.available = String(equipment.status === "AVAILABLE" && !equipment.reserved);
             identity.append(node("p", category, "borrow-detail-category"), node("h3", equipment.name), badge);
             const overview = node("div", "", "borrow-detail-overview"); overview.append(media, identity);
             identity.append(specs);
             body.replaceChildren(overview);
             const action = node("button", items.some(x => x.id === equipment.id) ? "View borrowing list" : "Add to borrowing list", "button button-primary");
-            action.disabled = equipment.status !== "AVAILABLE";
+            action.disabled = (equipment.status !== "AVAILABLE" || equipment.reserved);
             if (action.disabled) action.textContent = "Currently unavailable";
             action.onclick = () => {
                 if (!authenticated()) {
@@ -179,7 +179,7 @@
             try {
                 const equipment = await Promise.all(items.map(item => getEquipment(item.id)));
                 if (!dialog.isConnected) return;
-                const unavailable = equipment.filter(x => x.status !== "AVAILABLE");
+                const unavailable = equipment.filter(x => (x.status !== "AVAILABLE" || x.reserved));
                 if (unavailable.length) throw new Error("Remove unavailable items: " + unavailable.map(x => x.name).join(", "));
                 const ids = items.map(x => x.id); dialog.close(); window.openBorrowModal(ids);
             } catch (error) { toast.error(error.message); }
@@ -206,7 +206,7 @@
         sessionStorage.removeItem(pendingKey);
         try {
             const equipment = await getEquipment(pending.id);
-            if (equipment.status !== "AVAILABLE") {
+            if ((equipment.status !== "AVAILABLE" || equipment.reserved)) {
                 toast.error("This equipment is no longer available."); return;
             }
             add(equipment);

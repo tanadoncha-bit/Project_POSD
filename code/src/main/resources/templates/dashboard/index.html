@@ -209,7 +209,7 @@
         <article class="equipment-card" th:each="equipment : ${equipments}" tabindex="0" role="button" data-equipment-card data-category="IT Equipment" th:attr="data-equipment-id=${equipment.id},
                             data-name=${equipment.name},
                             data-code=${equipment.assetCode},
-                            data-status=${equipment.status}">
+                            data-status=${equipment.reserved ? 'RESERVED' : equipment.status}">
 
           <div class="equipment-card-image">
 
@@ -225,7 +225,7 @@
                                                ? ' availability-badge-in-use'
                                                : ''" th:text="${equipment.status != null
                                         and equipment.status.name() == 'AVAILABLE'}
-                                        ? 'Available'
+                                        ? (equipment.reserved ? 'Reserved' : 'Available')
                                         : 'In Use'">
 
               Available

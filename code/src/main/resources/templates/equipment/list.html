@@ -45,7 +45,7 @@
       <article class="equipment-card" tabindex="0" role="button" data-equipment-card th:each="equipment : ${equipments}" th:attr="data-equipment-id=${equipment.id},
                               data-name=${equipment.name},
                               data-code=${equipment.assetCode},
-                              data-status=${equipment.status},
+                              data-status=${equipment.reserved ? 'RESERVED' : equipment.status},
                               data-category=${categoryNames[equipment.categoryId]},
                               data-processor='-',
                               data-memory='-',
@@ -60,7 +60,7 @@
             LeadIT
           </span>
 
-          <span class="availability-badge" th:attr="data-status=${equipment.status}" th:text="${equipment.status == null ? 'Unknown' : (equipment.status.name() == 'AVAILABLE' ? 'Available' : (equipment.status.name() == 'IN_USE' ? 'In use' : (equipment.status.name() == 'MAINTENANCE' ? 'Maintenance' : 'Disposed')))}">
+          <span class="availability-badge" th:attr="data-status=${equipment.reserved ? 'RESERVED' : equipment.status}" th:text="${equipment.reserved ? 'Reserved' : equipment.status == null ? 'Unknown' : (equipment.status.name() == 'AVAILABLE' ? 'Available' : (equipment.status.name() == 'IN_USE' ? 'In use' : (equipment.status.name() == 'MAINTENANCE' ? 'Maintenance' : 'Disposed')))}">
 
             Available
           </span>
