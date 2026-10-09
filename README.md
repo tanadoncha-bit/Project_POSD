@@ -97,7 +97,7 @@ PostgreSQL Database
   ใช้สำหรับสร้างหน้า Web Application
 ---
 ## Database Design (ER Diagram)
-![ER Diagram](doc/diagram/ER-Diagram.png)
+[ER Diagram (PDF)](doc/diagrams/ER%20Diagram.pdf)
 
 ระบบใช้ PostgreSQL เป็นฐานข้อมูลหลัก และใช้ Flyway สำหรับจัดการ Database Migration
 

@@ -1,24 +1,27 @@
 package com.example.itborrow.dto.response;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public class BorrowItemResponseDto {
 
-    private java.time.LocalDate returnedOn;
+    private LocalDate returnedOn;
 
-    public java.time.LocalDate getReturnedOn() {
+    public LocalDate getReturnedOn() {
         return returnedOn;
     }
 
-    public void setReturnedOn(java.time.LocalDate value) {
+    public void setReturnedOn(LocalDate value) {
         returnedOn = value;
     }
 
-    private java.math.BigDecimal purchasePrice;
+    private BigDecimal purchasePrice;
 
-    public java.math.BigDecimal getPurchasePrice() {
+    public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
 
-    public void setPurchasePrice(java.math.BigDecimal value) {
+    public void setPurchasePrice(BigDecimal value) {
         purchasePrice = value;
     }
 
@@ -57,10 +60,10 @@ public class BorrowItemResponseDto {
 
     private int quantity;
 
-    public BorrowItemResponseDto() {
-    }
+    public BorrowItemResponseDto() {}
 
-    public BorrowItemResponseDto(Long equipmentId, String assetCode, String equipmentName, int quantity) {
+    public BorrowItemResponseDto(
+            Long equipmentId, String assetCode, String equipmentName, int quantity) {
         this.equipmentId = equipmentId;
         this.assetCode = assetCode;
         this.equipmentName = equipmentName;

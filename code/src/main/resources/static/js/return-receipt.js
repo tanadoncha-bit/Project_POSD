@@ -13,8 +13,13 @@ document.addEventListener("click", async event => {
     const footer = document.createElement('footer'); footer.append(close);
     dialog.append(header, body, footer); document.body.append(dialog);
     close.addEventListener("click", () => dialog.close());
-    dialog.addEventListener("close", () => { dialog.remove(); trigger.focus(); });
+    dialog.addEventListener("close", () => {
+        dialog.remove();
+        if (!document.querySelector('dialog[open], .admin-modal-backdrop:not([hidden]), .modal-backdrop:not([hidden]), .equipment-detail-backdrop:not([hidden])')) document.body.classList.remove("modal-open");
+        if (trigger.isConnected) trigger.focus({ preventScroll: true });
+    });
     dialog.showModal();
+    document.body.classList.add("modal-open");
     const money = value => Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " THB";
     const node = (tag, className, text) => {
         const element = document.createElement(tag); element.className = className;

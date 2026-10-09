@@ -1,15 +1,18 @@
 package com.example.itborrow.domain.state;
 
 import com.example.itborrow.domain.entity.BorrowRequest;
+import com.example.itborrow.domain.enums.BorrowStatus;
 import com.example.itborrow.exception.InvalidBorrowStateException;
+
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 @Component
 public class ReturnedState implements BorrowState {
-    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
-        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.RETURNED, com.example.itborrow.domain.enums.BorrowStatus.CANCELLED);
+    public Set<BorrowStatus> supports() {
+        return Set.of(BorrowStatus.RETURNED);
     }
-
 
     @Override
     public void approve(BorrowRequest request) {
@@ -23,12 +26,14 @@ public class ReturnedState implements BorrowState {
 
     @Override
     public void returnEquipment(BorrowRequest request) {
-        throw new InvalidBorrowStateException("คำขอนี้ถูกคืนไปแล้ว ไม่สามารถคืนซ้ำได้ (สถานะปัจจุบัน: RETURNED)");
+        throw new InvalidBorrowStateException(
+                "คำขอนี้ถูกคืนไปแล้ว ไม่สามารถคืนซ้ำได้ (สถานะปัจจุบัน: RETURNED)");
     }
 
     @Override
     public void cancel(BorrowRequest request) {
-        throw new InvalidBorrowStateException("คำขอนี้ปิดงานแล้ว ไม่สามารถยกเลิกได้ (สถานะปัจจุบัน: RETURNED)");
+        throw new InvalidBorrowStateException(
+                "คำขอนี้ปิดงานแล้ว ไม่สามารถยกเลิกได้ (สถานะปัจจุบัน: RETURNED)");
     }
 
     @Override

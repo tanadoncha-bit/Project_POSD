@@ -1,6 +1,7 @@
 package com.example.itborrow.dto.response;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 public class ErrorResponseDto {
@@ -13,11 +14,11 @@ public class ErrorResponseDto {
     private List<String> details;
 
     public ErrorResponseDto() {
-        this.timestamp = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        this.timestamp = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public ErrorResponseDto(int status, String error, String message, String path) {
-        this.timestamp = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        this.timestamp = LocalDateTime.now(ZoneOffset.UTC);
         this.status = status;
         this.error = error;
         this.message = message;

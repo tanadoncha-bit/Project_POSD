@@ -1,15 +1,17 @@
 package com.example.itborrow.service;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
-
 import com.example.itborrow.domain.entity.Equipment;
+import com.example.itborrow.domain.enums.EquipmentStatus;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.Map;
 
 public interface EquipmentService {
-    Page<Equipment> searchInventory(String keyword, com.example.itborrow.domain.enums.EquipmentStatus status,
-            Pageable pageable);
+    Page<Equipment> searchInventory(String keyword, EquipmentStatus status, Pageable pageable);
 
-    java.util.Map<String, Long> inventorySummary();
+    Map<String, Long> inventorySummary();
 
     Page<Equipment> getAllEquipments(Pageable pageable);
 

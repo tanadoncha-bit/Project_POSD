@@ -37,3 +37,7 @@ build/
 
 # Local database snapshots; never publish personal data.
 /backups/
+
+node_modules/
+client_secret*.json
+credentials.json

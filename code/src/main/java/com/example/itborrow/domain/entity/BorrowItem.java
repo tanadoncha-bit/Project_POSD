@@ -2,6 +2,9 @@ package com.example.itborrow.domain.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "borrow_items")
 public class BorrowItem {
@@ -80,24 +83,24 @@ public class BorrowItem {
     }
 
     @Column(name = "snapshot_purchase_price", precision = 12, scale = 2, updatable = false)
-    private java.math.BigDecimal snapshotPurchasePrice;
+    private BigDecimal snapshotPurchasePrice;
 
-    public java.math.BigDecimal getSnapshotPurchasePrice() {
+    public BigDecimal getSnapshotPurchasePrice() {
         return snapshotPurchasePrice;
     }
 
-    public void setSnapshotPurchasePrice(java.math.BigDecimal value) {
+    public void setSnapshotPurchasePrice(BigDecimal value) {
         snapshotPurchasePrice = value;
     }
 
     @Column(name = "returned_on")
-    private java.time.LocalDate returnedOn;
+    private LocalDate returnedOn;
 
-    public java.time.LocalDate getReturnedOn() {
+    public LocalDate getReturnedOn() {
         return returnedOn;
     }
 
-    public void setReturnedOn(java.time.LocalDate value) {
+    public void setReturnedOn(LocalDate value) {
         returnedOn = value;
     }
 
@@ -112,11 +115,14 @@ public class BorrowItem {
         }
     }
 
-    public BorrowItem() {
-    }
+    public BorrowItem() {}
 
-    public BorrowItem(Long id, BorrowRequest borrowRequest, Equipment equipment,
-            int quantity, String conditionOnBorrow) {
+    public BorrowItem(
+            Long id,
+            BorrowRequest borrowRequest,
+            Equipment equipment,
+            int quantity,
+            String conditionOnBorrow) {
         this.id = id;
         this.borrowRequest = borrowRequest;
         this.equipment = equipment;
@@ -124,7 +130,6 @@ public class BorrowItem {
         this.conditionOnBorrow = conditionOnBorrow;
     }
 
-    // Getters
     public Long getId() {
         return id;
     }
@@ -145,7 +150,6 @@ public class BorrowItem {
         return conditionOnBorrow;
     }
 
-    // Setters
     public void setId(Long id) {
         this.id = id;
     }

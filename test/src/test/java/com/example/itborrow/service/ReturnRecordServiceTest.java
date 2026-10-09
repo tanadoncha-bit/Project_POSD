@@ -1,5 +1,11 @@
 package com.example.itborrow.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import com.example.itborrow.config.FeePolicyProperties;
 import com.example.itborrow.domain.entity.BorrowItem;
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.domain.entity.Equipment;
@@ -23,47 +29,36 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReturnRecordServiceTest {
 
-    @Mock
-    private ReturnRecordRepository returnRecordRepository;
-    @Mock
-    private BorrowRequestRepository borrowRequestRepository;
-    @Mock
-    private EquipmentRepository equipmentRepository;
-    @Mock
-    private BorrowStateResolver stateResolver;
-    @Mock
-    private com.example.itborrow.service.CurrentUser current;
-    @Mock
-    private FineStrategyResolver fineStrategyResolver;
-    @Mock
-    private BorrowState mockState;
-    @Mock
-    private FineStrategyService mockStrategy;
+    @Mock private ReturnRecordRepository returnRecordRepository;
+    @Mock private BorrowRequestRepository borrowRequestRepository;
+    @Mock private EquipmentRepository equipmentRepository;
+    @Mock private BorrowStateResolver stateResolver;
+    @Mock private CurrentUser current;
+    @Mock private FineStrategyResolver fineStrategyResolver;
+    @Mock private BorrowState mockState;
+    @Mock private FineStrategyService mockStrategy;
 
-    @org.mockito.Mock
-    org.springframework.context.ApplicationEventPublisher events;
-    @org.mockito.Spy
-    private com.example.itborrow.config.FeePolicyProperties fees = new com.example.itborrow.config.FeePolicyProperties();
+    @Mock ApplicationEventPublisher events;
+    @Spy private FeePolicyProperties fees = new FeePolicyProperties();
 
-    @org.mockito.Spy
-    java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("2026-10-07T17:10:00Z"), java.time.ZoneId.of("Asia/Bangkok"));
+    @Spy
+    Clock clock = Clock.fixed(Instant.parse("2026-10-07T17:10:00Z"), ZoneId.of("Asia/Bangkok"));
 
-    @InjectMocks
-    private ReturnRecordServiceImpl service;
+    @InjectMocks private ReturnRecordServiceImpl service;
 
     private BorrowRequest borrowRequest;
     private Equipment equipment;
@@ -85,7 +80,7 @@ class ReturnRecordServiceTest {
         borrowRequest = new BorrowRequest();
         borrowRequest.setId(1L);
         borrowRequest.setUser(user);
-        borrowRequest.setDueDate(LocalDate.now(clock).minusDays(2)); // เลยกำหนดมาแล้ว 2 วัน
+        borrowRequest.setDueDate(LocalDate.now(clock).minusDays(2));
         borrowRequest.setStatus(BorrowStatus.OVERDUE);
         borrowRequest.addItem(item);
     }
@@ -100,7 +95,7 @@ class ReturnRecordServiceTest {
         when(stateResolver.resolve(BorrowStatus.OVERDUE)).thenReturn(mockState);
         when(fineStrategyResolver.resolve(Role.USER)).thenReturn(mockStrategy);
         when(mockStrategy.calculate(eq(borrowRequest), any(LocalDate.class)))
-                .thenReturn(BigDecimal.valueOf(100)); // สมมติค่าปรับ 100 บาท
+                .thenReturn(BigDecimal.valueOf(100));
         when(returnRecordRepository.save(any(ReturnRecord.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 

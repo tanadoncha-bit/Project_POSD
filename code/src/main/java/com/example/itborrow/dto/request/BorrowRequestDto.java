@@ -26,8 +26,7 @@ public class BorrowRequestDto {
     @NotEmpty(message = "ต้องมีอุปกรณ์อย่างน้อย 1 ชิ้นในคำขอ")
     private List<@NotNull @Valid BorrowItemRequestDto> items;
 
-    public BorrowRequestDto() {
-    }
+    public BorrowRequestDto() {}
 
     public Long getUserId() {
         return userId;

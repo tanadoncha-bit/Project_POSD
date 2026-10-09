@@ -1,16 +1,18 @@
 package com.example.itborrow.dto.response;
 
+import com.example.itborrow.domain.enums.Role;
+
 public class UserResponseDto {
     private Long id;
     private String username;
     private String email;
-    private com.example.itborrow.domain.enums.Role role;
+    private Role role;
 
-    public com.example.itborrow.domain.enums.Role getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(com.example.itborrow.domain.enums.Role role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 

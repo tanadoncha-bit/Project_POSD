@@ -2,6 +2,7 @@ package com.example.itborrow.dto.response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class ReturnResponseDto {
 
@@ -12,7 +13,7 @@ public class ReturnResponseDto {
     private BigDecimal fineAmount;
     private String remark;
     private BigDecimal damageAmount;
-    private java.util.List<ReturnInspectionResponseDto> items;
+    private List<ReturnInspectionResponseDto> items;
 
     public BigDecimal getDamageAmount() {
         return damageAmount;
@@ -22,12 +23,11 @@ public class ReturnResponseDto {
         return fineAmount.add(damageAmount);
     }
 
-    public java.util.List<ReturnInspectionResponseDto> getItems() {
+    public List<ReturnInspectionResponseDto> getItems() {
         return items;
     }
 
-    private ReturnResponseDto() {
-    }
+    private ReturnResponseDto() {}
 
     public static Builder builder() {
         return new Builder();
@@ -71,7 +71,7 @@ public class ReturnResponseDto {
             return this;
         }
 
-        public Builder items(java.util.List<ReturnInspectionResponseDto> items) {
+        public Builder items(List<ReturnInspectionResponseDto> items) {
             dto.items = items;
             return this;
         }

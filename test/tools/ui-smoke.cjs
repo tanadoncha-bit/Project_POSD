@@ -17,7 +17,7 @@ if (!['127.0.0.1', 'localhost'].includes(new URL(base).hostname)) throw new Erro
       await page.locator('[data-open-register]').click();
       const modal = page.locator('#register-modal .auth-modal');
       await modal.waitFor({ state: 'visible' });
-      if (await page.locator('.borrow-list-launcher').isVisible()) throw new Error('Background launcher overlaps modal');
+      if (!(await page.evaluate(() => document.body.classList.contains('modal-open')))) throw new Error('Modal does not lock background');
       let box = await modal.boundingBox();
       if (box.x < -1 || box.x + box.width > viewport.width + 1 || box.y < -1 || box.height > viewport.height + 1) throw new Error('Registration modal exceeds viewport ' + JSON.stringify({ viewport, box }));
       await page.screenshot({ path: `tmp/ui-results/signup-${viewport.width}.png` });

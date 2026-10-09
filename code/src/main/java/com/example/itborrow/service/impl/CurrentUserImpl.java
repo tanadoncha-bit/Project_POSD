@@ -1,11 +1,12 @@
 package com.example.itborrow.service.impl;
 
-import com.example.itborrow.service.*;
-
 import com.example.itborrow.domain.entity.*;
 import com.example.itborrow.domain.enums.Role;
 import com.example.itborrow.repository.UserRepository;
+import com.example.itborrow.service.*;
+
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +20,10 @@ public class CurrentUserImpl implements CurrentUser {
 
     public User require() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()
-                || auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken)
             throw new AccessDeniedException("Please sign in.");
-        return users.findByUsername(auth.getName()).orElseThrow(() -> new AccessDeniedException("Account not found."));
+        return users.findByUsername(auth.getName())
+                .orElseThrow(() -> new AccessDeniedException("Account not found."));
     }
 
     public boolean isOperator(User user) {
@@ -30,8 +31,7 @@ public class CurrentUserImpl implements CurrentUser {
     }
 
     public void requireOperator() {
-        if (!isOperator(require()))
-            throw new AccessDeniedException("Operator access required.");
+        if (!isOperator(require())) throw new AccessDeniedException("Operator access required.");
     }
 
     public void requireIndependentOperator(BorrowRequest request) {

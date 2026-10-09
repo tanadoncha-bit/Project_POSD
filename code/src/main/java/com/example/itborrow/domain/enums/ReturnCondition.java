@@ -9,8 +9,15 @@ public enum ReturnCondition {
     LOST(EquipmentStatus.DISPOSED);
 
     private final EquipmentStatus status;
-    ReturnCondition(EquipmentStatus status) { this.status = status; }
-    public EquipmentStatus getStatus() { return status; }
+
+    ReturnCondition(EquipmentStatus status) {
+        this.status = status;
+    }
+
+    public EquipmentStatus getStatus() {
+        return status;
+    }
+
     public static ReturnCondition parse(String value) {
         String name = value == null ? "" : value.trim().toUpperCase(Locale.ROOT);
         return switch (name) {

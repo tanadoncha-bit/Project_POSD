@@ -1,11 +1,16 @@
 package com.example.itborrow.controller.api;
 
+import com.example.itborrow.domain.enums.EquipmentStatus;
+import com.example.itborrow.dto.EquipmentData;
+import com.example.itborrow.dto.response.PageResponse;
+import com.example.itborrow.service.EquipmentService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import com.example.itborrow.dto.EquipmentData;
-import com.example.itborrow.service.EquipmentService;
-import com.example.itborrow.domain.enums.EquipmentStatus;
+
 import java.util.Map;
 
 @RestController
@@ -18,10 +23,17 @@ public class EquipmentController {
     }
 
     @GetMapping
-    public com.example.itborrow.dto.response.PageResponse<EquipmentData> list(@RequestParam(defaultValue = "") String keyword,
-            @RequestParam(required = false) EquipmentStatus status, Pageable pageable) {
-        var page = PageRequest.of(pageable.getPageNumber(), Math.min(100, pageable.getPageSize()), pageable.getSort());
-        return com.example.itborrow.dto.response.PageResponse.from(service.searchInventory(keyword, status, page).map(EquipmentData::from));
+    public PageResponse<EquipmentData> list(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(required = false) EquipmentStatus status,
+            Pageable pageable) {
+        var page =
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        Math.min(100, pageable.getPageSize()),
+                        pageable.getSort());
+        return PageResponse.from(
+                service.searchInventory(keyword, status, page).map(EquipmentData::from));
     }
 
     @GetMapping("/summary")
@@ -36,12 +48,12 @@ public class EquipmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public EquipmentData create(@jakarta.validation.Valid @RequestBody EquipmentData data) {
+    public EquipmentData create(@Valid @RequestBody EquipmentData data) {
         return EquipmentData.from(service.createEquipment(data.toEntity()));
     }
 
     @PutMapping("/{id}")
-    public EquipmentData update(@PathVariable Long id, @jakarta.validation.Valid @RequestBody EquipmentData data) {
+    public EquipmentData update(@PathVariable Long id, @Valid @RequestBody EquipmentData data) {
         return EquipmentData.from(service.updateEquipment(id, data.toEntity()));
     }
 

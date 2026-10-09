@@ -41,10 +41,10 @@
           </thead>
           <tbody>
             <tr th:each="account : ${accounts.content}">
-              <td>
+              <td data-label="Account">
                 <div class="user-account-identity"><span class="user-account-avatar" aria-hidden="true"><span th:text="${#strings.toUpperCase(#strings.substring(account.username,0,1))}"></span><img th:src="@{/admin/borrower-avatar/{id}(id=${account.id})}" alt="" loading="lazy" decoding="async" data-borrower-avatar></span><div><strong th:text="${account.username}"></strong><span class="user-account-email" th:text="${account.email}"></span></div></div></td>
-            <td><span class="user-role-badge" th:attr="data-role=${account.role}" th:text="${account.role}"></span></td>
-            <td>
+            <td data-label="Current role"><span class="user-role-badge" th:attr="data-role=${account.role}" th:text="${account.role}"></span></td>
+            <td data-label="Actions">
                 <form class="user-role-form" method="post" th:action="@{/admin/users/{id}/role(id=${account.id})}">
                   <label><span class="visually-hidden" th:text="|Role for ${account.username}|"></span><select name="role">
                       <option th:each="role : ${roles}" th:value="${role}" th:text="${role}" th:selected="${role == account.role}"></option>
@@ -83,11 +83,11 @@
         </thead>
         <tbody>
           <tr th:each="entry : ${history}">
-            <td th:text="${entry['changed_at']}"></td>
-            <td th:text="${entry['actor_username']}"></td>
-            <td th:text="${entry['target_username']}"></td>
-            <td th:text="${entry['old_role']}"></td>
-            <td th:text="${entry['new_role']}"></td>
+            <td data-label="Time" th:text="${entry['changed_at']}"></td>
+            <td data-label="Changed by" th:text="${entry['actor_username']}"></td>
+            <td data-label="Account" th:text="${entry['target_username']}"></td>
+            <td data-label="From" th:text="${entry['old_role']}"></td>
+            <td data-label="To" th:text="${entry['new_role']}"></td>
           </tr>
           <tr th:if="${#lists.isEmpty(history)}"><td colspan="5" class="user-empty-state">No role changes yet.</td></tr>
         </tbody>

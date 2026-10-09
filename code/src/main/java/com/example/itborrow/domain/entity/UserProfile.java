@@ -31,11 +31,8 @@ public class UserProfile {
         this.user = user;
     }
 
-    // Default Constructor
-    public UserProfile() {
-    }
+    public UserProfile() {}
 
-    // Constructor
     public UserProfile(Long id, String fullName, String phone, String department) {
         this.id = id;
         this.fullName = fullName;
@@ -43,14 +40,12 @@ public class UserProfile {
         this.department = department;
     }
 
-    // Constructor
     public UserProfile(String fullName, String phone, String department) {
         this.fullName = fullName;
         this.phone = phone;
         this.department = department;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

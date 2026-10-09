@@ -1,7 +1,10 @@
 package com.example.itborrow.common.event;
 
 import com.example.itborrow.service.NotificationService;
+
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class OverdueEventListener {
@@ -12,15 +15,14 @@ public class OverdueEventListener {
         this.notificationService = notificationService;
     }
 
-    @org.springframework.transaction.event.TransactionalEventListener(phase = org.springframework.transaction.event.TransactionPhase.BEFORE_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleOverdueEvent(OverdueEvent event) {
         var request = event.getBorrowRequest();
 
-        String message = String.format(
-                "คำขอยืม #%d เกินกำหนดคืนแล้ว (กำหนดคืน: %s) กรุณานำอุปกรณ์มาคืนโดยเร็ว",
-                request.getId(),
-                request.getDueDate()
-        );
+        String message =
+                String.format(
+                        "คำขอยืม #%d เกินกำหนดคืนแล้ว (กำหนดคืน: %s) กรุณานำอุปกรณ์มาคืนโดยเร็ว",
+                        request.getId(), request.getDueDate());
 
         notificationService.send(request.getUser(), message);
     }

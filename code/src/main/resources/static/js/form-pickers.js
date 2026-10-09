@@ -107,7 +107,7 @@
     }
     function scan() {
         if (!('showPopover' in HTMLElement.prototype)) return;
-        document.querySelectorAll('[data-admin-status-filter], #admin-category, #admin-edit-equipment-form select, #borrow-due-date, #return-inspections select, .user-role-editor select, .user-role-form select').forEach(enhance);
+        document.querySelectorAll('[data-admin-status-filter], [data-mobile-request-filter], [data-mobile-history-filter], #admin-category, #admin-edit-equipment-form select, #borrow-due-date, #return-inspections select, .user-role-editor select, .user-role-form select').forEach(enhance);
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
     new MutationObserver(records => { if (records.some(r => Array.from(r.addedNodes).some(n => n.nodeType === 1 && !n.closest?.('.form-picker')))) scan(); }).observe(document.documentElement, { childList: true, subtree: true });

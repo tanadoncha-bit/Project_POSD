@@ -1,34 +1,47 @@
 package com.example.itborrow.service;
 
+import static org.assertj.core.api.Assertions.*;
+
 import com.example.itborrow.config.FeePolicyProperties;
 import com.example.itborrow.config.PaginationProperties;
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.service.strategy.*;
+
+import jakarta.validation.Validation;
+
 import org.junit.jupiter.api.Test;
-import java.time.LocalDate;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
+
 import java.math.BigDecimal;
-import static org.assertj.core.api.Assertions.*;
+import java.time.LocalDate;
 
 class FeePolicyConfigurationTest {
-    @org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
-    @org.springframework.boot.context.properties.EnableConfigurationProperties({ FeePolicyProperties.class,
-            PaginationProperties.class })
-    static class Binding {
-    }
+    @Configuration(proxyBeanMethods = false)
+    @EnableConfigurationProperties({FeePolicyProperties.class, PaginationProperties.class})
+    static class Binding {}
 
     @Test
     void springBindsConfiguredFeesAndPageSizes() {
-        new org.springframework.boot.test.context.runner.ApplicationContextRunner().withUserConfiguration(Binding.class)
-                .withPropertyValues("app.fees.standard-daily-fine=91.50", "app.fees.scratch-rate=0.12",
+        new ApplicationContextRunner()
+                .withUserConfiguration(Binding.class)
+                .withPropertyValues(
+                        "app.fees.standard-daily-fine=91.50",
+                        "app.fees.scratch-rate=0.12",
                         "app.pagination.catalog-size=8")
-                .run(context -> {
-                    assertThat(context).hasNotFailed();
-                    assertThat(context.getBean(FeePolicyProperties.class).getStandardDailyFine())
-                            .isEqualByComparingTo("91.50");
-                    assertThat(context.getBean(FeePolicyProperties.class).getScratchRate())
-                            .isEqualByComparingTo("0.12");
-                    assertThat(context.getBean(PaginationProperties.class).getCatalogSize()).isEqualTo(8);
-                });
+                .run(
+                        context -> {
+                            assertThat(context).hasNotFailed();
+                            assertThat(
+                                            context.getBean(FeePolicyProperties.class)
+                                                    .getStandardDailyFine())
+                                    .isEqualByComparingTo("91.50");
+                            assertThat(context.getBean(FeePolicyProperties.class).getScratchRate())
+                                    .isEqualByComparingTo("0.12");
+                            assertThat(context.getBean(PaginationProperties.class).getCatalogSize())
+                                    .isEqualTo(8);
+                        });
     }
 
     @Test
@@ -42,12 +55,13 @@ class FeePolicyConfigurationTest {
         request.setDueDate(LocalDate.of(2026, 1, 1));
         assertThat(new StandardFineStrategy(fees).calculate(request, LocalDate.of(2026, 1, 6)))
                 .isEqualByComparingTo("320");
-        assertThat(new VipFineStrategy(fees).calculate(request, LocalDate.of(2026, 1, 6))).isEqualByComparingTo("50");
+        assertThat(new VipFineStrategy(fees).calculate(request, LocalDate.of(2026, 1, 6)))
+                .isEqualByComparingTo("50");
     }
 
     @Test
     void configurationRejectsNegativeFeesInvalidRatiosAndUnboundedPageSizes() {
-        try (var validator = jakarta.validation.Validation.buildDefaultValidatorFactory()) {
+        try (var validator = Validation.buildDefaultValidatorFactory()) {
             var fees = new FeePolicyProperties();
             fees.setStandardDailyFine(new BigDecimal("-1"));
             fees.setScratchRate(new BigDecimal("1.2"));

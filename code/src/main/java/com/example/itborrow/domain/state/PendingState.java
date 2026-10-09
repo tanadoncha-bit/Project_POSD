@@ -3,14 +3,16 @@ package com.example.itborrow.domain.state;
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.domain.enums.BorrowStatus;
 import com.example.itborrow.exception.InvalidBorrowStateException;
+
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 @Component
 public class PendingState implements BorrowState {
-    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
-        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.PENDING);
+    public Set<BorrowStatus> supports() {
+        return Set.of(BorrowStatus.PENDING);
     }
-
 
     @Override
     public void approve(BorrowRequest request) {

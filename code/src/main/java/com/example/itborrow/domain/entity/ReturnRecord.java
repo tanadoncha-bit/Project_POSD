@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "return_records")
@@ -13,9 +15,6 @@ public class ReturnRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // FK -> BorrowRequest (ฝั่งเป็นเจ้าของความสัมพันธ์ 1:1)
-    // unique = true เพื่อบังคับว่า BorrowRequest 1 ใบมี ReturnRecord ได้แค่ 1
-    // แถวเท่านั้น
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "borrow_request_id", nullable = false, unique = true)
     private BorrowRequest borrowRequest;
@@ -23,11 +22,9 @@ public class ReturnRecord {
     @Column(name = "return_date", nullable = false)
     private LocalDate returnDate;
 
-    // สภาพอุปกรณ์ตอนคืน เช่น GOOD, DAMAGED, LOST
     @Column(name = "condition", length = 50, nullable = false)
     private String condition;
 
-    // คำนวณโดย FineStrategyService ตาม role ของผู้ยืม (Standard / VIP)
     @Column(name = "fine_amount", precision = 10, scale = 2)
     private BigDecimal fineAmount = BigDecimal.ZERO;
 
@@ -36,10 +33,13 @@ public class ReturnRecord {
 
     @Column(name = "damage_amount", precision = 14, scale = 2, nullable = false)
     private BigDecimal damageAmount = BigDecimal.ZERO;
+
     @ElementCollection
-    @CollectionTable(name = "return_inspections", joinColumns = @JoinColumn(name = "return_record_id"))
+    @CollectionTable(
+            name = "return_inspections",
+            joinColumns = @JoinColumn(name = "return_record_id"))
     @OrderColumn(name = "item_order")
-    private java.util.List<ReturnInspection> inspections = new java.util.ArrayList<>();
+    private List<ReturnInspection> inspections = new ArrayList<>();
 
     public BigDecimal getDamageAmount() {
         return damageAmount;
@@ -49,15 +49,12 @@ public class ReturnRecord {
         damageAmount = value;
     }
 
-    public java.util.List<ReturnInspection> getInspections() {
+    public List<ReturnInspection> getInspections() {
         return inspections;
     }
 
-    // NoArgsConstructor
-    public ReturnRecord() {
-    }
+    public ReturnRecord() {}
 
-    // AllArgsConstructor
     public ReturnRecord(
             Long id,
             BorrowRequest borrowRequest,
@@ -72,8 +69,6 @@ public class ReturnRecord {
         this.fineAmount = fineAmount;
         this.remark = remark;
     }
-
-    // Getters
 
     public Long getId() {
         return id;
@@ -98,8 +93,6 @@ public class ReturnRecord {
     public String getRemark() {
         return remark;
     }
-
-    // Setters
 
     public void setId(Long id) {
         this.id = id;

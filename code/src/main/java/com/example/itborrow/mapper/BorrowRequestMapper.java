@@ -1,23 +1,26 @@
 package com.example.itborrow.mapper;
 
+import com.example.itborrow.config.FeePolicyProperties;
 import com.example.itborrow.domain.entity.BorrowItem;
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.dto.response.BorrowItemResponseDto;
 import com.example.itborrow.dto.response.BorrowResponseDto;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 public class BorrowRequestMapper {
-    private final com.example.itborrow.config.FeePolicyProperties fees;
-    public BorrowRequestMapper(com.example.itborrow.config.FeePolicyProperties fees) { this.fees=fees; }
+    private final FeePolicyProperties fees;
 
+    public BorrowRequestMapper(FeePolicyProperties fees) {
+        this.fees = fees;
+    }
 
     public BorrowResponseDto toResponseDto(BorrowRequest entity) {
-        List<BorrowItemResponseDto> itemDtos = entity.getItems().stream()
-                .map(this::toItemResponseDto)
-                .toList();
+        List<BorrowItemResponseDto> itemDtos =
+                entity.getItems().stream().map(this::toItemResponseDto).toList();
 
         return BorrowResponseDto.builder()
                 .id(entity.getId())
@@ -28,28 +31,49 @@ public class BorrowRequestMapper {
                 .status(entity.getStatus().name())
                 .note(entity.getNote())
                 .rejectionReason(entity.getRejectionReason())
-                .feePolicy(new BorrowResponseDto.FeePolicy(entity.getDailyFine() != null ? entity.getDailyFine() : fees.dailyFine(entity.getUser().getRole()),
-                        entity.getGraceDays() != null ? entity.getGraceDays() : fees.graceDays(entity.getUser().getRole()),
-                        entity.getScratchRate() != null ? entity.getScratchRate() : fees.getScratchRate(),
-                        entity.getDamageRate() != null ? entity.getDamageRate() : fees.getDamageRate(),
-                        entity.getLossRate() != null ? entity.getLossRate() : fees.getLossRate()))
+                .feePolicy(
+                        new BorrowResponseDto.FeePolicy(
+                                entity.getDailyFine() != null
+                                        ? entity.getDailyFine()
+                                        : fees.dailyFine(entity.getUser().getRole()),
+                                entity.getGraceDays() != null
+                                        ? entity.getGraceDays()
+                                        : fees.graceDays(entity.getUser().getRole()),
+                                entity.getScratchRate() != null
+                                        ? entity.getScratchRate()
+                                        : fees.getScratchRate(),
+                                entity.getDamageRate() != null
+                                        ? entity.getDamageRate()
+                                        : fees.getDamageRate(),
+                                entity.getLossRate() != null
+                                        ? entity.getLossRate()
+                                        : fees.getLossRate()))
                 .items(itemDtos)
                 .build();
     }
 
     private BorrowItemResponseDto toItemResponseDto(BorrowItem item) {
-        var result = new BorrowItemResponseDto(
-                item.getEquipment().getId(),
-                item.getSnapshotName() != null ? item.getSnapshotAssetCode() : item.getEquipment().getAssetCode(),
-                item.getSnapshotName() != null ? item.getSnapshotName() : item.getEquipment().getName(),
-                item.getQuantity());
+        var result =
+                new BorrowItemResponseDto(
+                        item.getEquipment().getId(),
+                        item.getSnapshotName() != null
+                                ? item.getSnapshotAssetCode()
+                                : item.getEquipment().getAssetCode(),
+                        item.getSnapshotName() != null
+                                ? item.getSnapshotName()
+                                : item.getEquipment().getName(),
+                        item.getQuantity());
         result.setImageUrl(
-                item.getSnapshotName() != null ? item.getSnapshotImageUrl() : item.getEquipment().getImageUrl());
+                item.getSnapshotImageUrl() != null && !item.getSnapshotImageUrl().isBlank()
+                        ? item.getSnapshotImageUrl()
+                        : item.getEquipment().getImageUrl());
         result.setReturnedOn(item.getReturnedOn());
         result.setPurchasePrice(item.getSnapshotPurchasePrice());
         result.setCategoryName(item.getSnapshotCategoryName());
         result.setStorageSlot(
-                item.getSnapshotName() != null ? item.getSnapshotStorageSlot() : item.getEquipment().getStorageSlot());
+                item.getSnapshotName() != null
+                        ? item.getSnapshotStorageSlot()
+                        : item.getEquipment().getStorageSlot());
         return result;
     }
 }
