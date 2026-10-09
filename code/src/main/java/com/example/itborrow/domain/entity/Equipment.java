@@ -4,6 +4,8 @@ import com.example.itborrow.domain.enums.EquipmentStatus;
 
 import jakarta.persistence.*;
 
+import org.hibernate.annotations.Formula;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -77,6 +79,15 @@ public class Equipment {
 
     public void setStorageSlot(String value) {
         storageSlot = value;
+    }
+
+    @Formula(
+            "(exists (select 1 from borrow_items bi join borrow_requests br on br.id ="
+                + " bi.borrow_request_id where bi.equipment_id = id and br.status = 'APPROVED'))")
+    private boolean reserved;
+
+    public boolean isReserved() {
+        return reserved;
     }
 
     public Equipment() {}

@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("article"); card.className = "admin-equipment-card inventory-tile";
             Object.assign(card.dataset, { id: item.id, name: item.name, code: item.assetCode, status: item.status });
             const category = categories.find(category => category.id === item.categoryId)?.name || "Other";
-            const statusLabel = { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[item.status] || item.status;
+            const statusLabel = item.reserved ? "Reserved" : { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[item.status] || item.status;
             card.innerHTML = `<button class="inventory-tile-image" type="button" data-open-equipment-admin aria-label="View ${escapeHtml(item.name)}">${imageMarkup(item.id)}</button><span class="inventory-tile-status ${statusClass(item.status)}">${escapeHtml(statusLabel)}</span><div class="inventory-tile-content"><p>${escapeHtml(category)}</p><h2>${escapeHtml(item.name)}</h2><footer><span class="inventory-asset-location"><span>${escapeHtml(item.storageSlot ? "Slot: " + item.storageSlot : "Slot not assigned")}</span><small>${escapeHtml(item.assetCode)}</small></span><button type="button" data-open-equipment-admin aria-label="Details for ${escapeHtml(item.name)}">View details</button></footer></div>`;
             card.tabIndex = 0;
             card.setAttribute("role", "button");
@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const detailStatus = document.getElementById("admin-equipment-status");
             detailStatus.className = `admin-status ${statusClass(item.status)}`;
             document.querySelector('[data-workflow="repair"]').hidden = item.status !== "MAINTENANCE";
-            detailStatus.textContent = { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[item.status] || item.status;
+            detailStatus.textContent = item.reserved ? "Reserved" : { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[item.status] || item.status;
             document.getElementById("admin-borrower-strip").hidden = item.status !== "IN_USE";
             const form = document.getElementById("admin-edit-equipment-form");
             form.elements.categoryId.value = item.categoryId;

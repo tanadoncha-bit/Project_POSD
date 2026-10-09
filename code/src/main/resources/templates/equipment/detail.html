@@ -74,11 +74,11 @@
 
           <span class="availability-badge" th:classappend="${equipment != null
                                           and equipment.status != null
-                                          and equipment.status.name() != 'AVAILABLE'}
+                                          and (equipment.status.name() != 'AVAILABLE' or equipment.reserved)}
                                           ? ' availability-badge-in-use'
                                           : ''" th:text="${equipment != null
                                    and equipment.status != null
-                                   ? equipment.status
+                                   ? (equipment.reserved ? 'RESERVED' : equipment.status)
                                     : 'Unknown'}">
             Available
           </span>
@@ -119,7 +119,7 @@
 
           <strong th:text="${equipment != null
                                      and equipment.status != null
-                                     ? equipment.status
+                                     ? (equipment.reserved ? 'RESERVED' : equipment.status)
                                       : 'Unknown'}">
             AVAILABLE
           </strong>
@@ -135,11 +135,11 @@
                                 ? '/borrow?equipmentId=' + equipment.id
                                 : '/borrow'}" th:classappend="${equipment != null
                                        and equipment.status != null
-                                       and equipment.status.name() != 'AVAILABLE'}
+                                       and (equipment.status.name() != 'AVAILABLE' or equipment.reserved)}
                                        ? ' is-disabled'
                                        : ''" th:attr="aria-disabled=${equipment != null
                                               and equipment.status != null
-                                              and equipment.status.name() != 'AVAILABLE'}" data-requires-login>
+                                              and (equipment.status.name() != 'AVAILABLE' or equipment.reserved)}" data-requires-login>
 
             <span aria-hidden="true">
 
@@ -147,7 +147,7 @@
 
             <span th:text="${equipment != null
                                       and equipment.status != null
-                                      and equipment.status.name() != 'AVAILABLE'
+                                      and (equipment.status.name() != 'AVAILABLE' or equipment.reserved)
                                       ? 'Currently Unavailable'
                                       : 'Borrow Equipment'}">
               Borrow Equipment

@@ -114,7 +114,10 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
                                             ResourceNotFoundException.of(
                                                     "Equipment", itemDto.getEquipmentId()));
 
-            if (equipment.getStatus() != EquipmentStatus.AVAILABLE) {
+            if (equipment.getStatus() != EquipmentStatus.AVAILABLE
+                    || borrowRequestRepository.countReservations(
+                                    equipment.getId(), -1L, BorrowStatus.APPROVED)
+                            > 0) {
                 throw new EquipmentNotAvailableException(
                         "อุปกรณ์ "
                                 + equipment.getAssetCode()
@@ -155,6 +158,9 @@ public class BorrowRequestServiceImpl implements BorrowRequestService {
             var asset =
                     equipmentRepository.findLockedById(item.getEquipment().getId()).orElseThrow();
             if (asset.getStatus() != EquipmentStatus.AVAILABLE
+                    || borrowRequestRepository.countReservations(
+                                    asset.getId(), request.getId(), BorrowStatus.APPROVED)
+                            > 0
                     || borrowRequestRepository.countConflicts(
                                     asset.getId(),
                                     request.getId(),

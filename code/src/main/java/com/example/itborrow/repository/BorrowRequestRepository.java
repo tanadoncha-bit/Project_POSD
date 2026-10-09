@@ -18,6 +18,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BorrowRequestRepository extends JpaRepository<BorrowRequest, Long> {
+    @Query(
+            "select count(b.id) from BorrowRequest b join b.items i where i.equipment.id ="
+                + " :equipmentId and b.status = :status and b.id <> :requestId")
+    long countReservations(Long equipmentId, Long requestId, BorrowStatus status);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from BorrowRequest b where b.id = :id")
     Optional<BorrowRequest> findLockedById(@Param("id") Long id);
