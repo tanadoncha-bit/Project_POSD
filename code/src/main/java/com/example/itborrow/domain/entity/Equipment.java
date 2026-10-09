@@ -4,6 +4,8 @@ import com.example.itborrow.domain.enums.EquipmentStatus;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "equipment")
 public class Equipment {
@@ -34,18 +36,19 @@ public class Equipment {
     }
 
     @Column(name = "purchase_price", precision = 12, scale = 2)
-    private java.math.BigDecimal purchasePrice;
+    private BigDecimal purchasePrice;
 
-    public java.math.BigDecimal getPurchasePrice() {
+    public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
 
-    public void setPurchasePrice(java.math.BigDecimal purchasePrice) {
+    public void setPurchasePrice(BigDecimal purchasePrice) {
         this.purchasePrice = purchasePrice;
     }
 
     @Column(name = "image_url", length = 1000)
     private String imageUrl;
+
     @Column(name = "specifications", columnDefinition = "TEXT")
     private String specifications;
 
@@ -76,10 +79,8 @@ public class Equipment {
         storageSlot = value;
     }
 
-    public Equipment() {
-    }
+    public Equipment() {}
 
-    // Constructor
     public Equipment(Long id, String assetCode, String name, EquipmentStatus status) {
         this.id = id;
         this.assetCode = assetCode;
@@ -87,14 +88,12 @@ public class Equipment {
         this.status = status;
     }
 
-    // Constructor
     public Equipment(String assetCode, String name, EquipmentStatus status) {
         this.assetCode = assetCode;
         this.name = name;
         this.status = status;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

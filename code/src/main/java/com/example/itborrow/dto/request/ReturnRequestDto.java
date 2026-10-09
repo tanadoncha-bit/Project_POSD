@@ -1,10 +1,12 @@
 package com.example.itborrow.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class ReturnRequestDto {
 
@@ -19,17 +21,20 @@ public class ReturnRequestDto {
     }
 
     private LocalDate returnDate;
+
     @Size(max = 100)
-    private java.util.List<@NotNull @jakarta.validation.Valid Inspection> items;
+    private List<@NotNull @Valid Inspection> items;
 
-    public record Inspection(@NotNull Long equipmentId, @NotBlank String condition, @Size(max = 500) String remark) {
-    }
+    public record Inspection(
+            @NotNull Long equipmentId,
+            @NotBlank String condition,
+            @Size(max = 500) String remark) {}
 
-    public java.util.List<Inspection> getItems() {
+    public List<Inspection> getItems() {
         return items;
     }
 
-    public void setItems(java.util.List<Inspection> items) {
+    public void setItems(List<Inspection> items) {
         this.items = items;
     }
 
@@ -38,8 +43,7 @@ public class ReturnRequestDto {
     @Size(max = 500)
     private String remark;
 
-    public ReturnRequestDto() {
-    }
+    public ReturnRequestDto() {}
 
     public LocalDate getReturnDate() {
         return returnDate;

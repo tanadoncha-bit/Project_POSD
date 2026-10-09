@@ -1,18 +1,25 @@
 package com.example.itborrow.domain.entity;
 
 import com.example.itborrow.domain.enums.BorrowStatus;
+
 import jakarta.persistence.*;
 
+import org.hibernate.annotations.BatchSize;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "borrow_requests", indexes = {
-        @Index(name = "idx_borrow_request_status", columnList = "status"),
-        @Index(name = "idx_borrow_request_due_date", columnList = "due_date")
-})
+@Table(
+        name = "borrow_requests",
+        indexes = {
+            @Index(name = "idx_borrow_request_status", columnList = "status"),
+            @Index(name = "idx_borrow_request_due_date", columnList = "due_date")
+        })
 public class BorrowRequest {
 
     @Id
@@ -37,9 +44,9 @@ public class BorrowRequest {
     private String note;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(java.time.ZoneOffset.UTC);
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneOffset.UTC);
 
-    @org.hibernate.annotations.BatchSize(size = 20)
+    @BatchSize(size = 20)
     @OneToMany(mappedBy = "borrowRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BorrowItem> items = new ArrayList<>();
 
@@ -47,13 +54,13 @@ public class BorrowRequest {
     private ReturnRecord returnRecord;
 
     @Column(name = "daily_fine", updatable = false)
-    private java.math.BigDecimal dailyFine;
+    private BigDecimal dailyFine;
 
-    public java.math.BigDecimal getDailyFine() {
+    public BigDecimal getDailyFine() {
         return dailyFine;
     }
 
-    public void setDailyFine(java.math.BigDecimal value) {
+    public void setDailyFine(BigDecimal value) {
         dailyFine = value;
     }
 
@@ -69,35 +76,35 @@ public class BorrowRequest {
     }
 
     @Column(name = "scratch_rate", updatable = false)
-    private java.math.BigDecimal scratchRate;
+    private BigDecimal scratchRate;
 
-    public java.math.BigDecimal getScratchRate() {
+    public BigDecimal getScratchRate() {
         return scratchRate;
     }
 
-    public void setScratchRate(java.math.BigDecimal value) {
+    public void setScratchRate(BigDecimal value) {
         scratchRate = value;
     }
 
     @Column(name = "damage_rate", updatable = false)
-    private java.math.BigDecimal damageRate;
+    private BigDecimal damageRate;
 
-    public java.math.BigDecimal getDamageRate() {
+    public BigDecimal getDamageRate() {
         return damageRate;
     }
 
-    public void setDamageRate(java.math.BigDecimal value) {
+    public void setDamageRate(BigDecimal value) {
         damageRate = value;
     }
 
     @Column(name = "loss_rate", updatable = false)
-    private java.math.BigDecimal lossRate;
+    private BigDecimal lossRate;
 
-    public java.math.BigDecimal getLossRate() {
+    public BigDecimal getLossRate() {
         return lossRate;
     }
 
-    public void setLossRate(java.math.BigDecimal value) {
+    public void setLossRate(BigDecimal value) {
         lossRate = value;
     }
 
@@ -112,8 +119,7 @@ public class BorrowRequest {
         rejectionReason = value;
     }
 
-    public BorrowRequest() {
-    }
+    public BorrowRequest() {}
 
     public BorrowRequest(
             Long id,
@@ -136,7 +142,6 @@ public class BorrowRequest {
         this.returnRecord = returnRecord;
     }
 
-    // Getters
     public Long getId() {
         return id;
     }
@@ -173,7 +178,6 @@ public class BorrowRequest {
         return returnRecord;
     }
 
-    // Setters
     public void setId(Long id) {
         this.id = id;
     }

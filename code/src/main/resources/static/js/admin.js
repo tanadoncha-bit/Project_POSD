@@ -15,6 +15,27 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".admin-profile-dropdown").addEventListener("focusout", event => {
         if (!event.currentTarget.contains(event.relatedTarget)) closeProfileMenu();
     });
+    const attentionButton = document.querySelector("[data-admin-attention]");
+    let attentionPreviousView = "dashboard";
+    const attentionPanel = document.createElement("section");
+    attentionPanel.id = "admin-attention-page";
+    attentionPanel.className = "admin-view admin-attention-page";
+    attentionPanel.dataset.adminPanel = "attention";
+    attentionPanel.hidden = true;
+    attentionPanel.innerHTML = '<header class="admin-page-heading"><div><div class="attention-heading-row"><button class="attention-back" type="button" aria-label="Back to previous page" title="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14"/></svg></button><h1 tabindex="-1">Needs attention</h1></div><p>Review requests that need action.</p></div></header><div class="admin-attention-content"></div>';
+    document.querySelector(".admin-main").append(attentionPanel);
+    attentionPanel.querySelector(".attention-back").onclick = () => {
+        showView(attentionPreviousView);
+        attentionButton.focus({ preventScroll: true });
+    };
+    attentionButton.addEventListener("click", () => {
+        closeProfileMenu();
+        if (page.dataset.adminView !== "attention") attentionPreviousView = page.dataset.adminView || "dashboard";
+        attentionPanel.querySelector(".admin-attention-content").innerHTML = document.getElementById("admin-recent-requests").innerHTML;
+        showView("attention");
+        window.scrollTo({ top: 0 });
+        attentionPanel.querySelector("h1").focus({ preventScroll: true });
+    });
     const inventory = document.getElementById("admin-inventory-grid");
     const requestList = document.getElementById("admin-request-list");
     const search = document.querySelector("[data-admin-inventory-search]");
@@ -84,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const groups = categories.map(category => ({ ...category, items: items.filter(item => item.categoryId === category.id) }));
         const other = items.filter(item => !categories.some(category => category.id === item.categoryId));
         if (other.length) groups.push({ name: "Other equipment", items: other });
-        document.getElementById("management-shelves").innerHTML = groups.map((group, index) => `<section class="management-shelf"><header><h2>${escapeHtml(group.name)}</h2><span>${group.items.length} items</span></header><div class="management-shelf-items" tabindex="0" aria-label="${escapeHtml(group.name)} equipment">${group.items.map(item => `<button type="button" class="management-shelf-item" data-shelf-equipment="${item.id}">${shelfDevice(item, group.name)}<strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.storageSlot ? "Slot: " + item.storageSlot : item.assetCode)}</small><span class="admin-status ${statusClass(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span></button>`).join("") || '<p class="management-shelf-empty">No equipment in this category.</p>'}</div><div class="management-shelf-board" aria-hidden="true">Tier ${index + 1} Shelf</div></section>`).join("") || '<p>No equipment categories yet.</p>';
+        document.getElementById("management-shelves").innerHTML = groups.map((group, index) => `<section class="management-shelf${group.items.length ? "" : " is-empty"}"><header><h2>${escapeHtml(group.name)}</h2><span>${group.items.length} items</span></header><div class="management-shelf-items" tabindex="0" aria-label="${escapeHtml(group.name)} equipment">${group.items.map(item => `<button type="button" class="management-shelf-item" data-shelf-equipment="${item.id}">${shelfDevice(item, group.name)}<strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.storageSlot ? "Slot: " + item.storageSlot : item.assetCode)}</small><span class="admin-status ${statusClass(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span></button>`).join("") || '<p class="management-shelf-empty">No equipment in this category.</p>'}</div><div class="management-shelf-board" aria-hidden="true">Tier ${index + 1} Shelf</div></section>`).join("") || '<p>No equipment categories yet.</p>';
     }
     let modalTrigger = null;
     function closeModals() {
@@ -198,9 +219,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     function showView(name) {
-        const view = ["dashboard", "inventory", "requests", ...(document.querySelector("[data-admin-panel=users]") ? ["users"] : [])].includes(name) ? name : "dashboard";
+        const view = ["dashboard", "inventory", "requests", "attention", ...(document.querySelector("[data-admin-panel=users]") ? ["users"] : [])].includes(name) ? name : "dashboard";
         if (view === "users" && !document.querySelector("[data-user-management-content] .user-management")) loadUsers();
         page.dataset.adminView = view;
+        attentionButton.setAttribute("aria-pressed", String(view === "attention"));
         page.classList.remove("admin-menu-open");
         document.querySelectorAll("[data-admin-panel]").forEach(panel => { panel.hidden = panel.dataset.adminPanel !== view; panel.classList.toggle("active", !panel.hidden); });
         document.querySelectorAll("[data-admin-nav]").forEach(link => link.classList.toggle("active", link.dataset.adminNav === view));
@@ -243,6 +265,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const category = categories.find(category => category.id === item.categoryId)?.name || "Other";
             const statusLabel = { AVAILABLE: "Available", IN_USE: "In use", MAINTENANCE: "Maintenance", DISPOSED: "Disposed" }[item.status] || item.status;
             card.innerHTML = `<button class="inventory-tile-image" type="button" data-open-equipment-admin aria-label="View ${escapeHtml(item.name)}">${imageMarkup(item.id)}</button><span class="inventory-tile-status ${statusClass(item.status)}">${escapeHtml(statusLabel)}</span><div class="inventory-tile-content"><p>${escapeHtml(category)}</p><h2>${escapeHtml(item.name)}</h2><footer><span class="inventory-asset-location"><span>${escapeHtml(item.storageSlot ? "Slot: " + item.storageSlot : "Slot not assigned")}</span><small>${escapeHtml(item.assetCode)}</small></span><button type="button" data-open-equipment-admin aria-label="Details for ${escapeHtml(item.name)}">View details</button></footer></div>`;
+            card.tabIndex = 0;
+            card.setAttribute("role", "button");
+            card.setAttribute("aria-label", `View ${item.name}`);
+            card.addEventListener("click", event => {
+                if (!event.target.closest("button")) card.querySelector("[data-open-equipment-admin]").click();
+            });
+            card.addEventListener("keydown", event => {
+                if (event.target === card && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault();
+                    card.querySelector("[data-open-equipment-admin]").click();
+                }
+            });
             inventory.append(card);
         });
         renderShelves(items);
@@ -265,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (item.status === "RETURNED" && item.username !== page.dataset.username) action += '<button type="button" data-workflow="settlement" hidden>Record payment</button>';
             const label = { PENDING: 'Pending', APPROVED: 'Approved', BORROWED: 'In use', OVERDUE: 'Overdue', RETURNED: 'Returned', CANCELLED: 'Cancelled' }[item.status] || item.status;
             const note = item.rejectionReason ? "Rejected: " + item.rejectionReason : item.note?.trim();
-            card.innerHTML = `<header><div class="request-borrower">${borrowerAvatar(item)}<div><h2>${escapeHtml(item.username)}</h2><p>Request #${item.id} &middot; Borrowed: ${escapeHtml(item.borrowDate)} &middot; Due: ${escapeHtml(item.dueDate)}</p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${requestImage(asset)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}${asset.returnedOn ? " ? Returned " + escapeHtml(asset.returnedOn) : ""}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
+            card.innerHTML = `<header><div class="request-borrower">${borrowerAvatar(item)}<div><h2>${escapeHtml(item.username)}</h2><p class="management-request-dates"><span>Request #${item.id}</span><span>Borrowed: ${escapeHtml(item.borrowDate)}</span><span>Due: ${escapeHtml(item.dueDate)}</span></p></div></div><span class="admin-status ${statusClass(item.status)}">${escapeHtml(label)}</span></header><div class="request-management-equipment">${item.items.map(asset => `<div class="request-management-item"><div class="request-management-image">${requestImage(asset)}</div><div><h3>${escapeHtml(asset.equipmentName)}</h3><small>Quantity: ${asset.quantity}${asset.returnedOn ? " ? Returned " + escapeHtml(asset.returnedOn) : ""}</small>${asset.assetCode ? `<p class="request-asset-code">${escapeHtml(asset.assetCode)}</p>` : ''}</div></div>`).join('')}</div>${note ? `<div class="request-management-note"><strong>Note:</strong> ${escapeHtml(note)}</div>` : ''}${action ? `<footer>${item.status === 'RETURNED' ? '<span class="request-return-complete"><img src="/images/request-complete.svg" alt="">Return completed</span>' : ''}${action}</footer>` : ''}`;
             requestList.append(card);
             const paymentButton = card.querySelector('[data-workflow="settlement"]');
             if (paymentButton) {
@@ -277,6 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("[data-count-pending]").textContent = summary.pending;
         document.querySelector("[data-count-overdue]").textContent = summary.overdue;
         const work = summary.queue;
+        const attentionCount = document.querySelector("[data-attention-count]");
+        attentionCount.textContent = String(work.length);
+        attentionCount.hidden = !work.length;
+        attentionButton.setAttribute("aria-label", `Needs attention (${work.length})`);
         const personIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg>';
         const calendarIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/></svg>';
         document.getElementById("admin-recent-requests").innerHTML = work.slice(0, 6).map(item => {
@@ -286,8 +324,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const extra = item.items.length > 1 ? ` +${item.items.length - 1} more` : "";
 
             const label = { PENDING: "Pending", APPROVED: "Approved", OVERDUE: "Overdue" }[item.status];
-            return `<article class="management-queue-card"><header class="management-queue-heading"><div class="management-queue-image">${requestImage(first)}</div><div class="management-queue-title"><h3>${escapeHtml(first?.equipmentName || "Request #" + item.id)}</h3><p>${escapeHtml(category)}${escapeHtml(extra)}</p></div><span class="management-queue-status ${statusClass(item.status)}">${label}</span></header><dl><div><dt>${personIcon}Borrower:</dt><dd>${escapeHtml(item.username)}</dd></div><div><dt>${calendarIcon}Due Date:</dt><dd>${escapeHtml(item.dueDate)}</dd></div></dl><button type="button" data-queue-request="${item.id}" aria-label="More detail for request ${item.id}">More Detail</button></article>`;
+            return `<article class="management-queue-card"><header class="management-queue-heading"><div class="management-queue-image">${requestImage(first)}</div><div class="management-queue-title"><h3>${escapeHtml(first?.equipmentName || "Request #" + item.id)}</h3><p>${escapeHtml(category)}${escapeHtml(extra)}</p></div><span class="management-queue-status ${statusClass(item.status)}">${label}</span></header><dl><div><dt>${personIcon}Borrower:</dt><dd>${escapeHtml(item.username)}</dd></div><div><dt>${calendarIcon}Due Date:</dt><dd>${escapeHtml(item.dueDate)}</dd></div></dl><button type="button" data-queue-request="${item.id}" aria-label="View request ${item.id}">View request</button></article>`;
         }).join("") || '<p class="admin-empty-inline">All caught up. No requests need attention.</p>';
+        attentionPanel.querySelector(".admin-attention-content").innerHTML = document.getElementById("admin-recent-requests").innerHTML;
         filterRequests();
     }
     function updateRequestPaging(result) {
@@ -350,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (queued) {
             showView("requests");
             document.querySelectorAll('[data-admin-request-filter]').forEach(button => button.classList.toggle('active', button.dataset.adminRequestFilter === 'ALL'));
+            document.querySelector("[data-mobile-request-filter]").value = "ALL"; document.dispatchEvent(new Event("picker:sync"));
             requestPage = 0;
             await loadRequestPage();
             if (!requests.has(queued.dataset.queueRequest)) {
@@ -373,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (deleteButton) {
                 deleteButton.hidden = false;
                 deleteButton.disabled = true;
-                deleteButton.textContent = "Delete equipment";
+                deleteButton.textContent = "Delete";
                 deleteButton.title = "Checking whether this equipment can be deleted...";
             }
             const inspectedId = selectedEquipmentId;
@@ -447,7 +487,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     let searchTimer; search?.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { assetPage = 0; loadAssets().catch(e => showError(e.message)); }, 250); }); statusFilter?.addEventListener("change", () => { assetPage = 0; loadAssets().catch(e => showError(e.message)); });
     document.querySelectorAll("[data-admin-request-filter]").forEach(button => button.addEventListener("click", () => {
-        document.querySelectorAll("[data-admin-request-filter]").forEach(item => item.classList.toggle("active", item === button)); requestPage = 0; loadRequestPage();
+        document.querySelectorAll("[data-admin-request-filter]").forEach(item => item.classList.toggle("active", item === button)); document.querySelector("[data-mobile-request-filter]").value = button.dataset.adminRequestFilter; document.dispatchEvent(new Event("picker:sync")); requestPage = 0; loadRequestPage();
     }));
     document.querySelectorAll('.equipment-upload input[type=file]').forEach(input => {
         let previewUrl;
@@ -504,6 +544,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const form = document.createElement("form"); form.method = "POST"; form.action = "/logout";
         const token = document.createElement("input"); token.type = "hidden"; token.name = "_csrf"; token.value = document.querySelector('meta[name="_csrf"]').content;
         form.append(token); document.body.append(form); form.submit();
+    });
+    const mobileRequestFilter = document.querySelector("[data-mobile-request-filter]");
+    mobileRequestFilter.addEventListener("change", () => {
+        document.querySelector(`[data-admin-request-filter="${mobileRequestFilter.value}"]`)?.click();
     });
     showView(window.location.hash.slice(1) || (window.location.pathname === "/admin/users" ? "users" : "dashboard"));
     if (window.location.pathname.includes("/src/main/resources/templates/")) return;

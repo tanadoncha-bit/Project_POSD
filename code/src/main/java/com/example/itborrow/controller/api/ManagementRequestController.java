@@ -1,7 +1,10 @@
 package com.example.itborrow.controller.api;
 
 import com.example.itborrow.service.ManagementRequestQuery;
+
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class ManagementRequestController {
@@ -12,7 +15,8 @@ public class ManagementRequestController {
     }
 
     @GetMapping("/api/v1/borrow-requests/management")
-    public java.util.Map<String, Object> list(@RequestParam(defaultValue = "0") int page,
+    public Map<String, Object> list(
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "ALL") String status) {
         return query.load(page, status);
     }

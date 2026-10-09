@@ -393,3 +393,38 @@ document.addEventListener("click", async event => {
         window.location.reload();
     } catch (error) { toast.error(error.message); button.disabled = false; }
 });
+
+(() => {
+    function syncMobileFilter() {
+        const tabs = document.querySelector(".request-filter-tabs");
+        if (!tabs) return;
+        let label = document.querySelector(".mobile-history-filter");
+        if (!label) {
+            label = document.createElement("label");
+            label.className = "mobile-history-filter";
+            label.append(document.createTextNode("Request status"));
+            const select = document.createElement("select");
+            select.dataset.mobileHistoryFilter = "";
+            label.append(select);
+            tabs.before(label);
+        }
+        const select = label.querySelector("select");
+        select.replaceChildren(...Array.from(tabs.querySelectorAll("[data-request-filter]"), button => {
+            const option = document.createElement("option");
+            option.value = button.dataset.requestFilter;
+            const count = button.querySelector(".request-filter-count")?.textContent || "0";
+            const name = Array.from(button.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join("").trim();
+            option.textContent = `${name} (${count})`;
+            option.selected = button.classList.contains("active");
+            return option;
+        }));
+        document.dispatchEvent(new Event("picker:sync"));
+    }
+    document.addEventListener("DOMContentLoaded", syncMobileFilter);
+    document.addEventListener("requests:updated", syncMobileFilter);
+    document.addEventListener("change", event => {
+        if (event.target.matches("[data-mobile-history-filter]")) {
+            document.querySelector(`[data-request-filter="${event.target.value}"]`)?.click();
+        }
+    });
+})();

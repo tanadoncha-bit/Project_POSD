@@ -9,9 +9,24 @@
     try { const saved = JSON.parse(sessionStorage.getItem(key) || "[]"); if (authenticated() && Array.isArray(saved)) items = saved.filter(x => Number.isSafeInteger(x.id) && x.id > 0 && typeof x.name === "string"); } catch { }
     function node(tag, text, className) { const el = document.createElement(tag); if (text) el.textContent = text; if (className) el.className = className; return el; }
     const launcher = node("button", "", "borrow-list-launcher"); launcher.type = "button";
+    const launcherIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    launcherIcon.setAttribute("viewBox", "0 0 24 24");
+    launcherIcon.setAttribute("aria-hidden", "true");
+    launcherIcon.innerHTML = '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>';
+    const launcherCount = node("span", "", "borrow-list-count");
+    launcher.append(launcherIcon, launcherCount);
+    function placeLauncher() {
+        const actions = document.querySelector(".site-header .header-actions");
+        if (actions) { actions.prepend(launcher); launcher.classList.add("borrow-list-header"); return true; }
+        return false;
+    }
     document.body.append(launcher);
+    if (!placeLauncher()) {
+        const headerObserver = new MutationObserver(() => { if (placeLauncher()) headerObserver.disconnect(); });
+        headerObserver.observe(document.body, { childList: true, subtree: true });
+    }
     function save() { try { sessionStorage.setItem(key, JSON.stringify(items)); } catch { } update(); }
-    function update() { launcher.textContent = `Borrowing list (${items.length})`; }
+    function update() { launcherCount.textContent = String(items.length); launcher.setAttribute("aria-label", `Borrowing list (${items.length})`); launcher.title = `Borrowing list (${items.length})`; }
     async function validateSavedItems() {
         if (!authenticated() || !items.length) return;
         const checks = await Promise.all(items.map(async item => {
@@ -173,7 +188,7 @@
         render();
     }
     window.borrowList = { showDetails: details, removeMany(ids) { const selected = new Set(ids.map(String)); items = items.filter(x => !selected.has(String(x.id))); save(); }, open: openList };
-    launcher.onclick = openList; update();
+    launcher.onclick = () => { document.dispatchEvent(new CustomEvent("header-menu-open", { detail: "borrow-list" })); openList(); }; update();
     async function resumePendingAdd() {
         if (!authenticated()) return;
         let pending;

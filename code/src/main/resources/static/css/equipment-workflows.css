@@ -726,10 +726,24 @@
     letter-spacing: .04em;
 }
 
-.request-pickup-action {
+.request-action.request-pickup-action {
     background: #008309;
     color: #fff;
     border-color: #008309;
+}
+
+@media (hover: hover) {
+    .request-action.request-pickup-action:hover:not(:disabled) {
+        background: #006b08;
+        border-color: #006b08;
+        color: #fff;
+    }
+}
+
+.request-action.request-pickup-action:active:not(:disabled) {
+    background: #005906;
+    border-color: #005906;
+    color: #fff;
 }
 
 .request-pickup-action:disabled {
@@ -1908,7 +1922,10 @@ body:has(#search-overlay:not([hidden])) .borrow-list-launcher {
 
 .profile-loan-column .profile-loan-image img {
     display: block;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     background: #f6f6f6;
 }
 
@@ -2502,3 +2519,372 @@ body.modal-open .borrow-list-launcher {
     :is(.borrow-item-dialog, .borrow-list-drawer)>footer button { width: 100%; min-height: 48px; }
 }
 
+@media (max-width: 600px) {
+    .admin-page .admin-shell {
+        margin-left: 58px;
+        width: calc(100% - 58px);
+        max-width: calc(100% - 58px);
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .admin-page :is(.admin-main, .admin-view, .user-management, .request-management-heading) {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .admin-page .admin-main { padding: 20px 14px; }
+    .admin-page .admin-filter-tabs {
+        flex-wrap: wrap;
+        overflow: visible;
+        gap: 6px;
+        min-width: 0;
+    }
+    .admin-page .admin-filter-tabs button { flex: 1 0 28%; min-height: 44px; padding: 8px; }
+    .user-management .user-table-scroll { overflow: visible; border: 0; }
+    .user-management :is(table, .user-accounts-table) {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        table-layout: auto;
+    }
+    .user-management thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+    .user-management tbody { display: grid; gap: 12px; }
+    .user-management tbody tr {
+        display: grid;
+        min-width: 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 12px;
+        background: #fff;
+    }
+    .user-management :is(.user-accounts-table, .user-history-panel table) td {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+        width: auto;
+        padding: 8px 0;
+        border: 0;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+    .user-management td[data-label]::before {
+        content: attr(data-label);
+        color: #777;
+        font-size: 12px;
+        flex: 0 0 100%;
+    }
+    .user-management .user-account-identity,
+    .user-management .user-account-identity>div,
+    .user-management .user-role-form { min-width: 0; width: 100%; }
+    .user-management .user-role-form { display: flex; flex-wrap: wrap; gap: 8px; }
+    .user-management .user-role-form label { min-width: 0; flex: 1; }
+    .user-management .user-role-form :is(select, .picker-trigger) { width: 100%; min-width: 0; }
+    .user-management .user-history-panel { margin-inline: 0; padding: 14px; }
+    .admin-page .request-borrower { min-width: 0; }
+    .admin-page .request-borrower>div { min-width: 0; }
+    .admin-page .request-borrower :is(h2, p),
+    .admin-page .request-management-item h3 { overflow-wrap: anywhere; }
+    .admin-page .management-shelf-items { max-width: 100%; }
+    .admin-page .management-shelves::before,
+    .admin-page .management-shelves::after { display: none; }
+    .admin-page .management-shelves { padding-inline: 0; }
+    .return-receipt {
+        top: var(--modal-viewport-top, 0px);
+        width: calc(100% - 24px);
+        max-width: calc(100% - 24px);
+        max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
+    }
+    .return-receipt .receipt-item-heading { flex-wrap: wrap; gap: 8px; }
+}
+@media (max-width: 600px) {
+    .admin-page .admin-filter-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-radius: 16px;
+        padding: 6px;
+    }
+    .admin-page .admin-filter-tabs button { min-width: 0; }
+}
+@media (max-width: 600px) {
+    .admin-page .request-management-heading .admin-filter-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-radius: 16px;
+        padding: 6px;
+    }
+}
+
+/* Compact request history on phones; keep desktop layout unchanged. */
+@media (max-width: 600px) {
+    body[data-page="requests"] .request-history-page { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+    body[data-page="requests"] .request-history-heading { margin-bottom: 20px; }
+    body[data-page="requests"] .request-filter-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        overflow-x: visible;
+        gap: 8px;
+        padding: 0;
+        margin-bottom: 18px;
+        scrollbar-width: none;
+    }
+    body[data-page="requests"] .request-filter-tabs::-webkit-scrollbar { display: none; }
+    body[data-page="requests"] .request-filter-button { flex: 0 0 auto; min-height: 44px; white-space: nowrap; padding: 10px 16px; }
+    body[data-page="requests"] .request-card { padding: 0; border-radius: 18px; box-shadow: none; }
+    body[data-page="requests"] .request-card-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 10px; padding: 16px; margin-bottom: 0; }
+    body[data-page="requests"] .request-card-heading { gap: 12px; min-width: 0; }
+    body[data-page="requests"] .request-card-heading p { font-size: 12px; line-height: 1.5; }
+    body[data-page="requests"] .request-date-line { display: block; }
+    body[data-page="requests"] .request-date-separator { display: none; }
+    body[data-page="requests"] .request-card-status-area { flex-direction: column; flex-wrap: nowrap; align-items: flex-end; justify-content: flex-start; width: auto; gap: 6px; }
+    body[data-page="requests"] .request-locker-pin { padding: 8px 12px; }
+    body[data-page="requests"] .request-equipment-item { padding: 12px; gap: 12px; grid-template-columns: 80px minmax(0, 1fr); }
+    body[data-page="requests"] .request-item-image { width: 80px; height: 72px; }
+    body[data-page="requests"] .request-item-content h3 { white-space: normal; overflow-wrap: anywhere; }
+    body[data-page="requests"] .request-card-actions { margin-top: 0; padding: 0 16px 16px; }
+    body[data-page="requests"] .request-card-actions .request-action { min-height: 44px; width: 100%; }
+    body[data-page="requests"] .request-item-list { padding: 12px 16px; gap: 10px; }
+    body[data-page="requests"] .request-history-page { padding-top: 24px; }
+    body[data-page="requests"] .request-history-heading h1 { font-size: 28px; }
+    body[data-page="requests"] .request-filter-button { padding: 9px 12px; font-size: 12px; }
+    body[data-page="requests"] .request-equipment-item { border-radius: 14px; }
+    body[data-page="requests"] .borrow-list-launcher { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; }
+}
+
+@media (max-width: 600px) {
+    .admin-page .management-shelves {
+        border: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    .admin-page .management-shelf {
+        margin-bottom: 12px;
+        padding: 14px;
+        border: 1px solid #e0e3e7;
+        border-radius: 16px;
+        background: #fff;
+    }
+
+    .admin-page .management-shelf > header { padding: 0 0 12px; }
+    .admin-page .management-shelf-items {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-height: 0;
+        padding: 0;
+        gap: 12px;
+        overflow: visible;
+    }
+    .admin-page .management-shelf-item { min-width: 0; width: 100%; }
+    .admin-page .management-shelf-item strong { white-space: normal; overflow-wrap: anywhere; }
+    .admin-page .shelf-device { max-width: 100%; }
+    .admin-page .management-shelf-board { display: none; }
+    .admin-page .management-shelf-empty { grid-column: 1 / -1; margin: 0; padding: 8px 0; min-height: 0; }
+    .admin-page .management-shelf.is-empty > header { padding-bottom: 4px; }
+    .admin-page .management-overview { gap: 20px; }
+    .admin-page .management-queue-card { padding: 14px; border-radius: 18px; margin-bottom: 12px; }
+    .admin-page .management-queue-heading { flex-wrap: wrap; gap: 10px; }
+    .admin-page .management-queue-title { min-width: 0; }
+    .admin-page .management-queue-title h3 { font-size: 14px; overflow-wrap: anywhere; }
+    .admin-page .management-queue-card dl { margin-block: 12px; padding: 10px; }
+    .admin-page .management-queue-card dd { overflow-wrap: anywhere; }
+    .admin-page .management-queue-card > button { min-height: 44px; font-size: 14px; border-radius: 12px; }
+}
+
+.admin-attention-toggle { display: none; }
+@media (max-width: 600px) {
+    .admin-page .admin-attention-toggle { display: inline-flex; position: relative; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: #161616; margin-left: auto; }
+    .admin-attention-toggle svg { width: 24px; height: 24px; }
+    .admin-attention-toggle span { position: absolute; top: 1px; right: 0; min-width: 17px; padding: 1px 4px; border-radius: 999px; background: #ff7a20; color: #fff; font-size: 10px; }
+    .admin-page .admin-sidebar { position: fixed; top: auto; bottom: 0; left: 0; width: 100%; height: auto; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); transform: none; border: 0; border-top: 1px solid #e0e3e7; background: #fff; z-index: 100; }
+    .admin-page .admin-navigation { display: flex; flex-direction: row; width: 100%; gap: 4px; }
+    .admin-page .admin-navigation a { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: auto; height: 54px; padding: 6px 2px; border-radius: 12px; }
+    .admin-page .admin-navigation a span { display: block; font-size: 10px; line-height: 1.2; }
+    .admin-page .admin-navigation a.active { color: #d85b12; background: #fff3e9; }
+    .admin-page .admin-back-to-catalog { display: none; }
+    .admin-page .admin-shell { margin-left: 0; width: 100%; max-width: 100%; padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .admin-page .management-work-queue { display: none; }
+    .admin-page .admin-mobile-menu { display: none; }
+}
+
+@media (max-width: 600px) {
+    .admin-page .admin-profile-dropdown { margin-left: 0; }
+    .admin-page > .admin-topbar { gap: 8px; }
+    .admin-page .admin-stat-grid { gap: 10px; }
+    .admin-page .admin-stat-card {
+        min-height: 0;
+        height: auto;
+        padding: 14px 16px;
+        border-radius: 14px;
+    }
+    .admin-page .admin-stat-card strong { font-size: 26px; margin-top: 4px; }
+}
+
+.admin-attention-page .admin-attention-content { padding: 0; }
+.attention-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 8px; padding: 8px 12px; border: 1px solid #e0e3e7; border-radius: 12px; background: #fff; color: #161616; font: inherit; cursor: pointer; }
+
+.attention-heading-row { display: flex; align-items: center; gap: 12px; }
+.admin-attention-page .attention-back { margin: 0; width: 44px; height: 44px; padding: 10px; justify-content: center; flex-shrink: 0; }
+.admin-attention-page .attention-heading-row h1 { margin: 0; }
+.admin-attention-page .admin-page-heading p { margin-top: 10px; font-size: 14px; line-height: 1.5; }
+.admin-page .admin-attention-toggle[aria-pressed="true"] { color: #d85b12; background: #fff3e9; }
+
+@media (max-width: 600px) {
+    .admin-page .inventory-toolbar { gap: 12px; margin-bottom: 16px; }
+    .admin-page .inventory-result-count { font-size: 12px; }
+    .admin-page .admin-inventory-grid { grid-template-columns: 1fr; gap: 12px; }
+    .admin-page .inventory-tile { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px; border-radius: 16px; }
+    .admin-page .inventory-tile-image { width: 96px; height: 96px; min-height: 0; aspect-ratio: 1; border-radius: 12px; background: #f7f8fa; }
+    .admin-page .inventory-tile-image .management-no-image { font-size: 12px; }
+    .admin-page .inventory-tile-status { top: 8px; right: 8px; font-size: 10px; padding: 4px 8px; }
+    .admin-page .inventory-tile-content { padding: 24px 0 0; min-width: 0; }
+    .admin-page .inventory-tile-content h2 { font-size: 15px; white-space: normal; overflow-wrap: anywhere; }
+    .admin-page .inventory-tile-content footer { flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 0; border-top: 0; }
+    .admin-page .inventory-tile-content footer button { min-height: 44px; padding: 8px 0; border: 0; border-radius: 6px; background: transparent; color: #515861; }
+    .admin-page .inventory-tile-image img { object-fit: cover; object-position: center; }
+    .admin-page #equipment-admin-modal .admin-detail-image { height: 180px; border: 0; background: #f7f8fa; border-radius: 14px; }
+    .admin-page #equipment-admin-modal .admin-detail-image img { object-fit: cover; object-position: center; }
+    .admin-page #equipment-admin-modal .admin-detail-layout { gap: 12px; }
+    .admin-page #equipment-admin-modal .admin-detail-info dl > div { padding-block: 8px; }
+    .admin-page #equipment-admin-modal .admin-detail-info dd { min-width: 0; overflow-wrap: anywhere; }
+    .admin-page #equipment-admin-modal .admin-detail-specs { margin-block: 16px; }
+    .admin-page #equipment-admin-modal footer { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+    .admin-page #equipment-admin-modal footer button { flex: 1; min-width: 0; min-height: 44px; padding: 10px 12px; font-size: 14px; white-space: nowrap; }
+}
+
+@media (max-width: 600px) {
+    .admin-page #equipment-admin-modal .admin-detail-info dl { margin-top: 8px; }
+    .admin-page #equipment-admin-modal .admin-detail-specs h3 { font-size: 15px; margin-bottom: 8px; }
+    .admin-page #equipment-admin-modal .admin-detail-specs dt,
+    .admin-page #equipment-admin-modal .admin-detail-specs dd { line-height: 1.5; font-size: 13px; }
+    .admin-page #equipment-admin-modal footer .admin-danger-action { border: 0; background: transparent; color: #b54740; }
+}
+
+@media (max-width: 600px) {
+    .admin-page .inventory-heading { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .admin-page .inventory-heading h1 { font-size: 24px; }
+    .admin-page .inventory-heading p { font-size: 13px; line-height: 1.5; }
+    .admin-page .inventory-heading > button { width: auto; min-height: 44px; padding: 10px 16px; border-radius: 12px; }
+    .admin-page .inventory-toolbar input,
+    .admin-page .inventory-toolbar select { min-height: 44px; height: 44px; padding: 10px 12px; font-size: 14px; }
+    .admin-page .inventory-toolbar .picker-trigger { min-height: 44px; height: 44px; padding: 10px 12px; font-size: 14px; }
+    .admin-page .inventory-toolbar label { font-size: 12px; gap: 6px; }
+    .admin-page #equipment-admin-modal footer { justify-content: space-between; }
+    .admin-page #equipment-admin-modal footer .admin-danger-action { flex: 0 1 auto; padding-inline: 12px; }
+    .admin-page #equipment-admin-modal footer [data-open-admin-modal] { flex: 0 1 140px; }
+}
+
+@media (max-width: 600px) {
+    .admin-page .inventory-heading { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: start; gap: 12px; }
+    .admin-page .inventory-heading > div { min-width: 0; }
+    .admin-page .inventory-heading h1 { font-size: clamp(20px, 4.7vw, 24px); line-height: 1.3; }
+    .admin-page .inventory-heading > button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 10px; border-radius: 12px; }
+    .admin-page .inventory-heading .add-equipment-label { display: none; }
+}
+
+.admin-page .inventory-tile { cursor: pointer; }
+.admin-page .inventory-tile:focus-visible { outline: 2px solid #ff7a20; outline-offset: 3px; }
+@media (max-width: 600px) {
+    .admin-page .inventory-tile-status { top: 44px; right: 12px; }
+    .admin-page .inventory-tile-content { padding-top: 0; padding-right: 58px; }
+    .admin-page .inventory-tile-content footer button { display: none; }
+}
+
+.management-request-dates { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+@media (max-width: 600px) {
+    .admin-page .request-management-heading { width: 100%; display: block; }
+    .admin-page .request-management-heading .admin-filter-tabs {
+        width: 100%; max-width: none; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; padding: 0; margin: 16px 0; border-radius: 0; background: transparent;
+    }
+    .admin-page .request-management-heading .admin-filter-tabs button {
+        flex: 0 0 auto; min-height: 44px; padding: 9px 14px; border: 1px solid #e0e3e7; border-radius: 999px; background: #fff; font-size: 12px;
+    }
+    .admin-page .request-management-heading .admin-filter-tabs button.active { background: #161616; color: #fff; border-color: #161616; }
+    .admin-page .admin-request-card > header { align-items: flex-start; gap: 12px; padding: 16px; }
+    .admin-page .admin-request-card .request-borrower { align-items: flex-start; }
+    .admin-page .management-request-dates { display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.5; }
+    .admin-page .admin-request-card > header > .admin-status { font-size: 11px; padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
+    .admin-page .admin-request-card > footer { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+    .admin-page .admin-request-card > footer button { flex: 1; width: auto; min-width: 0; min-height: 44px; }
+    .admin-page .admin-request-card > footer button[data-workflow="reject"] { background: #fff; color: #b54740; border: 1px solid #edcbc7; }
+}
+
+@media (max-width: 600px) {
+    .admin-page [data-admin-panel="inventory"] {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 44px;
+        column-gap: 12px;
+        align-items: start;
+    }
+    .admin-page [data-admin-panel="inventory"][hidden] { display: none; }
+    .admin-page .inventory-heading {
+        grid-column: 2;
+        grid-row: 1;
+        display: block;
+        margin: 0;
+        padding-top: 22px;
+    }
+    .admin-page .inventory-heading > div { display: none; }
+    .admin-page .inventory-toolbar {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        margin: 0 0 16px;
+    }
+    .admin-page .inventory-toolbar .inventory-search {
+        grid-column: 1 / -1;
+        margin-right: 56px;
+    }
+    .admin-page .inventory-toolbar > label:not(.inventory-search) { grid-column: 1; }
+    .admin-page .inventory-toolbar .inventory-result-count { grid-column: 2; align-self: end; padding-bottom: 12px; }
+    .admin-page [data-admin-panel="inventory"] > :is(.admin-inventory-grid, #admin-inventory-empty, .equipment-pagination) { grid-column: 1 / -1; }
+    .admin-page .inventory-heading > button { position: relative; z-index: 1; }
+}
+
+@media (max-width: 600px) {
+    .admin-attention-page .admin-page-heading p { display: none; }
+}
+
+.mobile-request-filter { display: none; }
+@media (max-width: 600px) {
+    .admin-page .request-management-heading > .admin-page-heading,
+    .admin-page .request-management-heading .admin-filter-tabs { display: none; }
+    .admin-page .mobile-request-filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; color: #737b85; font-size: 12px; }
+    .admin-page .mobile-request-filter select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #e0e3e7; border-radius: 12px; background: #fff; color: #161616; font: inherit; font-size: 14px; }
+}
+
+@media (max-width: 600px) {
+    .user-management .user-management-heading { display: none; }
+    .user-management .user-accounts-table tbody tr { position: relative; }
+    .user-management .user-accounts-table td[data-label="Current role"] {
+        position: absolute;
+        top: 14px;
+        right: 12px;
+        padding: 0;
+    }
+    .user-management .user-accounts-table td[data-label="Current role"]::before,
+    .user-management .user-accounts-table td[data-label="Actions"]::before { display: none; }
+    .user-management .user-accounts-table td[data-label="Account"] { padding-right: 64px; }
+    .user-management .user-account-identity { align-items: flex-start; }
+    .user-management .user-account-identity > div { min-width: 0; }
+    .user-management .user-account-email { overflow-wrap: anywhere; }
+    .user-management .user-role-form { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; }
+    .user-management .user-role-form > label { flex: 0 1 140px; min-width: 0; }
+}
+
+.mobile-history-filter { display: none; }
+@media (max-width: 600px) {
+    body[data-page="requests"] .request-filter-tabs { display: none; }
+    .mobile-history-filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; font-size: 12px; color: #737b85; }
+    .mobile-history-filter .picker-trigger { min-height: 44px; }
+}

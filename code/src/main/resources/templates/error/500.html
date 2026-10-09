@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -26,6 +26,8 @@
             เกิดข้อผิดพลาดภายในระบบ
             กรุณาลองใหม่อีกครั้งในภายหลัง
         </p>
+
+        <p th:if="${requestId != null}">เลขอ้างอิง: <span th:text="${requestId}"></span></p>
 
         <div class="error-actions">
 

@@ -1,16 +1,19 @@
 package com.example.itborrow.service.impl;
 
-import com.example.itborrow.service.*;
-import com.example.itborrow.repository.*;
-import com.example.itborrow.mapper.CategoryMapper;
-import com.example.itborrow.dto.request.CategoryRequestDto;
-import com.example.itborrow.dto.response.CategoryResponseDto;
 import com.example.itborrow.domain.entity.EquipmentCategory;
 import com.example.itborrow.domain.enums.Role;
+import com.example.itborrow.dto.request.CategoryRequestDto;
+import com.example.itborrow.dto.response.CategoryResponseDto;
 import com.example.itborrow.exception.*;
+import com.example.itborrow.mapper.CategoryMapper;
+import com.example.itborrow.repository.*;
+import com.example.itborrow.service.*;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.access.AccessDeniedException;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,8 +25,11 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper mapper;
     private final CurrentUser current;
 
-    public CategoryServiceImpl(EquipmentCategoryRepository categories, EquipmentRepository equipment,
-            CategoryMapper mapper, CurrentUser current) {
+    public CategoryServiceImpl(
+            EquipmentCategoryRepository categories,
+            EquipmentRepository equipment,
+            CategoryMapper mapper,
+            CurrentUser current) {
         this.categories = categories;
         this.equipment = equipment;
         this.mapper = mapper;
@@ -36,12 +42,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private EquipmentCategory entity(Long id) {
-        return categories.findById(id).orElseThrow(() -> ResourceNotFoundException.of("Category", id));
+        return categories
+                .findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Category", id));
     }
 
     public List<CategoryResponseDto> list() {
-        return categories.findAll(org.springframework.data.domain.Sort.by("name", "id")).stream()
-                .map(mapper::toResponse).toList();
+        return categories.findAll(Sort.by("name", "id")).stream().map(mapper::toResponse).toList();
     }
 
     public CategoryResponseDto get(Long id) {
@@ -51,7 +58,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryResponseDto create(CategoryRequestDto dto) {
         requireAdmin();
-        return mapper.toResponse(categories.save(new EquipmentCategory(dto.name().trim(), dto.description())));
+        return mapper.toResponse(
+                categories.save(new EquipmentCategory(dto.name().trim(), dto.description())));
     }
 
     @Transactional
@@ -68,12 +76,14 @@ public class CategoryServiceImpl implements CategoryService {
         requireAdmin();
         var category = entity(id);
         if (equipment.existsByCategoryId(id))
-            throw new InvalidBorrowStateException("Move equipment out of this category before deleting it.");
+            throw new InvalidBorrowStateException(
+                    "Move equipment out of this category before deleting it.");
         categories.delete(category);
         categories.flush();
     }
 
     public Map<Long, String> names() {
-        return list().stream().collect(Collectors.toMap(CategoryResponseDto::id, CategoryResponseDto::name));
+        return list().stream()
+                .collect(Collectors.toMap(CategoryResponseDto::id, CategoryResponseDto::name));
     }
 }

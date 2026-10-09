@@ -16,24 +16,19 @@ public class EquipmentCategory {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // Default Constructor
-    public EquipmentCategory() {
-    }
+    public EquipmentCategory() {}
 
-    // Constructor
     public EquipmentCategory(Long id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    // Constructor
     public EquipmentCategory(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }

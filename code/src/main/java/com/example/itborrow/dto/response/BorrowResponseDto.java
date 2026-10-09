@@ -1,13 +1,17 @@
 package com.example.itborrow.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 public class BorrowResponseDto {
 
-    public record FeePolicy(java.math.BigDecimal dailyFine, Integer graceDays, java.math.BigDecimal scratchRate,
-            java.math.BigDecimal damageRate, java.math.BigDecimal lossRate) {
-    }
+    public record FeePolicy(
+            BigDecimal dailyFine,
+            Integer graceDays,
+            BigDecimal scratchRate,
+            BigDecimal damageRate,
+            BigDecimal lossRate) {}
 
     private FeePolicy feePolicy;
 
@@ -30,8 +34,7 @@ public class BorrowResponseDto {
     private String note;
     private List<BorrowItemResponseDto> items;
 
-    private BorrowResponseDto() {
-    }
+    private BorrowResponseDto() {}
 
     public static Builder builder() {
         return new Builder();

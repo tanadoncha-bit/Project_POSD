@@ -1,11 +1,14 @@
 package com.example.itborrow.controller.api;
 
-import com.example.itborrow.service.CategoryService;
 import com.example.itborrow.dto.request.CategoryRequestDto;
 import com.example.itborrow.dto.response.CategoryResponseDto;
+import com.example.itborrow.service.CategoryService;
+
 import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
 import java.util.List;
 
@@ -31,11 +34,13 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<CategoryResponseDto> create(@Valid @RequestBody CategoryRequestDto dto) {
         var created = categories.create(dto);
-        return ResponseEntity.created(URI.create("/api/v1/categories/" + created.id())).body(created);
+        return ResponseEntity.created(URI.create("/api/v1/categories/" + created.id()))
+                .body(created);
     }
 
     @PutMapping("/{id}")
-    public CategoryResponseDto update(@PathVariable Long id, @Valid @RequestBody CategoryRequestDto dto) {
+    public CategoryResponseDto update(
+            @PathVariable Long id, @Valid @RequestBody CategoryRequestDto dto) {
         return categories.update(id, dto);
     }
 

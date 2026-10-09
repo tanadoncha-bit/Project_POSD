@@ -216,6 +216,7 @@ function initializeMobileMenu() {
         );
 
     function setMenuOpen(isOpen) {
+        if (isOpen) document.dispatchEvent(new CustomEvent("header-menu-open", { detail: "navigation" }));
         document.body.classList.toggle(
             "menu-open",
             isOpen
@@ -233,6 +234,10 @@ function initializeMobileMenu() {
                 : "Open menu"
         );
     }
+
+    document.addEventListener("header-menu-open", (event) => {
+        if (event.detail !== "navigation") setMenuOpen(false);
+    });
 
     menuButton?.addEventListener(
         "click",
@@ -255,10 +260,23 @@ function initializeMobileMenu() {
         }
     );
 
+    document.addEventListener("click", (event) => {
+        if (!menuButton?.contains(event.target) && !navigation?.contains(event.target)) {
+            setMenuOpen(false);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && document.body.classList.contains("menu-open")) {
+            setMenuOpen(false);
+            menuButton?.focus();
+        }
+    });
+
     window.addEventListener(
         "resize",
         () => {
-            if (window.innerWidth > 900) {
+            if (window.innerWidth > 1000) {
                 setMenuOpen(false);
             }
         }
@@ -287,6 +305,7 @@ function initializeProfileMenu() {
             return;
         }
 
+        if (isOpen) document.dispatchEvent(new CustomEvent("header-menu-open", { detail: "profile" }));
         profileMenu.hidden = !isOpen;
 
         profileTrigger.setAttribute(
@@ -294,6 +313,10 @@ function initializeProfileMenu() {
             String(isOpen)
         );
     }
+
+    document.addEventListener("header-menu-open", (event) => {
+        if (event.detail !== "profile") setProfileMenuOpen(false);
+    });
 
     profileDropdown?.addEventListener("keydown", event => {
         if (event.key === "Escape" && !profileMenu.hidden) {
@@ -339,6 +362,7 @@ function setModalOpen(modalId, isOpen) {
         return;
     }
 
+    if (isOpen) document.dispatchEvent(new CustomEvent("header-menu-open", { detail: "modal" }));
     modal.hidden = !isOpen;
 
     const hasOpenModal =

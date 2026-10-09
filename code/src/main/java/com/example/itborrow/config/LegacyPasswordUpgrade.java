@@ -1,16 +1,13 @@
 package com.example.itborrow.config;
 
 import com.example.itborrow.repository.UserRepository;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Upgrade the original seed's plaintext passwords without resetting accounts or
- * logging secrets.
- */
 @Component
 public class LegacyPasswordUpgrade implements ApplicationRunner {
     private final UserRepository users;

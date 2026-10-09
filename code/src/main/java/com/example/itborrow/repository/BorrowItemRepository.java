@@ -1,6 +1,7 @@
 package com.example.itborrow.repository;
 
 import com.example.itborrow.domain.entity.BorrowItem;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

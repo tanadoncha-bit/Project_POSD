@@ -3,18 +3,24 @@ package com.example.itborrow.domain.state;
 import com.example.itborrow.domain.entity.BorrowRequest;
 import com.example.itborrow.domain.enums.BorrowStatus;
 import com.example.itborrow.exception.InvalidBorrowStateException;
+
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Component
 public class BorrowedState implements BorrowState {
-    private final java.time.Clock clock;
-    public BorrowedState(java.time.Clock clock) { this.clock = clock; }
-    public java.util.Set<com.example.itborrow.domain.enums.BorrowStatus> supports() {
-        return java.util.Set.of(com.example.itborrow.domain.enums.BorrowStatus.BORROWED);
+    private final Clock clock;
+
+    public BorrowedState(Clock clock) {
+        this.clock = clock;
     }
 
+    public Set<BorrowStatus> supports() {
+        return Set.of(BorrowStatus.BORROWED);
+    }
 
     @Override
     public void approve(BorrowRequest request) {
@@ -36,7 +42,8 @@ public class BorrowedState implements BorrowState {
     @Override
     public void cancel(BorrowRequest request) {
         throw new InvalidBorrowStateException(
-                "ไม่สามารถยกเลิกได้ เพราะรับอุปกรณ์ไปแล้ว ต้องทำเรื่องคืนแทน (สถานะปัจจุบัน: BORROWED)");
+                "ไม่สามารถยกเลิกได้ เพราะรับอุปกรณ์ไปแล้ว ต้องทำเรื่องคืนแทน (สถานะปัจจุบัน:"
+                        + " BORROWED)");
     }
 
     @Override

@@ -1,14 +1,18 @@
 package com.example.itborrow.service.impl;
 
-import com.example.itborrow.service.*;
-
 import com.example.itborrow.repository.AvatarRepository;
+import com.example.itborrow.service.*;
 import com.example.itborrow.service.storage.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AvatarServiceImpl implements AvatarService {
@@ -16,9 +20,12 @@ public class AvatarServiceImpl implements AvatarService {
     private final ImageStorage storage;
     private final AvatarImageProcessor processor;
     private final TransactionTemplate transactions;
-    private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AvatarService.class);
+    private final Logger log = LoggerFactory.getLogger(AvatarService.class);
 
-    public AvatarServiceImpl(AvatarRepository avatars, ImageStorage storage, AvatarImageProcessor processor,
+    public AvatarServiceImpl(
+            AvatarRepository avatars,
+            ImageStorage storage,
+            AvatarImageProcessor processor,
             PlatformTransactionManager manager) {
         this.avatars = avatars;
         this.storage = storage;
@@ -26,24 +33,24 @@ public class AvatarServiceImpl implements AvatarService {
         this.transactions = new TransactionTemplate(manager);
     }
 
-    private record CachedUrl(String value, long expiresAt) {
-    }
+    private record CachedUrl(String value, long expiresAt) {}
 
-    private final java.util.concurrent.ConcurrentHashMap<String, CachedUrl> urlCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CachedUrl> urlCache = new ConcurrentHashMap<>();
 
     private String cachedUrl(String path) {
-        if (urlCache.size() >= 512 && !urlCache.containsKey(path))
-            urlCache.clear();
-        return urlCache.compute(path, (key, entry) -> {
-            long now = System.currentTimeMillis();
-            if (entry != null && entry.expiresAt() > now)
-                return entry;
-            try {
-                return new CachedUrl(storage.readUrl(key), now + 50 * 60 * 1000L);
-            } catch (StorageException ex) {
-                return new CachedUrl(null, now + 10 * 1000L);
-            }
-        }).value();
+        if (urlCache.size() >= 512 && !urlCache.containsKey(path)) urlCache.clear();
+        return urlCache.compute(
+                        path,
+                        (key, entry) -> {
+                            long now = System.currentTimeMillis();
+                            if (entry != null && entry.expiresAt() > now) return entry;
+                            try {
+                                return new CachedUrl(storage.readUrl(key), now + 50 * 60 * 1000L);
+                            } catch (StorageException ex) {
+                                return new CachedUrl(null, now + 10 * 1000L);
+                            }
+                        })
+                .value();
     }
 
     public String url(Long id) {
@@ -72,18 +79,19 @@ public class AvatarServiceImpl implements AvatarService {
         storage.upload(path, bytes);
         String previous;
         try {
-            previous = transactions.execute(tx -> {
-                avatars.lock(id);
-                String old = avatars.path(id);
-                avatars.setPath(id, path);
-                return old;
-            });
+            previous =
+                    transactions.execute(
+                            tx -> {
+                                avatars.lock(id);
+                                String old = avatars.path(id);
+                                avatars.setPath(id, path);
+                                return old;
+                            });
         } catch (RuntimeException ex) {
             cleanup(path);
             throw ex;
         }
-        if (previous != null)
-            cleanup(previous);
+        if (previous != null) cleanup(previous);
     }
 
     private void cleanup(String path) {

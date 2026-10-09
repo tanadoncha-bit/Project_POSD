@@ -1,8 +1,10 @@
 package com.example.itborrow.controller.api;
 
 import com.example.itborrow.service.EmailVerificationService;
-import org.springframework.web.bind.annotation.*;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RestController
@@ -25,8 +27,7 @@ public class EmailVerificationController {
         service.request();
     }
 
-    public record Code(String token) {
-    }
+    public record Code(String token) {}
 
     @PostMapping("/confirm")
     @ResponseStatus(HttpStatus.NO_CONTENT)

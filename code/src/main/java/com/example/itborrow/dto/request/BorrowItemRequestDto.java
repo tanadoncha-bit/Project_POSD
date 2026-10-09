@@ -11,8 +11,7 @@ public class BorrowItemRequestDto {
     @Min(value = 1, message = "quantity ต้องมากกว่า 0")
     private int quantity = 1;
 
-    public BorrowItemRequestDto() {
-    }
+    public BorrowItemRequestDto() {}
 
     public BorrowItemRequestDto(Long equipmentId, int quantity) {
         this.equipmentId = equipmentId;

@@ -90,15 +90,15 @@
               </h2>
 
               <p>
-                <span>Borrowed: </span><span th:text="${request.borrowDate}">
+                <span class="request-date-line"><span>Borrowed: </span><span th:text="${request.borrowDate}">
                   Borrow date
                 </span>
 
-                <span aria-hidden="true"> | </span><span>Due: </span>
+                </span><span class="request-date-separator" aria-hidden="true"> | </span><span class="request-date-line"><span>Due: </span>
 
                 <span th:text="${request.dueDate}">
                   Due date
-                </span>
+                </span></span>
               </p>
 
             </div>

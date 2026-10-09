@@ -3,13 +3,16 @@ package com.example.itborrow.controller.api;
 import com.example.itborrow.dto.request.BorrowRequestDto;
 import com.example.itborrow.dto.request.ReturnRequestDto;
 import com.example.itborrow.dto.response.BorrowResponseDto;
+import com.example.itborrow.dto.response.PageResponse;
 import com.example.itborrow.dto.response.ReturnResponseDto;
 import com.example.itborrow.service.BorrowRequestService;
 import com.example.itborrow.service.ReturnRecordService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +26,8 @@ public class BorrowRequestController {
     private final BorrowRequestService borrowRequestService;
     private final ReturnRecordService returnRecordService;
 
-    public BorrowRequestController(BorrowRequestService borrowRequestService,
-            ReturnRecordService returnRecordService) {
+    public BorrowRequestController(
+            BorrowRequestService borrowRequestService, ReturnRecordService returnRecordService) {
         this.borrowRequestService = borrowRequestService;
         this.returnRecordService = returnRecordService;
     }
@@ -44,8 +47,8 @@ public class BorrowRequestController {
 
     @Operation(summary = "ดูคำขอยืมทั้งหมด พร้อม pagination และ sorting")
     @GetMapping
-    public ResponseEntity<com.example.itborrow.dto.response.PageResponse<BorrowResponseDto>> getAll(Pageable pageable) {
-        return ResponseEntity.ok(com.example.itborrow.dto.response.PageResponse.from(borrowRequestService.findAll(pageable)));
+    public ResponseEntity<PageResponse<BorrowResponseDto>> getAll(Pageable pageable) {
+        return ResponseEntity.ok(PageResponse.from(borrowRequestService.findAll(pageable)));
     }
 
     @Operation(summary = "Admin อนุมัติคำขอยืม: PENDING -> APPROVED")
@@ -68,8 +71,8 @@ public class BorrowRequestController {
 
     @Operation(summary = "คืนอุปกรณ์: BORROWED/OVERDUE -> RETURNED พร้อมคำนวณค่าปรับ")
     @PostMapping("/{id}/return")
-    public ResponseEntity<ReturnResponseDto> returnEquipment(@PathVariable Long id,
-            @Valid @RequestBody ReturnRequestDto dto) {
+    public ResponseEntity<ReturnResponseDto> returnEquipment(
+            @PathVariable Long id, @Valid @RequestBody ReturnRequestDto dto) {
         return ResponseEntity.ok(returnRecordService.returnEquipment(id, dto));
     }
 

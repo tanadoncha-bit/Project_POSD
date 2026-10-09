@@ -1,7 +1,8 @@
 package com.example.itborrow.service;
 
-import java.util.List;
 import com.example.itborrow.domain.entity.User;
+
+import java.util.List;
 
 public interface UserService {
     List<User> getAllUsers();
