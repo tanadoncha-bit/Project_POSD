@@ -1,5 +1,10 @@
-name: Build and test
+name: Build, test and deploy
 on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -32,3 +37,32 @@ jobs:
         with:
           name: test-reports
           path: target/surefire-reports/
+
+  deploy:
+    name: Deploy tested commit to Render
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      COMMIT_SHA: ${{ github.sha }}
+    steps:
+      - name: Trigger Render deployment
+        shell: bash
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Set the RENDER_DEPLOY_HOOK_URL GitHub Actions secret."
+            exit 1
+          fi
+          separator='?'
+          if [[ "$RENDER_DEPLOY_HOOK_URL" == *'?'* ]]; then separator='&'; fi
+          status=$(curl --silent --output /tmp/render-deploy.json --write-out '%{http_code}' \
+            --connect-timeout 15 --max-time 60 --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}${separator}ref=${COMMIT_SHA}")
+          case "$status" in
+            200|202) echo "Render accepted deployment of commit $COMMIT_SHA (HTTP $status)." ;;
+            *) echo "::error::Render rejected deployment (HTTP $status)."; exit 1 ;;
+          esac
+          echo "Deployment was requested. Confirm the final live status in Render."

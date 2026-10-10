@@ -631,7 +631,7 @@ function initializeSearchOverlay() {
                     const image = document.createElement("img"); image.src = equipment.imageUrl; image.alt = equipment.name;
                     image.onerror = () => media.replaceChildren(element("span", "equipment-image-placeholder", "No image")); media.append(image);
                 } else media.append(element("span", "equipment-image-placeholder", "No image"));
-                const badge = element("span", "availability-badge", statusNames[equipment.status] || "Unavailable");
+                const badge = element("span", "availability-badge", equipment.reserved ? "Reserved" : statusNames[equipment.status] || "Unavailable");
                 badge.dataset.status = equipment.status;
                 media.append(badge);
                 const body = element("div", "equipment-card-body");
