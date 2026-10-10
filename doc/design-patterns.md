@@ -8,13 +8,13 @@
 
 ## Class Diagram
 ### State Pattern 
-![State Pattern](img/Pattern/State.png)
+![State Pattern](../doc/Pattern/State.png)
 ### State Pattern 
-![Strategy Pattern](img/Pattern/Strategy.png)
+![Strategy Pattern](../doc/Pattern/Strategy.png)
 ### Observer Pattern 
-![Observer Pattern](img/Pattern/Observer.png)
+![Observer Pattern](../doc/Pattern/Observer.png)
 
-# ส่วน Enterprise / Architectural Patterns ต้องครบ 6 แบบ
+# ส่วน Enterprise / Architectural Patterns
 
 | Pattern | ปัญหาที่แก้ |ไฟล์/คลาสที่ใช้|
 |---|---|---|

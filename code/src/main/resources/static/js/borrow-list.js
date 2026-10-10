@@ -69,7 +69,7 @@
         document.body.append(dialog); dialog.showModal(); document.body.classList.add("modal-open"); return dialog;
     }
     async function getEquipment(id) {
-        const response = await fetch(`/api/v1/equipment/${encodeURIComponent(id)}`);
+        const response = await fetch(`/api/v1/equipment/${encodeURIComponent(id)}`, { cache: "no-store" });
         if (!response.ok) throw new Error("Unable to load equipment. Please try again.");
         return response.json();
     }

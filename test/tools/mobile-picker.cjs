@@ -3,7 +3,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 (async () => {
  const browser = await chromium.launch();
  try {
-  for (const width of [360, 390, 500, 1280]) {
+  for (const width of [360, 390, 500, 1024, 1280, 1366]) {
    const page = await browser.newPage({viewport: {width, height: 844}});
    const css = ['style', 'equipment-workflows'].map(name => fs.readFileSync(`code/src/main/resources/static/css/${name}.css`, 'utf8')).join('\n');
    await page.setContent(`<style>${css}</style><label>Request status<select data-mobile-request-filter><option value="ALL">All requests</option><option value="PENDING">Pending</option></select></label>`);

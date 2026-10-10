@@ -2888,3 +2888,25 @@ body.modal-open .borrow-list-launcher {
     .mobile-history-filter { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; font-size: 12px; color: #737b85; }
     .mobile-history-filter .picker-trigger { min-height: 44px; }
 }
+
+.borrow-item-dialog[open] {
+    height: min(640px, calc(var(--modal-viewport-height, 100dvh) - 32px));
+    max-height: calc(var(--modal-viewport-height, 100dvh) - 32px);
+}
+.borrow-item-dialog .borrow-list-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+.borrow-item-dialog > footer { flex-shrink: 0; }
+.request-page .request-item-image img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 600px) {
+    .borrow-item-dialog[open] { height: var(--modal-viewport-height, 100dvh); max-height: var(--modal-viewport-height, 100dvh); }
+}
+
+.request-page .request-card-header:has(+ .request-management-note) { margin-bottom: 0; }
+.request-page .request-management-note { margin: 12px 22px 0; padding: 10px 14px; }
+.request-page .request-management-note + .request-item-list { padding-top: 12px; }
+@media (max-width: 600px) {
+    .request-page .request-management-note { margin-inline: 16px; }
+}
