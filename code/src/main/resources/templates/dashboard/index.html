@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
+    <link rel="alternate icon" href="/favicon.ico" th:href="@{/favicon.ico}">
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Home | LeadIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../static/css/style.css" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
+  <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+  <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+  <link rel="stylesheet" href="/css/user-navigation.css" th:href="@{/css/user-navigation.css}">
+</head>
+
+<body data-page="home" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
+  <p data-toast="error" role="alert" th:if="${accountError != null}" th:text="${accountError}"></p>
+  <p data-toast="success" role="status" th:if="${accountMessage != null}" th:text="${accountMessage}"></p>
+
+  <div id="site-header" th:replace="~{fragments/site :: siteHeader}"></div>
+
+  <main class="home-page">
+
+    <section class="hero">
+
+      <div class="hero-content">
+
+        <h1>
+          <span>Borrow IT Equipment</span>
+
+          Fast, Easy, Ready to Use
+        </h1>
+
+        <p>
+          Request laptops, monitors, and computer gear
+          online with 24/7 self-service pickup via our
+          Smart Locker.
+        </p>
+
+        <div class="hero-actions">
+          <a class="button button-primary" href="/equipment" th:href="@{/equipment}">Choose Equipment</a>
+
+          <a class="button button-dark" href="/my-requests" th:href="@{/my-requests}" data-requires-login>
+
+            My Requests
+          </a>
+
+        </div>
+      </div>
+
+      <div class="hero-media">
+
+        <img src="../../static/images/home-hero.png" th:src="@{/images/home-hero.png}" alt="Laptops and IT equipment">
+
+      </div>
+    </section>
+    <section class="feature-grid" aria-label="LeadIT features">
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="fast-approval" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-check preview-icon">
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="m16 9-5.5 5.5L8 12" />
+          </svg>
+
+        </span>
+
+        <h2>Fast Approval</h2>
+
+        <p>
+          อนุมัติคำขอรวดเร็ว และมีประสิทธิภาพ
+        </p>
+
+      </article>
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="time-tracking" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-4 preview-icon">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+
+        </span>
+
+        <h2>Time Tracking</h2>
+
+        <p>
+          ติดตามระยะเวลาการยืมอุปกรณ์อย่างแม่นยำ
+        </p>
+
+      </article>
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="self-service" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-handshake preview-icon">
+            <path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" />
+          </svg>
+
+        </span>
+
+        <h2>Self-Service</h2>
+
+        <p>
+          จัดการคำขอด้วยตนเองได้อย่างง่ายดายและสะดวก
+        </p>
+
+      </article>
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="live-inventory" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shelving-unit preview-icon">
+            <path d="M12 12V9a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3" />
+            <path d="M16 20v-3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3" />
+            <path d="M20 22V2" />
+            <path d="M4 12h16" />
+            <path d="M4 20h16" />
+            <path d="M4 2v20" />
+            <path d="M4 4h16" />
+          </svg>
+
+        </span>
+
+        <h2>Live Inventory</h2>
+
+        <p>
+          ตรวจสอบสถานะอุปกรณ์ได้แบบเรียลไทม์
+        </p>
+
+      </article>
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="automated-alerts" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell preview-icon">
+            <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+            <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+          </svg>
+
+        </span>
+
+        <h2>Automated Alerts</h2>
+
+        <p>
+          แจ้งเตือนผู้ใช้งานเมื่อใกล้ถึงกำหนดคืน
+        </p>
+
+      </article>
+
+      <article class="feature-card">
+
+        <span class="feature-icon" data-icon-slot="easy-returns" aria-hidden="true">
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-undo-2 preview-icon">
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />
+          </svg>
+
+        </span>
+
+        <h2>Easy Returns</h2>
+
+        <p>
+          ดำเนินการคืนอุปกรณ์ได้ง่ายและรวดเร็ว
+        </p>
+
+      </article>
+
+    </section>
+    <section class="equipment-preview" aria-labelledby="available-equipment-heading">
+
+      <div class="section-heading">
+
+        <h2 id="available-equipment-heading">
+          Available Equipment
+        </h2>
+
+        <p>
+          Select equipment and submit a borrow request
+          immediately
+        </p>
+
+      </div>
+
+
+
+      <div class="equipment-grid" hidden th:if="${equipments != null and !equipments.isEmpty()}" th:attr="hidden=${null}">
+
+        <article class="equipment-card" th:each="equipment : ${equipments}" tabindex="0" role="button" data-equipment-card data-category="IT Equipment" th:attr="data-equipment-id=${equipment.id},
+                            data-name=${equipment.name},
+                            data-code=${equipment.assetCode},
+                            data-status=${equipment.reserved ? 'RESERVED' : equipment.status}">
+
+          <div class="equipment-card-image">
+
+            <img th:if="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}" th:src="${equipment.imageUrl}" th:alt="${equipment.name}">
+
+            <span class="equipment-image-placeholder" th:unless="${equipment.imageUrl != null and !equipment.imageUrl.isBlank()}">
+
+              LeadIT
+            </span>
+
+            <span class="availability-badge" th:classappend="${equipment.status != null
+                                               and equipment.status.name() != 'AVAILABLE'}
+                                               ? ' availability-badge-in-use'
+                                               : ''" th:text="${equipment.status != null
+                                        and equipment.status.name() == 'AVAILABLE'}
+                                        ? (equipment.reserved ? 'Reserved' : 'Available')
+                                        : 'In Use'">
+
+              Available
+            </span>
+
+          </div>
+
+          <div class="equipment-card-body">
+
+            <h3 th:text="${equipment.name}">
+              Equipment name
+            </h3>
+
+            <p th:text="${categoryNames[equipment.categoryId] != null ? categoryNames[equipment.categoryId] : 'IT Equipment'}">
+              Asset code
+            </p>
+
+          </div>
+
+        </article>
+
+      </div>
+
+      <div class="equipment-empty" hidden th:if="${equipments == null or equipments.isEmpty()}" th:attr="hidden=${null}">
+
+        <h3>
+          No equipment is currently available
+        </h3>
+
+        <p>
+          Browse the equipment catalog or check again later.
+        </p>
+
+      </div>
+
+      <div class="view-all-wrapper">
+
+        <a class="button button-dark view-all" href="../equipment/list.html" th:href="@{/equipment}">
+
+          View All
+        </a>
+
+      </div>
+
+    </section>
+    <div class="success-modal-backdrop" id="success-request-modal" hidden>
+      <div class="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+
+        <button class="success-modal-close" id="success-modal-close-btn" type="button" aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+
+        <div class="success-modal-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+
+        <div class="success-modal-content">
+          <h2 id="success-modal-title">Success Request</h2>
+          <p>You can pick up your device at the specified Smart Locker.</p>
+        </div>
+
+        <div class="success-modal-actions">
+          <div class="success-modal-actions">
+            <button type="button" class="success-stay-button" id="success-stay-btn">Stay Here</button>
+            <a href="../borrow/my-history.html" th:href="@{/borrow/my-history}" class="button button-primary success-view-button">View Request</a>
+          </div>
+
+        </div>
+      </div>
+
+  </main>
+  <div class="equipment-detail-backdrop" id="equipment-detail-modal" hidden>
+
+    <section class="equipment-detail-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-name">
+
+      <header class="equipment-modal-header">
+        <div class="equipment-modal-title">
+          <h2 id="equipment-modal-name">Equipment name</h2>
+          <p id="equipment-modal-category">IT Equipment</p>
+        </div>
+
+        <button class="equipment-modal-close" id="equipment-modal-close" type="button" aria-label="Close equipment detail">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </header>
+
+      <div class="equipment-modal-body">
+        <div class="equipment-modal-image">
+          <img id="equipment-modal-image" src="" alt="" hidden>
+          <span class="equipment-modal-placeholder" id="equipment-modal-image-placeholder">LeadIT</span>
+        </div>
+
+        <section class="equipment-specifications">
+          <h3>Specifications</h3>
+          <div class="specification-grid">
+            <p><strong>Asset code:</strong> <span id="equipment-modal-code">-</span></p>
+            <p><strong>Processor:</strong> <span id="equipment-modal-processor">-</span></p>
+            <p><strong>Memory:</strong> <span id="equipment-modal-memory">-</span></p>
+            <p><strong>Storage:</strong> <span id="equipment-modal-storage">-</span></p>
+            <p><strong>Display:</strong> <span id="equipment-modal-screen">-</span></p>
+            <p><strong>Status:</strong> <span id="equipment-modal-status-text">Available</span></p>
+          </div>
+        </section>
+
+        <div class="equipment-locker-row">
+          <div class="equipment-locker-detail">
+            <span class="equipment-locker-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </span>
+            <p>Available at <strong id="equipment-modal-locker">Locker</strong></p>
+          </div>
+
+          <span class="equipment-locker-status" id="equipment-modal-status">Available</span>
+        </div>
+
+        <div class="equipment-modal-actions">
+          <button class="equipment-modal-cancel" id="equipment-modal-cancel" type="button">Cancel</button>
+
+          <button class="equipment-borrow-button" id="equipment-borrow-button" type="button" data-requires-login>
+            <span aria-hidden="true">+</span>
+            <span id="equipment-borrow-label">Borrow</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div id="site-footer" th:replace="~{fragments/site :: siteFooter}"></div>
+  <div id="site-modals">
+    <div th:replace="~{fragments/site :: loginModal}"></div>
+    <div th:replace="~{fragments/site :: registerModal}"></div>
+    <div th:replace="~{fragments/site :: searchOverlay}"></div>
+  </div>
+  <script src="../../static/js/site-preview.js" th:src="@{/js/site-preview.js}"></script>
+
+  <script src="../../static/js/equipment-catalog.js" th:src="@{/js/equipment-catalog.js}"></script>
+  <script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+  <script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+
+  <script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
+  <script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+package com.example.itborrow.config;
+
+import com.example.itborrow.repository.UserRepository;
+import com.example.itborrow.security.AccountPrincipal;
+import com.example.itborrow.security.AuthenticationThrottle;
+import com.example.itborrow.security.AuthenticationThrottleFilter;
+import com.example.itborrow.security.GoogleOidcUserService;
+
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            UserRepository users,
+            ObjectProvider<ClientRegistrationRepository> registrations,
+            GoogleOidcUserService googleUsers,
+            AuthenticationThrottle throttle)
+            throws Exception {
+        http.addFilterBefore(
+                new AuthenticationThrottleFilter(throttle),
+                UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new CurrentRoleFilter(users), AuthorizationFilter.class);
+        http.authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/",
+                                                "/Dashboard",
+                                                "/equipment/**",
+                                                "/css/**",
+                                                "/js/**",
+                                                "/images/**",
+                                                "/favicon.ico",
+                                                "/favicon.svg",
+                                                "/error",
+                                                "/error/401",
+                                                "/error/400",
+                                                "/error/403",
+                                                "/error/404",
+                                                "/error/500",
+                                                "/error/503",
+                                                "/register",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui.html",
+                                                "/v3/api-docs/**",
+                                                "/actuator/health",
+                                                "/confirm-email-change",
+                                                "/api/v1/auth/providers",
+                                                "/verify-email",
+                                                "/oauth2/**",
+                                                "/login/oauth2/**")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                HttpMethod.GET,
+                                                "/api/v1/equipment/**",
+                                                "/api/v1/categories",
+                                                "/api/v1/categories/*")
+                                        .permitAll()
+                                        .requestMatchers("/admin/users", "/admin/users/**")
+                                        .hasRole("ADMIN")
+                                        .requestMatchers(HttpMethod.DELETE, "/api/v1/equipment/**")
+                                        .hasRole("ADMIN")
+                                        .requestMatchers("/api/v1/equipment/**", "/admin/**")
+                                        .hasAnyRole("ADMIN", "STAFF")
+                                        .requestMatchers("/api/v1/borrow-requests/*/approve")
+                                        .hasAnyRole("ADMIN", "STAFF")
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/api/v1/borrow-requests/*/return")
+                                        .hasAnyRole("ADMIN", "STAFF")
+                                        .requestMatchers(
+                                                "/api/v1/categories/**", "/api/v1/users/**")
+                                        .hasRole("ADMIN")
+                                        .anyRequest()
+                                        .authenticated())
+                .formLogin(
+                        form ->
+                                form.loginPage("/")
+                                        .loginProcessingUrl("/login")
+                                        .defaultSuccessUrl("/", true)
+                                        .failureUrl("/?loginError=true")
+                                        .permitAll())
+                .logout(
+                        logout ->
+                                logout.logoutUrl("/logout")
+                                        .logoutSuccessUrl("/")
+                                        .invalidateHttpSession(true)
+                                        .deleteCookies("JSESSIONID"))
+                .exceptionHandling(
+                        errors ->
+                                errors.defaultAuthenticationEntryPointFor(
+                                                (request, response, exception) ->
+                                                        response.sendError(401),
+                                                request ->
+                                                        request.getRequestURI().startsWith("/api/"))
+                                        .defaultAuthenticationEntryPointFor(
+                                                (request, response, exception) ->
+                                                        response.sendRedirect(
+                                                                request.getContextPath()
+                                                                        + "/error/401"),
+                                                request ->
+                                                        !request.getRequestURI()
+                                                                .startsWith("/api/"))
+                                        .accessDeniedHandler(
+                                                (request, response, exception) -> {
+                                                    if (request.getRequestURI()
+                                                            .startsWith("/api/")) {
+
+                                                        response.setStatus(
+                                                                HttpStatus.FORBIDDEN.value());
+
+                                                        response.setContentType("application/json");
+                                                        response.setCharacterEncoding("UTF-8");
+
+                                                        response.getWriter()
+                                                                .write(
+                                                                        """
+{
+    "status": 403,
+    "error": "Forbidden",
+    "message": "Access denied"
+}
+""");
+
+                                                    } else {
+
+                                                        response.setStatus(
+                                                                HttpServletResponse.SC_FORBIDDEN);
+                                                        request.getRequestDispatcher("/error/403")
+                                                                .forward(request, response);
+                                                    }
+                                                }));
+        if (registrations.getIfAvailable() != null) {
+            http.oauth2Login(
+                    oauth ->
+                            oauth.loginPage("/")
+                                    .userInfoEndpoint(info -> info.oidcUserService(googleUsers))
+                                    .successHandler(
+                                            (request, response, authentication) -> {
+                                                var account =
+                                                        users.findByUsername(
+                                                                        authentication.getName())
+                                                                .orElseThrow();
+                                                String destination =
+                                                        account.isLocalPasswordEnabled()
+                                                                ? "/profile"
+                                                                : "/profile/setup-login";
+                                                response.sendRedirect(
+                                                        request.getContextPath() + destination);
+                                            })
+                                    .failureHandler(
+                                            (request, response, error) -> {
+                                                String message =
+                                                        "Unable to sign in with Google. Please try"
+                                                                + " again.";
+                                                if (error
+                                                                instanceof
+                                                                OAuth2AuthenticationException
+                                                                                oauthError
+                                                        && "account_exists"
+                                                                .equals(
+                                                                        oauthError
+                                                                                .getError()
+                                                                                .getErrorCode()))
+                                                    message =
+                                                            "Sign in to your existing account and"
+                                                                + " Verify Email first. Then use"
+                                                                + " Continue with Google.";
+                                                request.getSession()
+                                                        .setAttribute(
+                                                                "googleLoginMessage", message);
+                                                response.sendRedirect(
+                                                        request.getContextPath()
+                                                                + "/?googleLoginError=true");
+                                            }));
+        }
+        return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(UserRepository users) {
+        return username -> {
+            var user =
+                    users.findByUsername(username)
+                            .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
+            return new AccountPrincipal(user);
+        };
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}

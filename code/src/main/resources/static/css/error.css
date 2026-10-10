@@ -1,0 +1,256 @@
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #ffffff;
+    color: #111111;
+}
+
+
+.error-page {
+    min-height: calc(100vh - 80px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 60px 30px;
+}
+
+
+.error-card {
+    width: 100%;
+    max-width: 620px;
+
+    background: #ffffff;
+
+    border: 1px solid #dedede;
+    border-radius: 24px;
+
+    padding: 60px 50px;
+
+    text-align: center;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+
+    animation: errorFadeIn 0.4s ease;
+}
+
+
+.error-icon {
+    width: 82px;
+    height: 82px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 22px;
+
+    background: #fff1e8;
+    color: #ff7425;
+
+    border: 1px solid #ffd5bd;
+
+    font-size: 38px;
+    font-weight: 700;
+}
+
+
+.error-code {
+    font-size: 92px;
+    line-height: 1;
+
+    font-weight: 800;
+
+    letter-spacing: -5px;
+
+    color: #ff7425;
+
+    margin-bottom: 12px;
+}
+
+
+.error-card h1 {
+    font-size: 32px;
+
+    font-weight: 800;
+
+    color: #111111;
+
+    margin-bottom: 16px;
+}
+
+
+.error-card p {
+    max-width: 480px;
+
+    margin: 0 auto 32px;
+
+    font-size: 16px;
+
+    line-height: 1.7;
+
+    color: #555555;
+}
+
+
+.error-actions {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 14px;
+
+    flex-wrap: wrap;
+}
+
+.error-button {
+    min-width: 160px;
+
+    padding: 15px 25px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 30px;
+
+    background: #ff7425;
+
+    color: #ffffff;
+
+    border: 1px solid #ff7425;
+
+    text-decoration: none;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    transition: all 0.2s ease;
+}
+
+.error-button:hover {
+    background: #e96318;
+
+    border-color: #e96318;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 7px 18px rgba(255, 116, 37, 0.25);
+}
+
+
+.error-button.secondary {
+    background: #111111;
+
+    border-color: #111111;
+
+    color: #ffffff;
+}
+
+.error-button.secondary:hover {
+    background: #2a2a2a;
+
+    border-color: #2a2a2a;
+
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.15);
+}
+
+
+.error-help {
+    margin-top: 28px;
+
+    font-size: 13px;
+
+    color: #999999;
+}
+
+
+.error-card::after {
+    content: "";
+
+    display: block;
+
+    width: 45px;
+    height: 4px;
+
+    margin: 32px auto 0;
+
+    background: #ff7425;
+
+    border-radius: 10px;
+}
+
+
+@keyframes errorFadeIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .error-page {
+        padding: 30px 20px;
+    }
+
+    .error-card {
+        padding: 45px 25px;
+
+        border-radius: 20px;
+    }
+
+    .error-icon {
+        width: 70px;
+        height: 70px;
+
+        font-size: 32px;
+
+        border-radius: 18px;
+    }
+
+    .error-code {
+        font-size: 70px;
+
+        letter-spacing: -3px;
+    }
+
+    .error-card h1 {
+        font-size: 26px;
+    }
+
+    .error-card p {
+        font-size: 14px;
+    }
+
+    .error-actions {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .error-button {
+        width: 100%;
+    }
+}html, body, body * { scrollbar-width: none !important; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }

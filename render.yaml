@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: leadit
+    runtime: docker
+    branch: main
+    autoDeployTrigger: off
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: APP_PROFILE
+        value: migrations,production
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=65.0 -XX:+ExitOnOutOfMemoryError
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GOOGLE_LOGIN_ENABLED
+        value: "false"
+      - key: APP_JOBS_ENABLED
+        value: "true"

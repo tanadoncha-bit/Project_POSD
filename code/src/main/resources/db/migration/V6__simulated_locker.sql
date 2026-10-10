@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS locker_access (
+ request_id BIGINT PRIMARY KEY REFERENCES borrow_requests(id) ON DELETE CASCADE,
+ pin VARCHAR(6), slots VARCHAR(2000) NOT NULL, opened BOOLEAN NOT NULL DEFAULT false
+);

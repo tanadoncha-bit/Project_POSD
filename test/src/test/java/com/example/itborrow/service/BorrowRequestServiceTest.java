@@ -1,0 +1,258 @@
+package com.example.itborrow.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import com.example.itborrow.config.FeePolicyProperties;
+import com.example.itborrow.domain.entity.BorrowItem;
+import com.example.itborrow.domain.entity.BorrowRequest;
+import com.example.itborrow.domain.entity.Equipment;
+import com.example.itborrow.domain.entity.User;
+import com.example.itborrow.domain.enums.BorrowStatus;
+import com.example.itborrow.domain.enums.EquipmentStatus;
+import com.example.itborrow.domain.state.BorrowState;
+import com.example.itborrow.domain.state.BorrowStateResolver;
+import com.example.itborrow.dto.request.BorrowItemRequestDto;
+import com.example.itborrow.dto.request.BorrowRequestDto;
+import com.example.itborrow.dto.response.BorrowResponseDto;
+import com.example.itborrow.exception.EquipmentNotAvailableException;
+import com.example.itborrow.exception.ResourceNotFoundException;
+import com.example.itborrow.mapper.BorrowRequestMapper;
+import com.example.itborrow.repository.BorrowRequestRepository;
+import com.example.itborrow.repository.EquipmentCategoryRepository;
+import com.example.itborrow.repository.EquipmentRepository;
+import com.example.itborrow.repository.UserRepository;
+import com.example.itborrow.service.impl.BorrowRequestServiceImpl;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+@ExtendWith(MockitoExtension.class)
+class BorrowRequestServiceTest {
+
+    @Mock private BorrowRequestRepository borrowRequestRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private EquipmentRepository equipmentRepository;
+    @Mock private EquipmentCategoryRepository categories;
+    @Mock private BorrowStateResolver stateResolver;
+    @Mock private BorrowRequestMapper mapper;
+    @Mock private CurrentUser current;
+    @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private BorrowState mockState;
+
+    @Spy private FeePolicyProperties fees = new FeePolicyProperties();
+
+    @Spy
+    Clock clock = Clock.fixed(Instant.parse("2026-10-07T17:10:00Z"), ZoneId.of("Asia/Bangkok"));
+
+    @InjectMocks private BorrowRequestServiceImpl service;
+
+    private User testUser;
+    private Equipment testEquipment;
+
+    @BeforeEach
+    void setUp() {
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("somchai");
+
+        testEquipment = new Equipment();
+        testEquipment.setId(10L);
+        testEquipment.setAssetCode("LAP-001");
+        testEquipment.setName("Dell Latitude 5420");
+        testEquipment.setStatus(EquipmentStatus.AVAILABLE);
+    }
+
+    @Test
+    void createBorrowRequest_success_whenEquipmentAvailable() {
+        BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
+        BorrowRequestDto dto =
+                buildBorrowRequestDto(
+                        1L, LocalDate.now(clock).plusDays(7), "ยืมไปประชุม", List.of(itemDto));
+
+        when(current.require()).thenReturn(testUser);
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
+        when(borrowRequestRepository.save(any(BorrowRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toResponseDto(any(BorrowRequest.class)))
+                .thenReturn(BorrowResponseDto.builder().build());
+
+        BorrowResponseDto result = service.createBorrowRequest(dto);
+
+        assertThat(result).isNotNull();
+        verify(borrowRequestRepository).save(any(BorrowRequest.class));
+    }
+
+    @Test
+    void creationFreezesConfiguredPolicyInsteadOfHardcodedRates() {
+        fees.setStandardDailyFine(new BigDecimal("85.00"));
+        fees.setStandardGraceDays(3);
+        fees.setScratchRate(new BigDecimal("0.15"));
+        var dto =
+                buildBorrowRequestDto(
+                        1L,
+                        LocalDate.now(clock).plusDays(7),
+                        null,
+                        List.of(new BorrowItemRequestDto(10L, 1)));
+        when(current.require()).thenReturn(testUser);
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
+        when(borrowRequestRepository.save(any(BorrowRequest.class)))
+                .thenAnswer(i -> i.getArgument(0));
+        service.createBorrowRequest(dto);
+        var captor = ArgumentCaptor.forClass(BorrowRequest.class);
+        verify(borrowRequestRepository).save(captor.capture());
+        var saved = captor.getValue();
+        assertThat(saved.getDailyFine()).isEqualByComparingTo("85.00");
+        assertThat(saved.getGraceDays()).isEqualTo(3);
+        assertThat(saved.getScratchRate()).isEqualByComparingTo("0.15");
+        fees.setStandardDailyFine(new BigDecimal("100.00"));
+        assertThat(saved.getDailyFine()).isEqualByComparingTo("85.00");
+    }
+
+    @Test
+    void createBorrowRequest_throwsException_whenEquipmentNotAvailable() {
+        testEquipment.setStatus(EquipmentStatus.IN_USE);
+
+        BorrowItemRequestDto itemDto = new BorrowItemRequestDto(10L, 1);
+        BorrowRequestDto dto =
+                buildBorrowRequestDto(1L, LocalDate.now(clock).plusDays(7), null, List.of(itemDto));
+
+        when(current.require()).thenReturn(testUser);
+        when(equipmentRepository.findLockedById(10L)).thenReturn(Optional.of(testEquipment));
+
+        assertThatThrownBy(() -> service.createBorrowRequest(dto))
+                .isInstanceOf(EquipmentNotAvailableException.class)
+                .hasMessageContaining("ไม่พร้อมให้ยืม");
+
+        verify(borrowRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void createBorrowRequest_throwsException_whenUnauthenticated() {
+        BorrowRequestDto dto =
+                buildBorrowRequestDto(
+                        999L, LocalDate.now(clock).plusDays(7), null, Collections.emptyList());
+        when(current.require()).thenThrow(new AccessDeniedException("Sign in"));
+
+        assertThatThrownBy(() -> service.createBorrowRequest(dto))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void approveBorrowRequest_success_delegatesToStatePattern() {
+        BorrowRequest request = buildBorrowRequest(BorrowStatus.PENDING);
+
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(request));
+        when(stateResolver.resolve(BorrowStatus.PENDING)).thenReturn(mockState);
+        when(borrowRequestRepository.save(request)).thenReturn(request);
+        when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
+
+        service.approveBorrowRequest(1L);
+
+        verify(mockState).approve(request);
+    }
+
+    @Test
+    void approveBorrowRequest_throwsException_whenRequestNotFound() {
+        when(borrowRequestRepository.findLockedById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.approveBorrowRequest(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void pickUpEquipment_success_changesEquipmentStatusToBorrowed() {
+        when(current.require()).thenReturn(testUser);
+        BorrowRequest request = buildBorrowRequestWithItem(BorrowStatus.APPROVED);
+
+        when(borrowRequestRepository.findLockedById(1L)).thenReturn(Optional.of(request));
+        when(stateResolver.resolve(BorrowStatus.APPROVED)).thenReturn(mockState);
+        when(borrowRequestRepository.save(request)).thenReturn(request);
+        when(mapper.toResponseDto(request)).thenReturn(BorrowResponseDto.builder().build());
+
+        when(equipmentRepository.transition(10L, EquipmentStatus.AVAILABLE, EquipmentStatus.IN_USE))
+                .thenReturn(1);
+        service.pickUpEquipment(1L);
+
+        assertThat(testEquipment.getStatus()).isEqualTo(EquipmentStatus.IN_USE);
+        verify(equipmentRepository)
+                .transition(10L, EquipmentStatus.AVAILABLE, EquipmentStatus.IN_USE);
+    }
+
+    @Test
+    void checkAndMarkOverdue_publishesEventForEachOverdueRequest() {
+        BorrowRequest overdueCandidate = buildBorrowRequest(BorrowStatus.BORROWED);
+        overdueCandidate.setDueDate(LocalDate.now(clock).minusDays(3));
+
+        when(borrowRequestRepository.findOverdueForUpdate(
+                        eq(BorrowStatus.BORROWED), any(LocalDate.class)))
+                .thenReturn(List.of(overdueCandidate));
+        when(stateResolver.resolve(BorrowStatus.BORROWED)).thenReturn(mockState);
+        when(borrowRequestRepository.save(overdueCandidate)).thenReturn(overdueCandidate);
+
+        service.checkAndMarkOverdue();
+
+        verify(mockState).markOverdue(overdueCandidate);
+        verify(eventPublisher, times(1)).publishEvent(any());
+    }
+
+    @Test
+    void checkAndMarkOverdue_doesNothing_whenNoOverdueRequests() {
+        when(borrowRequestRepository.findOverdueForUpdate(
+                        eq(BorrowStatus.BORROWED), any(LocalDate.class)))
+                .thenReturn(Collections.emptyList());
+
+        service.checkAndMarkOverdue();
+
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    private BorrowRequestDto buildBorrowRequestDto(
+            Long userId, LocalDate dueDate, String note, List<BorrowItemRequestDto> items) {
+        BorrowRequestDto dto = new BorrowRequestDto();
+        dto.setUserId(userId);
+        dto.setBorrowDate(LocalDate.now(clock));
+        dto.setDueDate(dueDate);
+        dto.setNote(note);
+        dto.setItems(items);
+        return dto;
+    }
+
+    private BorrowRequest buildBorrowRequest(BorrowStatus status) {
+        BorrowRequest request = new BorrowRequest();
+        request.setId(1L);
+        request.setUser(testUser);
+        request.setBorrowDate(LocalDate.now(clock));
+        request.setDueDate(LocalDate.now(clock).plusDays(7));
+        request.setStatus(status);
+        return request;
+    }
+
+    private BorrowRequest buildBorrowRequestWithItem(BorrowStatus status) {
+        BorrowRequest request = buildBorrowRequest(status);
+        var item = new BorrowItem();
+        item.setEquipment(testEquipment);
+        item.setQuantity(1);
+        request.addItem(item);
+        return request;
+    }
+}

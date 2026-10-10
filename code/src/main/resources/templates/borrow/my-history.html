@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" th:href="@{/favicon.svg}">
+    <link rel="alternate icon" href="/favicon.ico" th:href="@{/favicon.ico}">
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Requests | LeadIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../static/css/style.css?v=1" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="/css/equipment-workflows.css" th:href="@{/css/equipment-workflows.css}">
+  <script defer src="../../static/js/modal-scroll.js" th:src="@{/js/modal-scroll.js}"></script>
+  <script defer src="../../static/js/toast.js" th:src="@{/js/toast.js}"></script>
+  <link rel="stylesheet" href="/css/user-navigation.css" th:href="@{/css/user-navigation.css}">
+</head>
+
+<body data-page="requests" th:attr="data-authenticated=${currentUser != null},data-username=${currentUser != null ? currentUser.username : ''},data-role=${currentUser != null ? currentUser.role : ''}">
+  <div id="site-header" th:replace="~{fragments/site :: siteHeader}"></div>
+
+
+  <main class="request-history-page request-page" th:attr="data-server-paged=${requestPage != null}">
+    <header class="request-history-heading">
+
+      <h1>My Requests</h1>
+      <p role="alert" th:if="${overdueCount != null and overdueCount > 0}" th:text="|You have ${overdueCount} overdue request(s). Please return the equipment.|"></p>
+
+      <p>
+        Track your request statuses and return due dates
+      </p>
+
+    </header>
+    <nav class="request-filter-tabs" aria-label="Filter borrow requests">
+
+      <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'ALL' ? 'active' : ''}" data-request-filter="ALL" th:attr="data-total=${requestCounts != null ? requestCounts['ALL'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'ALL'}">
+
+        All Request <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['ALL'] : 0}">0</span></button>
+
+      <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'ACTIVE' ? 'active' : ''}" data-request-filter="ACTIVE" th:attr="data-total=${requestCounts != null ? requestCounts['ACTIVE'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'ACTIVE'}">
+
+        Active <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['ACTIVE'] : 0}">0</span></button>
+
+      <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'PENDING' ? 'active' : ''}" data-request-filter="PENDING" th:attr="data-total=${requestCounts != null ? requestCounts['PENDING'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'PENDING'}">
+
+        Pending <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['PENDING'] : 0}">0</span></button>
+
+      <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'RETURNED' ? 'active' : ''}" data-request-filter="RETURNED" th:attr="data-total=${requestCounts != null ? requestCounts['RETURNED'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'RETURNED'}">
+
+        Returned <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['RETURNED'] : 0}">0</span></button>
+
+      <button class="request-filter-button" type="button" th:classappend="${requestStatus == 'CANCELLED' ? 'active' : ''}" data-request-filter="CANCELLED" th:attr="data-total=${requestCounts != null ? requestCounts['CANCELLED'] : 0}" th:attrappend="aria-pressed=${requestStatus == 'CANCELLED'}">Cancelled <span class="request-filter-count" th:text="${requestCounts != null ? requestCounts['CANCELLED'] : 0}">0</span></button>
+    </nav>
+    <section class="request-login-state" data-guest-only th:if="${currentUser == null}">
+
+      <p>
+        Please log in to view your request history.
+      </p>
+
+    </section>
+    <section class="request-list" id="request-server-list" hidden th:if="${requests != null and !requests.isEmpty()}" th:attr="hidden=${null}">
+
+      <article class="request-card" data-request-card th:each="request : ${requests}" th:attr="data-request-status=${
+                         request.status == 'APPROVED'
+                         or request.status == 'BORROWED'
+                         or request.status == 'OVERDUE'
+                         ? 'ACTIVE'
+                         : request.status
+                     }">
+
+        <header class="request-card-header">
+
+          <div class="request-card-heading">
+
+            <span class="request-card-icon" data-icon-slot="request-device" aria-hidden="true"><img src="../../static/images/request-device.svg" th:src="@{/images/request-device.svg}" alt=""></span>
+
+            <div>
+
+              <h2 th:text="|Request #${request.id}|">
+                Request
+              </h2>
+
+              <p>
+                <span class="request-date-line"><span>Borrowed: </span><span th:text="${request.borrowDate}">
+                  Borrow date
+                </span>
+
+                </span><span class="request-date-separator" aria-hidden="true"> | </span><span class="request-date-line"><span>Due: </span>
+
+                <span th:text="${request.dueDate}">
+                  Due date
+                </span></span>
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="request-card-status-area">
+
+            <span class="request-locker-pin" role="status" th:if="${request.status == 'APPROVED'}" th:attr="data-locker-pin=${request.id}">PIN: Loading...</span>
+
+
+            <span class="request-status" th:classappend="${
+                                  request.status == 'PENDING'
+                                  ? ' request-status-pending'
+                                  : request.status == 'RETURNED'
+                                  ? ' request-status-returned'
+                                  : request.status == 'CANCELLED' ? ' request-status-cancelled'
+                                  : request.status == 'OVERDUE' ? ' request-status-overdue'
+                                  : ' request-status-active'
+                              }" th:text="${
+                                  request.status == 'BORROWED'
+                                  ? 'Active'
+                                  : request.status == 'APPROVED'
+                                  ? 'Approved'
+                                  : request.status == 'OVERDUE'
+                                  ? 'Overdue'
+                                  : request.status == 'RETURNED'
+                                  ? 'Returned'
+                                  : request.status == 'CANCELLED' ? 'Cancelled' : 'Pending'
+                              }">
+
+              Pending
+            </span>
+
+          </div>
+
+        </header>
+
+
+        <p class="request-management-note" th:if="${request.rejectionReason != null}" th:text="|Rejected: ${request.rejectionReason}|"></p>
+        <div class="request-item-list">
+
+          <article class="request-equipment-item" th:each="item : ${request.items}">
+
+            <div class="request-item-image">
+
+              <img th:if="${!#strings.isEmpty(item.imageUrl)}" th:src="${item.imageUrl}" th:alt="${item.equipmentName}" loading="lazy" decoding="async">
+              <span class="request-item-image-placeholder" th:if="${#strings.isEmpty(item.imageUrl)}">No photo</span>
+
+                        </div>
+
+
+                        <div class="request-item-content">
+
+                            <h3 th:text="${item.equipmentName}">
+                                Equipment name
+                            </h3>
+
+                            <p th:if="${item.returnedOn != null}" th:text="|Returned: ${item.returnedOn}|"></p>
+                            <p th:text="|Quantity: ${item.quantity}|">
+                                Quantity: 1
+                            </p>
+
+                            <span class="request-item-locker">
+
+                                <span data-icon-slot="locker-location"
+                                      aria-hidden="true"><img src="../../static/images/request-location.svg" th:src="@{/images/request-location.svg}" alt=""></span>
+
+                                <span th:text="${item.storageSlot != null and !#strings.isEmpty(item.storageSlot) ? item.storageSlot : 'Slot not assigned'}">Slot not assigned
+                                </span>
+
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+                <footer class="request-card-actions" th:if="${request.status == 'PENDING' or request.status == 'APPROVED' or request.status == 'RETURNED'}">
+                            <button class="request-action" type="button" th:if="${request.status == 'PENDING'}" th:attr="data-cancel-request=${request.id},aria-label=|Cancel request #${request.id}|">Cancel request</button>
+                            <button class="request-action request-pickup-action" type="button" th:if="${request.status == 'APPROVED'}" th:attr="data-confirm-pickup=${request.id}">Confirm pickup</button>
+                            <button class="request-action" type="button" th:if="${request.status == 'RETURNED'}" th:attr="data-return-receipt=${request.id}">View charges</button>
+                </footer>
+            </article>
+
+        </section>
+        <section class="request-empty-state"
+                 id="request-server-empty"
+                 hidden
+                 th:if="${requests == null or requests.isEmpty()}"
+                 th:attr="hidden=${null}">
+
+            <p th:text="${requestStatus != null and requestStatus != 'ALL' ? 'No requests in this status yet.' : 'You do not have any borrow requests yet.'}">
+                You do not have any borrow requests yet.
+            </p>
+
+            <a class="button button-dark"
+               href="../equipment/list.html"
+               th:href="@{/equipment}">
+
+                Browse Equipment
+            </a>
+
+        </section>
+        <section class="request-filter-empty"
+                 id="request-filter-empty"
+                 hidden>
+
+            <p>
+                No requests match this filter
+            </p>
+
+        </section>
+
+        <nav class="management-pagination" aria-label="Request pages" th:if="${requestPage != null and requestPage.totalPages > 1}">
+            <a th:if="${requestPage.hasPrevious()}" th:href="@{/my-requests(page=${requestPage.number - 1},status=${requestStatus},keyword=${keyword})}">Previous</a><span th:text="|Page ${requestPage.number + 1} of ${requestPage.totalPages}|"></span><a th:if="${requestPage.hasNext()}" th:href="@{/my-requests(page=${requestPage.number + 1},status=${requestStatus},keyword=${keyword})}">Next</a>
+        </nav>
+    </main>
+    <div id="site-footer"
+         th:replace="~{fragments/site :: siteFooter}"></div>
+    <div id="site-modals">
+        <div th:replace="~{fragments/site :: loginModal}"></div>
+        <div th:replace="~{fragments/site :: registerModal}"></div>
+        <div th:replace="~{fragments/site :: searchOverlay}"></div>
+    </div>
+
+    <script src="../../static/js/site-preview.js?v=1"
+            th:src="@{/js/site-preview.js}"></script>
+
+    <script src="../../static/js/request-history.js?v=1"
+            th:src="@{/js/request-history.js}"></script>
+
+<script src="../../static/js/return-receipt.js" th:src="@{/js/return-receipt.js}"></script>
+<script src="../../static/js/borrow-form.js" th:src="@{/js/borrow-form.js}"></script>
+<script src="../../static/js/borrow-modal.js" th:src="@{/js/borrow-modal.js}"></script>
+<script src="../../static/js/equipment-specs.js" th:src="@{/js/equipment-specs.js}"></script>
+<script src="../../static/js/borrow-list.js" th:src="@{/js/borrow-list.js}"></script>
+<script src="/js/locker-access.js" th:src="@{/js/locker-access.js}"></script>
+</body>
+</html>

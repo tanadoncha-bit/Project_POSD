@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::title}, 'profile', ~{::content})}">
+<head><title>Confirm email change | LeadIT</title></head>
+<body><main class="password-settings-page" th:fragment="content">
+<section class="password-settings-card">
+<header class="password-settings-heading"><h1>Confirm email change</h1></header>
+<div th:if="${complete}"><p>Your email is updated and verified. Sign in again to continue.</p><a href="/">Sign in</a></div>
+<form class="password-settings-form" th:if="${valid}" method="post" th:action="@{/confirm-email-change}">
+<p>Confirm your new email address. Your existing sessions will be signed out.</p>
+<input type="hidden" name="token" th:value="${token}">
+<button class="password-settings-save" type="submit">Confirm email change</button></form>
+<p th:if="${!complete and !valid}">This link is invalid or expired. Request a new link from your profile.</p>
+</section></main></body></html>

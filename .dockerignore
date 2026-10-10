@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+target
+tmp
+screenshot
+test_report
+.vscode
+
+backups
+doc

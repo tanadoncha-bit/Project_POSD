@@ -1,0 +1,68 @@
+name: CI/CD
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: review_test
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: leadit_test
+        ports: ["55439:5432"]
+        options: >-
+          --health-cmd "pg_isready -U review_test -d leadit_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_POSTGRES_URL: jdbc:postgresql://127.0.0.1:55439/leadit_test
+      TEST_POSTGRES_USERNAME: review_test
+      TEST_POSTGRES_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: chmod +x mvnw
+      - run: ./mvnw -B verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+
+  deploy:
+    name: Deploy tested commit to Render
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      COMMIT_SHA: ${{ github.sha }}
+    steps:
+      - name: Trigger Render deployment
+        shell: bash
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "::error::Set the RENDER_DEPLOY_HOOK_URL GitHub Actions secret."
+            exit 1
+          fi
+          separator='?'
+          if [[ "$RENDER_DEPLOY_HOOK_URL" == *'?'* ]]; then separator='&'; fi
+          status=$(curl --silent --output /tmp/render-deploy.json --write-out '%{http_code}' \
+            --connect-timeout 15 --max-time 60 --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}${separator}ref=${COMMIT_SHA}")
+          case "$status" in
+            200|202) echo "Render accepted deployment of commit $COMMIT_SHA (HTTP $status)." ;;
+            *) echo "::error::Render rejected deployment (HTTP $status)."; exit 1 ;;
+          esac
+          echo "Deployment was requested. Confirm the final live status in Render."
